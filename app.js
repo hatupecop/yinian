@@ -1790,7 +1790,7 @@ document.addEventListener('click', e => {
   if (!['moment-menu','moment-like','moment-comment'].includes(act)) closeMomentMenus();
 });
 $('#chat-input') && $('#chat-input').addEventListener('keydown', e => { if (e.key === 'Enter') sendChat(); });
-/* 键盘高度检测（visualViewport）：把导航栏压到屏幕最底、被键盘盖住；覆盖层模式下把输入框抬到键盘上方 */
+/* 键盘高度检测（visualViewport）：键盘弹起时输入框贴键盘、导航栏沉到键盘后 */
 (function () {
   const root = document.documentElement;
   let baseH = window.innerHeight;
@@ -1802,8 +1802,10 @@ $('#chat-input') && $('#chat-input').addEventListener('keydown', e => { if (e.ke
     const kb = Math.max(0, window.innerHeight - vh - vTop, baseH - window.innerHeight);
     // 覆盖层模式：布局视口不收缩，但 visualViewport 缩小 → 输入框需额外抬升
     const overlay = (window.innerHeight >= baseH - 2) && (vh < baseH - 2);
-    root.style.setProperty('--kb', kb + 'px');
     root.style.setProperty('--kb-input', (overlay ? kb : 0) + 'px');
+    // 键盘弹起：给 body 加 kb-open（输入框贴键盘、导航栏沉到键盘后）
+    if (kb > 4) document.body.classList.add('kb-open');
+    else document.body.classList.remove('kb-open');
   }
   function recapBase() { if (window.innerHeight > baseH) baseH = window.innerHeight; }
   if (window.visualViewport) {
