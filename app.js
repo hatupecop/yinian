@@ -1664,14 +1664,22 @@ function applyText() {
 }
 function applyElStyle() {
   const styles = data.settings.elStyle || {};
-  Object.keys(styles).forEach(key => {
+  const present = new Set(Object.keys(styles));
+  Object.keys(EL_CFG).forEach(key => {
     const cfg = EL_CFG[key];
     if (!cfg || !cfg.selector) return;
     const st = styles[key] || {};
     $all(cfg.selector).forEach(el => {
-      el.style.fontFamily = st.font || '';
-      el.style.color = st.color || '';
-      el.style.fontSize = (st.size > 0 ? st.size + 'px' : '');
+      if (present.has(key)) {
+        el.style.fontFamily = st.font || '';
+        el.style.color = st.color || '';
+        el.style.fontSize = (st.size > 0 ? st.size + 'px' : '');
+      } else {
+        // 该元素已无覆盖：清掉之前可能残留的内联样式，否则红字去不掉
+        el.style.fontFamily = '';
+        el.style.color = '';
+        el.style.fontSize = '';
+      }
     });
   });
 }
@@ -1962,8 +1970,29 @@ function previewElStyle(key, st) {
   });
 }
 function openText() {
-  const text = data.settings.text || {};
-  const style = data.settings.elStyle || {};
+  // 草稿：只在「保存」时写回 data，避免误触即时生效
+  const draftText = Object.assign({}, data.settings.text || {});
+  const draftStyle = JSON.parse(JSON.stringify(data.settings.elStyle || {}));
+  const canText = cfg => cfg.default != null || cfg.dynamic;
+  function applyDraftText(key) {
+    const cfg = EL_CFG[key]; if (!cfg || !cfg.selector) return;
+    const t = draftText[key];
+    $all(cfg.selector).forEach(el => {
+      if (cfg.prop === 'placeholder') el.placeholder = (t != null && t !== '') ? t : (cfg.default || '');
+      else if (t != null && t !== '') el.textContent = t;
+      else if (cfg.default != null) el.textContent = cfg.default;
+    });
+    if ((t == null || t === '') && cfg.dynamic) renderActive();
+  }
+  function applyDraftStyle(key) {
+    const cfg = EL_CFG[key]; if (!cfg || !cfg.selector) return;
+    const st = draftStyle[key] || {};
+    $all(cfg.selector).forEach(el => {
+      el.style.fontFamily = st.font || '';
+      el.style.color = st.color || '';
+      el.style.fontSize = (st.size > 0 ? st.size + 'px' : '');
+    });
+  }
   const groups = {};
   Object.keys(EL_CFG).forEach(key => {
     const cfg = EL_CFG[key];
@@ -1973,30 +2002,40 @@ function openText() {
   const groupOrder = ['纪念日','纪念日类型','日历','聊天','心愿单','朋友圈','设置','底部导航','通用'];
   const sortedGroups = groupOrder.filter(g => groups[g]).map(g => ({ name: g, items: groups[g] }));
   const itemsHtml = sortedGroups.map(g => {
+    const hasOv = g.items.some(it => (draftText[it.key] != null && draftText[it.key] !== '') || draftStyle[it.key]);
     const rows = g.items.map(it => {
-      const ov = text[it.key] || '';
-      const st = style[it.key] || {};
-      const canText = it.default != null || it.dynamic;
-      const textInput = canText ? `<input type="text" class="et-text" data-et-key="${it.key}" value="${esc(ov)}" placeholder="${esc(it.default || '')}" />` : '';
+      const t = draftText[it.key] || '';
+      const st = draftStyle[it.key] || {};
+      const textInput = canText(it) ? `<input type="text" class="et-text" data-et-key="${it.key}" value="${esc(t)}" placeholder="${esc(it.default || '')}" />` : '';
       return `
         <div class="et-row" data-et-key="${it.key}">
-          <div class="et-label">${esc(it.label)}</div>
+          <div class="et-row-head">
+            <div class="et-label">${esc(it.label)}</div>
+            <button class="et-reset-row" data-et-key="${it.key}">本行重置</button>
+          </div>
           <div class="et-controls">
             ${textInput}
             <select class="et-font" data-et-key="${it.key}">${fontOptions(st.font || '')}</select>
-            <input type="color" class="et-color" data-et-key="${it.key}" value="${st.color || '#C2185B'}" />
+            <span class="et-color-wrap">
+              <input type="color" class="et-color" data-et-key="${it.key}" value="${st.color || '#888888'}" />
+              <span class="et-mini">颜色</span>
+            </span>
             <div class="et-size-wrap">
+              <span class="et-mini">字号</span>
               <input type="range" class="et-size" data-et-key="${it.key}" min="0" max="72" value="${st.size || 0}" />
               <span class="et-size-v">${st.size || 0}px</span>
             </div>
           </div>
         </div>`;
     }).join('');
-    return `<div class="et-group"><div class="et-group-name">${esc(g.name)}</div>${rows}</div>`;
+    return `<div class="et-group ${hasOv ? 'open' : ''}">
+      <div class="et-group-head"><span>${esc(g.name)}</span><span class="et-chev">▾</span></div>
+      <div class="et-group-body">${rows}</div>
+    </div>`;
   }).join('');
   openModal(`
     <h3>文案与字体自定义</h3>
-    <p style="font-size:12px;color:var(--text-muted);line-height:1.6;margin:-6px 0 12px;">每一行可独立改文案、字体、颜色、字号。字号填 0 = 用默认大小。想恢复某项，清空对应输入即可。</p>
+    <p style="font-size:12px;color:var(--text-muted);line-height:1.6;margin:-6px 0 12px;">点分组标题可展开/收起。每行可单独改文案、字体、颜色、字号；字号 0 = 默认。改完点「保存」才生效，误触不会即时保存。</p>
     <div class="modal-actions" style="margin-bottom:12px;">
       <button class="btn btn-ghost" id="tx-fonts">字体管理</button>
       <button class="btn btn-danger" id="tx-reset">全部恢复</button>
@@ -2007,7 +2046,26 @@ function openText() {
       <button class="btn btn-primary" id="tx-save">保存</button>
     </div>
   `);
-  // 实时预览
+  // 分组折叠
+  $all('.et-group-head').forEach(h => h.addEventListener('click', () => h.parentElement.classList.toggle('open')));
+  // 单行重置
+  $all('.et-reset-row').forEach(btn => btn.addEventListener('click', e => {
+    e.stopPropagation();
+    const key = btn.dataset.etKey;
+    delete draftText[key]; delete draftStyle[key];
+    const row = btn.closest('.et-row');
+    const inpText = row.querySelector('.et-text');
+    const selFont = row.querySelector('.et-font');
+    const inpColor = row.querySelector('.et-color');
+    const inpSize = row.querySelector('.et-size');
+    const spSize = row.querySelector('.et-size-v');
+    if (inpText) inpText.value = '';
+    if (selFont) selFont.value = '';
+    if (inpColor) inpColor.value = '#888888';
+    if (inpSize) { inpSize.value = 0; if (spSize) spSize.textContent = '0px'; }
+    applyDraftText(key); applyDraftStyle(key);
+  }));
+  // 实时预览（仅预览，不写 data）
   $all('.et-row').forEach(row => {
     const key = row.dataset.etKey;
     const inpText = row.querySelector('.et-text');
@@ -2015,52 +2073,32 @@ function openText() {
     const inpColor = row.querySelector('.et-color');
     const inpSize = row.querySelector('.et-size');
     const spSize = row.querySelector('.et-size-v');
-    function read() {
-      return { font: selFont ? selFont.value : '', color: inpColor ? inpColor.value : '', size: inpSize ? Number(inpSize.value) : 0 };
-    }
-    if (inpText) inpText.addEventListener('input', () => {
-      const cfg = EL_CFG[key];
-      if (!cfg || !cfg.selector) return;
-      const v = inpText.value.trim();
-      if (v !== '') {
-        $all(cfg.selector).forEach(el => { if (cfg.prop === 'placeholder') el.placeholder = v; else el.textContent = v; });
-      } else {
-        // 清空：恢复默认或动态值
-        if (cfg.default != null) {
-          $all(cfg.selector).forEach(el => { if (cfg.prop === 'placeholder') el.placeholder = cfg.default; else el.textContent = cfg.default; });
-        } else if (cfg.dynamic) {
-          renderActive();
-        }
-      }
-    });
-    if (selFont) selFont.addEventListener('change', () => previewElStyle(key, read()));
-    if (inpColor) inpColor.addEventListener('input', () => previewElStyle(key, read()));
-    if (inpSize) inpSize.addEventListener('input', () => { if (spSize) spSize.textContent = inpSize.value + 'px'; previewElStyle(key, read()); });
+    if (inpText) inpText.addEventListener('input', () => { draftText[key] = inpText.value; applyDraftText(key); });
+    if (selFont) selFont.addEventListener('change', () => { draftStyle[key] = draftStyle[key] || {}; draftStyle[key].font = selFont.value; applyDraftStyle(key); });
+    if (inpColor) inpColor.addEventListener('input', () => { draftStyle[key] = draftStyle[key] || {}; draftStyle[key].color = inpColor.value; applyDraftStyle(key); });
+    if (inpSize) inpSize.addEventListener('input', () => { if (spSize) spSize.textContent = inpSize.value + 'px'; draftStyle[key] = draftStyle[key] || {}; draftStyle[key].size = Number(inpSize.value); applyDraftStyle(key); });
   });
   $('#tx-fonts').addEventListener('click', () => { closeModal(); setTimeout(openFonts, 220); });
-  $('#tx-cancel').addEventListener('click', closeModal);
+  $('#tx-cancel').addEventListener('click', () => { renderActive(); closeModal(); });
   $('#tx-reset').addEventListener('click', () => {
-    data.settings.text = {};
-    data.settings.elStyle = {};
-    save(); closeModal(); applyText(); renderActive(); toast('已恢复默认');
+    data.settings.text = {}; data.settings.elStyle = {};
+    save(); closeModal(); applyText(); applyElStyle(); renderActive(); toast('已恢复默认');
   });
   $('#tx-save').addEventListener('click', () => {
     const newText = {}; const newStyle = {};
-    $all('.et-row').forEach(row => {
-      const key = row.dataset.etKey;
-      const inpText = row.querySelector('.et-text');
-      const selFont = row.querySelector('.et-font');
-      const inpColor = row.querySelector('.et-color');
-      const inpSize = row.querySelector('.et-size');
-      if (inpText) { const v = inpText.value.trim(); if (v !== '') newText[key] = v; }
-      const font = selFont ? selFont.value : '';
-      const color = inpColor ? inpColor.value : '';
-      const size = inpSize ? Number(inpSize.value) : 0;
-      if (font || color || size > 0) newStyle[key] = { font, color, size };
+    Object.keys(EL_CFG).forEach(key => {
+      const t = draftText[key];
+      if (t != null && t.trim() !== '') newText[key] = t.trim();
+      const st = draftStyle[key];
+      if (st) {
+        const font = st.font || '';
+        const color = st.color || '';
+        const size = st.size > 0 ? st.size : 0;
+        if (font || color || size > 0) newStyle[key] = { font, color, size };
+      }
     });
-    data.settings.text = newText;
-    data.settings.elStyle = newStyle;
-    save(); closeModal(); applyText(); renderActive(); toast('已保存');
+    data.settings.text = newText; data.settings.elStyle = newStyle;
+    save(); closeModal(); applyText(); applyElStyle(); renderActive(); toast('已保存');
   });
 }
 function openFonts() {
