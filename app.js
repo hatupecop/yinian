@@ -134,6 +134,19 @@ if (data.settings.sync.anon === undefined) data.settings.sync.anon = '';
 if (!data.deletedIds) data.deletedIds = [];
 if (!data.settings.text) data.settings.text = {};
 if (!data.settings.elementOverrides) data.settings.elementOverrides = {};
+if (!data.settings.elStyle) data.settings.elStyle = {};
+// 一次性清理早期 bug：颜色输入框默认值被误存为红色 #C2185B，导致所有元素染红。只清这个特定值，且只跑一次。
+if (!data.settings._colorFixV1) {
+  Object.keys(data.settings.elStyle).forEach(k => {
+    const st = data.settings.elStyle[k];
+    if ((st.color || '').toUpperCase() === '#C2185B') {
+      st.color = '';
+      if (!st.font && !st.size) delete data.settings.elStyle[k];
+    }
+  });
+  data.settings._colorFixV1 = true;
+  save();
+}
 if (!data.settings.lang) data.settings.lang = 'en';
 if (data.settings.chatInputOffset === undefined) data.settings.chatInputOffset = 0;
 if (data.settings.chatInputHeight === undefined) data.settings.chatInputHeight = 54;
