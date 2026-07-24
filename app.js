@@ -1228,7 +1228,11 @@ function openApi() {
     </div>
     <div class="field"><label>后端地址（backend 模式）</label><input id="ap-url" value="${esc(s.backendUrl || '')}" placeholder="https://your-app.workers.dev" /></div>
     <div class="field"><label>DeepSeek API Key（direct 模式）</label><input id="ap-key" value="${esc(s.deepseekKey || '')}" placeholder="sk-..." /></div>
-    <p style="font-size:12px;color:var(--text-muted);line-height:1.6;">自用且只在本机时，直连也可；若部署到网上，建议用后端代理以免泄露 Key。</p>
+    <p style="font-size:12px;color:var(--text-muted);line-height:1.6;white-space:pre-wrap;">模式说明：
+• 后端代理：只填「后端地址」，DeepSeek Key 存在 Supabase 后台（网页里看不到，最安全）。现已默认填好，一般不用改。
+• 直连 DeepSeek：把你的 DeepSeek Key 填到下方「DeepSeek API Key」里，Key 会存在本机网页中，只建议本机自用。
+• 暂不连接：纯演示，TA 回示例话。
+三种模式随时可切换；后端地址以后也能改或清空（切到“暂不连接”即停用）。</p>
     <div class="modal-actions"><button class="btn btn-ghost" id="ap-cancel">取消</button><button class="btn btn-primary" id="ap-save">保存</button></div>
   `);
   $('#ap-cancel').addEventListener('click', closeModal);
@@ -1267,6 +1271,11 @@ function openSync() {
     else toast('先在上方填好 Anon Key 再点');
   });
   $('#sy-now').addEventListener('click', async () => {
+    // 先按表单里刚填的地址/Key 即时生效（不依赖“保存”），并视为已开启，避免“填了却同步失败”
+    data.settings.sync.url = $('#sy-url').value.trim();
+    data.settings.sync.anon = $('#sy-anon').value.trim();
+    data.settings.sync.on = true;
+    $('#sy-on').classList.add('on');
     const st = $('#sy-status'); st.textContent = '同步中…';
     const p = await pushState();
     const q = await pullState();
@@ -1341,6 +1350,7 @@ function openLayout() {
       <div class="layout-tab active" data-tab="moments">朋友圈资料</div>
       <div class="layout-tab" data-tab="nav">底部导航栏</div>
       <div class="layout-tab" data-tab="cal">日历页面</div>
+      <div class="layout-tab" data-tab="chat">聊天输入框</div>
     </div>
     <div class="layout-panel active" data-panel="moments">
       <div class="field"><label>名字颜色</label><input id="lp-mp-name" type="color" value="${m.nameColor}"/></div>
@@ -1372,6 +1382,11 @@ function openLayout() {
       <div class="field"><label>圆点大小（${c.dotSize}px）</label>
         <div class="range-row"><input id="lp-cal-dot" type="range" min="6" max="16" value="${c.dotSize}"/><span id="lp-cal-dot-v">${c.dotSize}</span></div></div>
     </div>
+    <div class="layout-panel" data-panel="chat">
+      <div class="field"><label>上下位置（${data.settings.chatInputOffset || 0}px，正=上移，负=下移）</label>
+        <div class="range-row"><input id="lp-chat-off" type="range" min="-40" max="60" value="${data.settings.chatInputOffset || 0}"/><span id="lp-chat-off-v">${data.settings.chatInputOffset || 0}</span></div></div>
+      <p style="font-size:11px;color:var(--text-muted);line-height:1.5;margin:4px 0 0;">调整聊天输入框离底部的高度，让发送栏不被键盘或底部导航挡住。</p>
+    </div>
     <div class="modal-actions">
       <button class="btn btn-ghost" id="lp-cancel">取消</button>
       <button class="btn btn-primary" id="lp-save">保存</button>
@@ -1386,6 +1401,7 @@ function openLayout() {
   bind('lp-mp-texty','lp-mp-texty-v'); bind('lp-mp-avax','lp-mp-avax-v'); bind('lp-mp-avy','lp-mp-avy-v');
   bind('lp-nv-icon','lp-nv-icon-v'); bind('lp-nv-gap','lp-nv-gap-v'); bind('lp-nv-inset','lp-nv-inset-v'); bind('lp-nv-bottom','lp-nv-bottom-v');
   bind('lp-cal-pad','lp-cal-pad-v'); bind('lp-cal-title','lp-cal-title-v'); bind('lp-cal-rowgap','lp-cal-rowgap-v'); bind('lp-cal-dot','lp-cal-dot-v');
+  bind('lp-chat-off','lp-chat-off-v');
   $('#lp-cancel').addEventListener('click', closeModal);
   $('#lp-save').addEventListener('click', () => {
     data.settings.moments = {
@@ -1400,7 +1416,8 @@ function openLayout() {
       cardPadding: Number($('#lp-cal-pad').value), titleSize: Number($('#lp-cal-title').value),
       rowGap: Number($('#lp-cal-rowgap').value), dotSize: Number($('#lp-cal-dot').value)
     };
-    save(); closeModal(); applyMoments(); applyNav(); applyCalendar(); toast('已保存');
+    data.settings.chatInputOffset = Number($('#lp-chat-off').value);
+    save(); closeModal(); applyMoments(); applyNav(); applyCalendar(); applyChatInputPos(); toast('已保存');
   });
 }
 
@@ -1585,6 +1602,15 @@ function openStyle() {
       <div class="field"><label>高光强度（边缘玻璃光泽 ${data.settings.glassmorphism ? data.settings.glassmorphism.highlight : 70}%）</label>
         <div class="range-row"><input type="range" min="0" max="100" id="st-gm-highlight" value="${data.settings.glassmorphism ? data.settings.glassmorphism.highlight : 70}"/><span id="st-gm-highlightv">${data.settings.glassmorphism ? data.settings.glassmorphism.highlight : 70}%</span></div></div>
     </div>
+    <div class="style-group" style="border-top:1px solid var(--border);padding-top:12px;margin-top:14px;">
+      <div style="font-size:14px;font-weight:500;color:var(--text);margin-bottom:8px;">底部导航语言</div>
+      <div class="field"><label>语言</label>
+        <select id="st-lang">
+          <option value="zh" ${data.settings.lang === 'zh' ? 'selected' : ''}>中文</option>
+          <option value="en" ${data.settings.lang === 'en' ? 'selected' : ''}>English</option>
+        </select>
+      </div>
+    </div>
     ${STYLE_GROUPS.map(rowHtml).join('')}
     <div class="modal-actions">
       <button class="btn btn-ghost" id="st-reset">恢复主题</button>
@@ -1633,7 +1659,8 @@ function openStyle() {
     data.settings.style = out;
     data.settings.glass = { on: $('#st-glass-on').classList.contains('on'), blur: Number($('#st-glass-blur').value), opacity: Number($('#st-glass-opacity').value) };
     data.settings.glassmorphism = { on: $('#st-gm-on').classList.contains('on'), highlight: Number($('#st-gm-highlight').value) };
-    save(); closeModal(); applyStyle(); toast('已保存');
+    const langEl = $('#st-lang'); if (langEl) data.settings.lang = langEl.value;
+    save(); closeModal(); applyStyle(); applyLang(); toast('已保存');
   });
 }
 function renderChat() {
@@ -1805,5 +1832,11 @@ function initPullToRefresh(scrollSel, ptrSel, renderFn) {
   renderAll();
   initPullToRefresh('#screen-moments .moments-scroll', '#moments-ptr', renderMoments);
   initPullToRefresh('#screen-mymoments .moments-scroll', '#mymoments-ptr', renderMyMoments);
+  // 聊天输入框聚焦时隐藏底部导航，避免键盘弹出时导航栏跟着“悬浮”
+  const _ci = document.getElementById('chat-input');
+  if (_ci) {
+    _ci.addEventListener('focus', () => document.body.classList.add('chat-focus'));
+    _ci.addEventListener('blur', () => document.body.classList.remove('chat-focus'));
+  }
   startAutoSync();
 })();

@@ -142,7 +142,7 @@ button { font-family: inherit; cursor: pointer; border: none; background: none; 
   background: #fff; color: color-mix(in srgb, var(--st-accent-color) calc(var(--st-accent-opacity)*100%), transparent);
   border: none;
   display: flex; align-items: center; justify-content: center; font-size: 18px; line-height: 1;
-  box-shadow: 0 4px 12px color-mix(in srgb, var(--st-accent-color) 35%, transparent);
+  box-shadow: none;
 }
 
 .day-list { display: flex; flex-direction: column; gap: 10px; }
@@ -236,7 +236,7 @@ button { font-family: inherit; cursor: pointer; border: none; background: none; 
   display: flex; align-items: center; gap: 6px;
   margin: 8px 14px calc(96px + env(safe-area-inset-bottom));
   padding: 4px 4px 4px 10px;
-  background-color: color-mix(in srgb, var(--st-cardbg-color) calc(var(--st-cardbg-opacity)*100%), transparent); border-radius: var(--r-pill);
+  background: #FFFFFF; border-radius: var(--r-pill);
   box-shadow: 0 4px 14px rgba(180,140,150,.12);
 }
 .chat-input-bar input {
@@ -435,7 +435,10 @@ button { font-family: inherit; cursor: pointer; border: none; background: none; 
   background-color: color-mix(in srgb, var(--st-cardbg-color) calc(var(--st-cardbg-opacity)*100%), transparent); border-radius: var(--r-pill);
   box-shadow: 0 8px 22px rgba(180,140,150,.18);
   display: flex; justify-content: space-around; padding: 2px 6px; z-index: 20;
+  transition: opacity .2s ease, transform .2s ease;
 }
+/* 聊天输入框聚焦（键盘弹出）时隐藏底部导航，避免它跟着“悬浮” */
+body.chat-focus .tabbar { opacity: 0; pointer-events: none; transform: translateY(18px); }
 .tab {
   display: flex; flex-direction: column; align-items: center; gap: var(--nav-gap, 1px);
   flex: 1; min-width: 0; padding: 3px 1px;
