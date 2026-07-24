@@ -256,7 +256,7 @@ body.kb-open .chat-body { padding-bottom: 66px; }
   z-index: 12;
   display: flex; align-items: center; gap: 5px;
   padding: 5px 6px 5px 12px;
-  background: transparent;
+  background-color: color-mix(in srgb, var(--st-cardbg-color) calc(var(--st-cardbg-opacity)*100%), transparent);
   border-radius: var(--r-pill);
   box-shadow: none;
   border: 1.5px solid color-mix(in srgb, var(--text) 26%, transparent);
