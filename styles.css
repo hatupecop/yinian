@@ -261,7 +261,7 @@ body.kb-open .chat-body { padding-bottom: 66px; }
   box-shadow: none;
   border: 1.5px solid color-mix(in srgb, var(--text) 26%, transparent);
   overflow: hidden;
-  transition: bottom .2s cubic-bezier(.16,1,.3,1), border-color .18s ease;
+  transition: border-color .18s ease;
 }
 /* 键盘弹起：输入框直接贴着键盘（压缩模式自动贴，覆盖模式用 --kb-input 抬升） */
 body.kb-open .chat-input-bar {
@@ -482,7 +482,7 @@ body.kb-open .chat-input-bar {
   background-color: color-mix(in srgb, var(--st-cardbg-color) calc(var(--st-cardbg-opacity)*100%), transparent); border-radius: var(--r-pill);
   box-shadow: 0 8px 22px rgba(180,140,150,.18);
   display: flex; justify-content: space-around; padding: 2px 6px; z-index: 20;
-  transition: opacity .2s ease, transform .25s cubic-bezier(.16,1,.3,1);
+  transition: none;
 }
 /* 键盘弹起时把导航栏沉到键盘后面（钉在屏幕最底，不再浮到中间挡住输入框） */
 body.kb-open .tabbar {
