@@ -771,6 +771,13 @@ function toggleMomentMenu(mid, btn) {
   if (panel) panel.classList.toggle('show');
 }
 function closeMomentMenus() { $all('.moment-actions').forEach(el => el.classList.remove('show')); }
+// 朋友圈图片点击放大查看（之前没做查看器，所以“点不开”）
+function openImageLightbox(src) {
+  const lb = document.getElementById('img-lightbox');
+  const im = document.getElementById('img-lightbox-src');
+  if (!lb || !im || !src) return;
+  im.src = src; lb.classList.add('show');
+}
 function likeMoment(mid) {
   const m = data.moments.find(x => x.id === mid); if (!m) return;
   m.likes = m.likes || [];
@@ -1727,6 +1734,10 @@ async function sendChat() {
 
 /* ===================== 事件绑定 ===================== */
 document.addEventListener('click', e => {
+  // 点朋友圈图片 → 全屏查看；点查看层任意处 → 关闭
+  if (e.target.tagName === 'IMG' && e.target.closest('.moment-imgs')) {
+    openImageLightbox(e.target.currentSrc || e.target.src); return;
+  }
   const a = e.target.closest('[data-action]');
   if (!a) { closeMomentMenus(); return; }
   const act = a.dataset.action;
@@ -1839,4 +1850,7 @@ function initPullToRefresh(scrollSel, ptrSel, renderFn) {
     _ci.addEventListener('blur', () => document.body.classList.remove('chat-focus'));
   }
   startAutoSync();
+  // 图片查看层：点任意处关闭
+  const lb = document.getElementById('img-lightbox');
+  if (lb) lb.addEventListener('click', () => lb.classList.remove('show'));
 })();
