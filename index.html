@@ -73,6 +73,7 @@
 
   <!-- ============ Chat ============ -->
   <section class="screen" id="screen-chat">
+    <div class="chat-bg" id="chat-bg"></div>
     <header class="topbar chat-topbar">
       <div class="chat-user">
         <div class="chat-ava" id="chat-ava"></div>
@@ -99,12 +100,14 @@
         <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M12 5v14M5 12h14"/></svg>
       </button>
       <input id="chat-input" type="text" placeholder="和 AI 说点什么…" autocomplete="off" />
-      <button class="chat-mic" data-action="chat-mic" aria-label="语音">
-        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M12 2a3 3 0 0 1 3 3v6a3 3 0 0 1-6 0V5a3 3 0 0 1 3-3z"/><path d="M19 10v2a7 7 0 0 1-14 0v-2"/><path d="M12 19v4M8 23h8"/></svg>
-      </button>
-      <button class="send-btn" data-action="send-chat" aria-label="发送">
-        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M22 2L11 13M22 2l-7 20-4-9-9-4 20-7z"/></svg>
-      </button>
+      <div class="chat-actions">
+        <button class="chat-mic" data-action="chat-mic" aria-label="语音">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M12 2a3 3 0 0 1 3 3v6a3 3 0 0 1-6 0V5a3 3 0 0 1 3-3z"/><path d="M19 10v2a7 7 0 0 1-14 0v-2"/><path d="M12 19v4M8 23h8"/></svg>
+        </button>
+        <button class="send-btn" data-action="send-chat" aria-label="发送">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M22 2L11 13M22 2l-7 20-4-9-9-4 20-7z"/></svg>
+        </button>
+      </div>
     </div>
   </section>
 

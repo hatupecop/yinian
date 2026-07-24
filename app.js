@@ -1181,6 +1181,17 @@ function applyTheme() {
     const op = (hasGlobal
       ? (data.settings.pageOpacity.global != null ? data.settings.pageOpacity.global : 100)
       : (data.settings.pageOpacity[mkey] != null ? data.settings.pageOpacity[mkey] : 100)) / 100;
+    if (key === 'chat') {
+      // 聊天页背景放到固定层，键盘弹出时不会跟着上滑
+      const chatBg = s.querySelector('.chat-bg');
+      if (chatBg) {
+        if (bg) {
+          chatBg.style.backgroundImage = `linear-gradient(rgba(${r},${g},${b},${1 - op}), rgba(${r},${g},${b},${1 - op})), url(${bg})`;
+        } else { chatBg.style.backgroundImage = ''; }
+      }
+      s.style.backgroundImage = '';
+      return;
+    }
     if (bg) {
       s.style.backgroundImage = `linear-gradient(rgba(${r},${g},${b},${1 - op}), rgba(${r},${g},${b},${1 - op})), url(${bg})`;
       s.style.backgroundSize = 'cover'; s.style.backgroundPosition = 'center';
@@ -1843,12 +1854,6 @@ function initPullToRefresh(scrollSel, ptrSel, renderFn) {
   renderAll();
   initPullToRefresh('#screen-moments .moments-scroll', '#moments-ptr', renderMoments);
   initPullToRefresh('#screen-mymoments .moments-scroll', '#mymoments-ptr', renderMyMoments);
-  // 聊天输入框聚焦时隐藏底部导航，避免键盘弹出时导航栏跟着“悬浮”
-  const _ci = document.getElementById('chat-input');
-  if (_ci) {
-    _ci.addEventListener('focus', () => document.body.classList.add('chat-focus'));
-    _ci.addEventListener('blur', () => document.body.classList.remove('chat-focus'));
-  }
   startAutoSync();
   // 图片查看层：点任意处关闭
   const lb = document.getElementById('img-lightbox');
