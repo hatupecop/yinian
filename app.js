@@ -715,7 +715,12 @@ function editEntry(key, id, day, presetType) {
     <h3>${e ? '编辑' : '添加'}记录</h3>
     <div class="field"><label>日期（本月几号）</label><input id="e-day" type="number" min="1" max="31" value="${e ? e.day : (day || 1)}" /></div>
     <div class="field"><label>类型</label>
-      <select id="e-type">${CAL_CATS.map(c => `<option value="${c.type}" ${c.type === type ? 'selected' : ''}>${c.name}</option>`).join('')}</select>
+      <div class="inline-picker" id="e-type-picker">
+        <div class="ip-current" id="e-type-cur">${CAL_CATS.find(c => c.type === type) ? CAL_CATS.find(c => c.type === type).name : '亲密'}</div>
+        <div class="ip-list">
+          ${CAL_CATS.map(c => `<div class="ip-opt ${c.type === type ? 'sel' : ''}" data-v="${c.type}">${c.name}</div>`).join('')}
+        </div>
+      </div>
     </div>
     <div class="field"><label>备注</label><textarea id="e-note">${e ? esc(e.note || '') : ''}</textarea></div>
     <div class="field switch-row"><span>设为经期</span><div class="switch ${isPeriod ? 'on' : ''}" id="e-period"></div></div>
@@ -726,11 +731,23 @@ function editEntry(key, id, day, presetType) {
     </div>
   `);
   $('#e-cancel').addEventListener('click', closeModal);
+  let entryType = type;
+  const eTypePicker = $('#e-type-picker');
+  const eTypeCur = $('#e-type-cur');
+  if (eTypePicker) {
+    eTypeCur.addEventListener('click', () => eTypePicker.classList.toggle('open'));
+    $all('.ip-opt', eTypePicker).forEach(opt => opt.addEventListener('click', () => {
+      entryType = opt.dataset.v;
+      eTypeCur.textContent = opt.textContent;
+      $all('.ip-opt', eTypePicker).forEach(o => o.classList.toggle('sel', o === opt));
+      eTypePicker.classList.remove('open');
+    }));
+  }
   const ep2 = $('#e-period');
   if (ep2) ep2.addEventListener('click', () => ep2.classList.toggle('on'));
   $('#e-save').addEventListener('click', () => {
     const dayNum = Math.min(31, Math.max(1, Number($('#e-day').value) || 1));
-    const payload = { day: dayNum, type: $('#e-type').value, note: $('#e-note').value.trim() };
+    const payload = { day: dayNum, type: entryType, note: $('#e-note').value.trim() };
     if (!data.timeline[key]) data.timeline[key] = [];
     if (e) { Object.assign(e, payload); e.time = Date.now(); }
     else {
@@ -1248,14 +1265,14 @@ function applyTheme() {
       const chatBg = s.querySelector('.chat-bg');
       if (chatBg) {
         if (bg) {
-          chatBg.style.backgroundImage = `linear-gradient(rgba(${r},${g},${b},${1 - op}), rgba(${r},${g},${b},${1 - op})), url(${bg})`;
+          chatBg.style.backgroundImage = `linear-gradient(to bottom, rgba(${r},${g},${b},1) 0%, rgba(${r},${g},${b},${1 - op}) 20%, rgba(${r},${g},${b},${1 - op}) 100%), url(${bg})`;
         } else { chatBg.style.backgroundImage = ''; }
       }
       s.style.backgroundImage = '';
       return;
     }
     if (bg) {
-      s.style.backgroundImage = `linear-gradient(rgba(${r},${g},${b},${1 - op}), rgba(${r},${g},${b},${1 - op})), url(${bg})`;
+      s.style.backgroundImage = `linear-gradient(to bottom, rgba(${r},${g},${b},1) 0%, rgba(${r},${g},${b},${1 - op}) 20%, rgba(${r},${g},${b},${1 - op}) 100%), url(${bg})`;
       s.style.backgroundSize = 'cover'; s.style.backgroundPosition = 'center';
     } else { s.style.backgroundImage = ''; }
   });
@@ -1466,7 +1483,7 @@ function openLayout() {
       <div class="field"><label>上下位置（${data.settings.chatInputOffset || 0}px，正=上移，负=下移）</label>
         <div class="range-row"><input id="lp-chat-off" type="range" min="-40" max="60" value="${data.settings.chatInputOffset || 0}"/><span id="lp-chat-off-v">${data.settings.chatInputOffset || 0}</span></div></div>
       <div class="field"><label>输入框高度（${data.settings.chatInputHeight || 54}px）</label>
-        <div class="range-row"><input id="lp-chat-h" type="range" min="40" max="80" value="${data.settings.chatInputHeight || 54}"/><span id="lp-chat-h-v">${data.settings.chatInputHeight || 54}</span></div></div>
+        <div class="range-row"><input id="lp-chat-h" type="range" min="36" max="80" value="${data.settings.chatInputHeight || 54}"/><span id="lp-chat-h-v">${data.settings.chatInputHeight || 54}</span></div></div>
       <p style="font-size:11px;color:var(--text-muted);line-height:1.5;margin:4px 0 0;">上下位置：调整输入框离底部的高度；输入框高度：调整输入框本身的粗细。</p>
     </div>
     <div class="modal-actions">
@@ -1812,6 +1829,11 @@ async function sendChat() {
 
 /* ===================== 事件绑定 ===================== */
 document.addEventListener('click', e => {
+  // 点内联选择器外部时收起已展开的选择列表
+  const openPickers = $all('.inline-picker.open');
+  if (openPickers.length && !e.target.closest('.inline-picker')) {
+    openPickers.forEach(p => p.classList.remove('open'));
+  }
   // 点朋友圈图片 → 全屏查看；点查看层任意处 → 关闭
   if (e.target.tagName === 'IMG' && e.target.closest('.moment-imgs')) {
     openImageLightbox(e.target.currentSrc || e.target.src); return;
