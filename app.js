@@ -537,11 +537,9 @@ function editDay(id) {
     <div class="field"><label>备注</label><textarea id="f-content">${esc(d.content || '')}</textarea></div>
     <div class="field"><label>类型</label>
       <div class="inline-picker" id="d-type-picker">
-        <div class="ip-current" id="d-type-cur">${TT('anni.type.' + d.type)}</div>
+        <div class="ip-current" id="d-type-cur">${TT('anni.type.normal')}</div>
         <div class="ip-list">
-          <div class="ip-opt ${d.type === 'intimate' ? 'sel' : ''}" data-v="intimate">亲密</div>
-          <div class="ip-opt ${d.type === 'anniversary' ? 'sel' : ''}" data-v="anniversary">纪念日</div>
-          <div class="ip-opt ${(!d.type || d.type === 'normal') ? 'sel' : ''}" data-v="normal">普通</div>
+          <div class="ip-opt sel" data-v="normal">${TT('anni.type.normal')}</div>
         </div>
       </div>
     </div>
@@ -553,12 +551,11 @@ function editDay(id) {
     </div>
   `);
   let pinned = d.pinned;
-  let dayType = d.type || 'normal';
+  let dayType = 'normal';
   const typePicker = $('#d-type-picker');
   const typeCur = $('#d-type-cur');
   if (typePicker) {
-    $all('.ip-opt', typePicker).forEach(o => o.textContent = TT('anni.type.' + o.dataset.v));
-    typeCur.textContent = TT('anni.type.' + dayType);
+    typeCur.textContent = TT('anni.type.normal');
     typeCur.addEventListener('click', () => typePicker.classList.toggle('open'));
     $all('.ip-opt', typePicker).forEach(opt => opt.addEventListener('click', () => {
       dayType = opt.dataset.v;
@@ -592,11 +589,9 @@ function addDay() {
     <div class="field"><label>备注</label><textarea id="f-content"></textarea></div>
     <div class="field"><label>类型</label>
       <div class="inline-picker" id="d-type-picker">
-        <div class="ip-current" id="d-type-cur">${TT('anni.type.intimate')}</div>
+        <div class="ip-current" id="d-type-cur">${TT('anni.type.normal')}</div>
         <div class="ip-list">
-          <div class="ip-opt sel" data-v="intimate">亲密</div>
-          <div class="ip-opt" data-v="anniversary">纪念日</div>
-          <div class="ip-opt" data-v="normal">普通</div>
+          <div class="ip-opt sel" data-v="normal">${TT('anni.type.normal')}</div>
         </div>
       </div>
     </div>
@@ -607,12 +602,11 @@ function addDay() {
     </div>
   `);
   let pinned = false;
-  let dayType = 'intimate';
+  let dayType = 'normal';
   const typePicker = $('#d-type-picker');
   const typeCur = $('#d-type-cur');
   if (typePicker) {
-    $all('.ip-opt', typePicker).forEach(o => o.textContent = TT('anni.type.' + o.dataset.v));
-    typeCur.textContent = TT('anni.type.' + dayType);
+    typeCur.textContent = TT('anni.type.normal');
     typeCur.addEventListener('click', () => typePicker.classList.toggle('open'));
     $all('.ip-opt', typePicker).forEach(opt => opt.addEventListener('click', () => {
       dayType = opt.dataset.v;
@@ -1598,8 +1592,10 @@ const EL_CFG = {
   'anni.daysPassed': { group: '纪念日', label: 'days passed', default: 'days passed' },
   'anni.today': { group: '纪念日', label: 'Today', default: 'Today' },
   'anni.pinned': { group: '纪念日', label: '置顶标签', default: '置顶' },
-  'anni.type.intimate': { group: '纪念日类型', label: '亲密', default: '亲密' },
-  'anni.type.anniversary': { group: '纪念日类型', label: '纪念日', default: '纪念日' },
+  'anni.dayNum': { group: '纪念日', label: '卡片右侧数字', selector: '.day-num' },
+  'anni.dayUnit': { group: '纪念日', label: '卡片右侧单位', selector: '.day-unit' },
+  'anni.type.intimate': { group: '纪念日类型', label: '亲密（旧数据兼容）', default: '亲密' },
+  'anni.type.anniversary': { group: '纪念日类型', label: '纪念日（旧数据兼容）', default: '纪念日' },
   'anni.type.normal': { group: '纪念日类型', label: '普通', default: '普通' },
   // 日历
   'cal.month': { group: '日历', label: '月份英文', selector: '#cal-month-en', dynamic: true },
