@@ -109,6 +109,24 @@ if (data.settings.topFadeA === undefined) {
   data.settings.topFadeH = 20;
 }
 if (data.settings.topFadeH === undefined) data.settings.topFadeH = 20;
+// 文字自定义 v2：text=文案覆盖，elStyle=各元素字体/颜色/字号，fonts=导入字体
+if (!data.settings.text) data.settings.text = {};
+if (!data.settings.elStyle) data.settings.elStyle = {};
+if (!data.settings.fonts) data.settings.fonts = [];
+if (data.settings.globalFont === undefined) data.settings.globalFont = '';
+// 旧长按编辑的 elementOverrides 废弃：有残留则迁移到 elStyle（仅保留样式，不保留文案）
+if (data.settings.elementOverrides) {
+  const old = data.settings.elementOverrides;
+  Object.keys(old).forEach(k => {
+    const key = k.replace(/^(tkey|eid):/, '');
+    const o = old[k];
+    if (o.color || o.size) {
+      data.settings.elStyle[key] = { font: '', color: o.color || '', size: o.size || 0 };
+    }
+    if (o.text && !data.settings.text[key]) data.settings.text[key] = o.text;
+  });
+  delete data.settings.elementOverrides;
+}
 if (!data.settings.sync) data.settings.sync = { on: false, url: '', anon: '' };
 if (data.settings.sync.on === undefined) data.settings.sync.on = false;
 if (data.settings.sync.url === undefined) data.settings.sync.url = '';
@@ -609,7 +627,7 @@ function renderCalendar() {
   const [y, m] = key.split('-').map(Number);
 
   $('#cal-month-en').textContent = monthLabel(key);
-  $('#cal-year').textContent = '';
+  $('#cal-year').textContent = String(y);
 
   const first = new Date(y, m - 1, 1);
   const daysInMonth = new Date(y, m, 0).getDate();
@@ -1044,11 +1062,11 @@ function renderWishlist() {
     <div class="wish-ava" ${s.myAvatar ? 'style="background-image:url(' + s.myAvatar + ')"' : ''}>
       ${s.myAvatar ? '' : '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z"/></svg>'}
     </div>
-    <div class="wish-name">${esc(s.myName)}<small>的心愿单</small></div>
+    <div class="wish-name" data-eid="wishlist.name">${esc(s.myName)}<small data-tkey="wishlist.nameSuffix">的心愿单</small></div>
     <div class="wish-stat">
-      <div class="ws-item"><div class="ws-num">${all.length}</div><div class="ws-label">全部</div></div>
-      <div class="ws-item"><div class="ws-num">${want}</div><div class="ws-label">想要</div></div>
-      <div class="ws-item"><div class="ws-num">${got}</div><div class="ws-label">已获得</div></div>
+      <div class="ws-item"><div class="ws-num">${all.length}</div><div class="ws-label" data-tkey="wishlist.statAll">全部</div></div>
+      <div class="ws-item"><div class="ws-num">${want}</div><div class="ws-label" data-tkey="wishlist.statWant">想要</div></div>
+      <div class="ws-item"><div class="ws-num">${got}</div><div class="ws-label" data-tkey="wishlist.statGot">已获得</div></div>
     </div>`;
 
   const filters = [['all','全部'],['want','想要'],['got','已获得']];
@@ -1063,7 +1081,7 @@ function renderWishlist() {
 
   const grid = $('#wish-grid');
   grid.innerHTML = months.map(mon => `
-    <div class="wish-month-label">${monthLabel(mon)}</div>
+    <div class="wish-month-label" data-eid="wishlist.monthLabel">${monthLabel(mon)}</div>
     <div class="wish-grid">
       ${groups[mon].map(w => `
         <div class="wish-card" data-wid="${w.id}">
@@ -1076,7 +1094,7 @@ function renderWishlist() {
             <div class="wi-price">${esc(w.price || '')}</div>
           </div>
         </div>`).join('')}
-    </div>`).join('') || '<p style="color:var(--text-muted);text-align:center;padding:30px 0;">还没有心愿，点右上角添加</p>';
+    </div>`).join('') || `<p style="color:var(--text-muted);text-align:center;padding:30px 0;" data-tkey="wishlist.empty">${TT('wishlist.empty')}</p>`;
   $all('.wish-card').forEach(c => c.addEventListener('click', () => editWish(c.dataset.wid)));
 }
 function editWish(id) {
@@ -1551,51 +1569,127 @@ function applyLang() {
   });
 }
 
-/* ===================== 文案自定义 ===================== */
-/* 所有写死的界面文案集中在此。TT(key) 读「用户覆盖」或默认；applyText() 把覆盖应用到界面。
-   用户可在「设置 → 文案自定义」逐个改；长按带 data-tkey 的元素也能改。 */
-const TEXT = {
-  'nav.anniversary': '纪念日', 'nav.calendar': '日历', 'nav.chat': '聊天',
-  'nav.moments': '朋友圈', 'nav.setting': '设置',
-  'anni.sectionTitle': 'Important Days',
-  'anni.heroSub': 'days together for',
-  'anni.daysLeft': 'days left', 'anni.daysPassed': 'days passed', 'anni.today': 'Today',
-  'anni.pinned': '置顶',
-  'anni.type.intimate': '亲密', 'anni.type.anniversary': '纪念日', 'anni.type.normal': '普通',
-  'wishlist.title': 'wishlist',
-  'setting.row.profile': '个人资料', 'setting.row.personalize': '个性化', 'setting.row.style': '外观自定义',
-  'setting.row.layout': '位置调节', 'setting.row.api': 'API 连接', 'setting.row.memory': '记忆',
-  'setting.row.sync': '云同步（共享数据）', 'setting.row.backup': '导出 / 导入备份', 'setting.row.text': '文案自定义',
-  'menu.wishlist': '心愿单',
-  'common.save': '保存', 'common.cancel': '取消', 'common.delete': '删除', 'common.add': '添加',
-  'moments.ptr': '下拉刷新',
-  'chat.placeholder': '和 AI 说点什么…', 'chat.online': '在线'
+/* ===================== 文案 / 字体 / 元素样式自定义 ===================== */
+/* EL_CFG: 所有可配置元素。key 用于 settings.text（文案）和 settings.elStyle（字体/颜色/字号）。
+   dynamic=true 表示内容由 renderXxx 实时写入；applyText 只在其 text 覆盖非空时才覆盖。
+   selector 用于 applyText / applyElStyle 定位元素。 */
+const EL_CFG = {
+  // 纪念日
+  'anni.relNameTop': { group: '纪念日', label: '顶部关系名', selector: '#rel-name-top', dynamic: true },
+  'anni.relNameCard': { group: '纪念日', label: '卡片关系名', selector: '#rel-name-card', dynamic: true },
+  'anni.heroDays': { group: '纪念日', label: '相伴天数数字', selector: '#days-together', dynamic: true },
+  'anni.heroSub': { group: '纪念日', label: 'days together for', selector: '[data-tkey="anni.heroSub"]', default: 'days together for' },
+  'anni.sincePrefix': { group: '纪念日', label: 'since 前缀', selector: '#since-text', dynamic: true },
+  'anni.sectionTitle': { group: '纪念日', label: 'Important Days', selector: '[data-tkey="anni.sectionTitle"]', default: 'Important Days' },
+  'anni.daysLeft': { group: '纪念日', label: 'days left', default: 'days left' },
+  'anni.daysPassed': { group: '纪念日', label: 'days passed', default: 'days passed' },
+  'anni.today': { group: '纪念日', label: 'Today', default: 'Today' },
+  'anni.pinned': { group: '纪念日', label: '置顶标签', default: '置顶' },
+  'anni.type.intimate': { group: '纪念日类型', label: '亲密', default: '亲密' },
+  'anni.type.anniversary': { group: '纪念日类型', label: '纪念日', default: '纪念日' },
+  'anni.type.normal': { group: '纪念日类型', label: '普通', default: '普通' },
+  // 日历
+  'cal.month': { group: '日历', label: '月份英文', selector: '#cal-month-en', dynamic: true },
+  'cal.year': { group: '日历', label: '年份', selector: '#cal-year', dynamic: true },
+  // 聊天
+  'chat.userName': { group: '聊天', label: '顶部名字', selector: '#chat-user-name', dynamic: true },
+  'chat.online': { group: '聊天', label: '在线状态', selector: '[data-tkey="chat.online"]', default: '在线' },
+  'chat.placeholder': { group: '聊天', label: '输入框占位', selector: '#chat-input', prop: 'placeholder', default: '和 AI 说点什么…' },
+  // 心愿单
+  'wishlist.title': { group: '心愿单', label: '顶部标题', selector: '#screen-wishlist .topbar-title', default: 'wishlist' },
+  'wishlist.name': { group: '心愿单', label: '资料卡名字', selector: '#wish-profile .wish-name', dynamic: true },
+  'wishlist.nameSuffix': { group: '心愿单', label: '的心愿单', selector: '[data-tkey="wishlist.nameSuffix"]', default: '的心愿单' },
+  'wishlist.monthLabel': { group: '心愿单', label: '月份标签', selector: '.wish-month-label', dynamic: true },
+  'wishlist.statAll': { group: '心愿单', label: '全部', default: '全部' },
+  'wishlist.statWant': { group: '心愿单', label: '想要', default: '想要' },
+  'wishlist.statGot': { group: '心愿单', label: '已获得', default: '已获得' },
+  'wishlist.empty': { group: '心愿单', label: '空状态', default: '还没有心愿，点右上角添加' },
+  // 朋友圈
+  'moments.profileName': { group: '朋友圈', label: '主页名字', selector: '#moments-profile-name', dynamic: true },
+  'moments.ptr': { group: '朋友圈', label: '下拉刷新', default: '下拉刷新' },
+  // 设置
+  'setting.title': { group: '设置', label: '页面标题', selector: '#screen-setting .topbar-title', default: 'Setting' },
+  'setting.row.profile': { group: '设置', label: '个人资料', selector: '[data-tkey="setting.row.profile"]', default: '个人资料' },
+  'setting.row.personalize': { group: '设置', label: '个性化', selector: '[data-tkey="setting.row.personalize"]', default: '个性化' },
+  'setting.row.style': { group: '设置', label: '外观自定义', selector: '[data-tkey="setting.row.style"]', default: '外观自定义' },
+  'setting.row.text': { group: '设置', label: '文案自定义', selector: '[data-tkey="setting.row.text"]', default: '文案自定义' },
+  'setting.row.layout': { group: '设置', label: '位置调节', selector: '[data-tkey="setting.row.layout"]', default: '位置调节' },
+  'setting.row.api': { group: '设置', label: 'API 连接', selector: '[data-tkey="setting.row.api"]', default: 'API 连接' },
+  'setting.row.memory': { group: '设置', label: '记忆', selector: '[data-tkey="setting.row.memory"]', default: '记忆' },
+  'setting.row.sync': { group: '设置', label: '云同步', selector: '[data-tkey="setting.row.sync"]', default: '云同步（共享数据）' },
+  'setting.row.backup': { group: '设置', label: '备份', selector: '[data-tkey="setting.row.backup"]', default: '导出 / 导入备份' },
+  'setting.row.fonts': { group: '设置', label: '字体管理', selector: '[data-tkey="setting.row.fonts"]', default: '字体管理' },
+  // 侧边栏 / 通用
+  'menu.wishlist': { group: '通用', label: '心愿单', default: '心愿单' },
+  'common.save': { group: '通用', label: '保存', default: '保存' },
+  'common.cancel': { group: '通用', label: '取消', default: '取消' },
+  'common.delete': { group: '通用', label: '删除', default: '删除' },
+  'common.add': { group: '通用', label: '添加', default: '添加' },
+  // 底部导航
+  'nav.anniversary': { group: '底部导航', label: '纪念日', selector: '.tab[data-target="anniversary"] .tab-label', default: '纪念日' },
+  'nav.calendar': { group: '底部导航', label: '日历', selector: '.tab[data-target="calendar"] .tab-label', default: '日历' },
+  'nav.chat': { group: '底部导航', label: '聊天', selector: '.tab[data-target="chat"] .tab-label', default: '聊天' },
+  'nav.moments': { group: '底部导航', label: '朋友圈', selector: '.tab[data-target="moments"] .tab-label', default: '朋友圈' },
+  'nav.setting': { group: '底部导航', label: '设置', selector: '.tab[data-target="setting"] .tab-label', default: '设置' }
 };
-const TEXT_GROUPS = [
-  { name: '底部导航', keys: ['nav.anniversary', 'nav.calendar', 'nav.chat', 'nav.moments', 'nav.setting'] },
-  { name: '纪念日', keys: ['anni.sectionTitle', 'anni.heroSub', 'anni.daysLeft', 'anni.daysPassed', 'anni.today', 'anni.pinned', 'anni.type.intimate', 'anni.type.anniversary', 'anni.type.normal'] },
-  { name: '心愿单', keys: ['wishlist.title'] },
-  { name: '设置页', keys: ['setting.row.profile', 'setting.row.personalize', 'setting.row.style', 'setting.row.layout', 'setting.row.api', 'setting.row.memory', 'setting.row.sync', 'setting.row.backup', 'setting.row.text'] },
-  { name: '侧边栏', keys: ['menu.wishlist'] },
-  { name: '通用按钮', keys: ['common.save', 'common.cancel', 'common.delete', 'common.add'] },
-  { name: '朋友圈', keys: ['moments.ptr'] },
-  { name: '对话', keys: ['chat.placeholder', 'chat.online'] }
-];
+
 function TT(key) {
   const ov = data.settings.text;
   if (ov && ov[key] != null && String(ov[key]).trim() !== '') return ov[key];
-  return TEXT[key] != null ? TEXT[key] : key;
+  const cfg = EL_CFG[key];
+  if (cfg && cfg.default != null) return cfg.default;
+  return key;
 }
 function applyText() {
+  // 底部导航：优先用户覆盖，其次 lang
   $all('.tab').forEach(tab => {
     const t = tab.dataset.target; const el = tab.querySelector('.tab-label');
-    const ov = data.settings.text;
+    const ov = data.settings.text['nav.' + t];
     if (el) {
-      if (ov && ov['nav.' + t] != null && String(ov['nav.' + t]).trim() !== '') el.textContent = ov['nav.' + t];
+      if (ov != null && String(ov).trim() !== '') el.textContent = ov;
       else { const m = NAV_LABELS[t]; if (m) el.textContent = m[data.settings.lang === 'zh' ? 'zh' : 'en']; }
     }
   });
-  $all('[data-tkey]').forEach(el => { el.textContent = TT(el.dataset.tkey); });
+  // 其他带 selector 的元素：用户覆盖非空则写入；动态元素没覆盖时由 renderXxx 负责
+  Object.keys(EL_CFG).forEach(key => {
+    const cfg = EL_CFG[key];
+    if (!cfg.selector) return;
+    const ov = data.settings.text[key];
+    if (ov == null || String(ov).trim() === '') return;
+    $all(cfg.selector).forEach(el => {
+      if (cfg.prop === 'placeholder') el.placeholder = ov;
+      else el.textContent = ov;
+    });
+  });
+}
+function applyElStyle() {
+  const styles = data.settings.elStyle || {};
+  Object.keys(styles).forEach(key => {
+    const cfg = EL_CFG[key];
+    if (!cfg || !cfg.selector) return;
+    const st = styles[key] || {};
+    $all(cfg.selector).forEach(el => {
+      el.style.fontFamily = st.font || '';
+      el.style.color = st.color || '';
+      el.style.fontSize = (st.size > 0 ? st.size + 'px' : '');
+    });
+  });
+}
+function injectFonts() {
+  let style = $('#injected-fonts');
+  if (!style) { style = document.createElement('style'); style.id = 'injected-fonts'; document.head.appendChild(style); }
+  const fonts = data.settings.fonts || [];
+  let css = '';
+  fonts.forEach(f => {
+    if (!f.name || !f.url) return;
+    css += `@font-face { font-family: "${f.name}"; src: url("${f.url}"); font-display: swap; }\n`;
+  });
+  style.textContent = css;
+}
+function applyFonts() {
+  injectFonts();
+  const gf = data.settings.globalFont || '';
+  document.body.style.fontFamily = gf;
 }
 function applyChatInputPos() {
   const bar = document.querySelector('#screen-chat .chat-input-bar');
@@ -1658,7 +1752,9 @@ function renderActive() {
   else if (id === 'screen-moments') renderMoments();
   else if (id === 'screen-mymoments') renderMyMoments();
   else if (id === 'screen-wishlist') renderWishlist();
-  applyElOverrides();
+  applyText();
+  applyElStyle();
+  applyFonts();
 }
 let _autoTimer = null, _lastSyncToast = 0;
 function startAutoSync() {
@@ -1842,94 +1938,202 @@ function openStyle() {
     save(); closeModal(); applyTheme(); applyLang(); toast('已保存');
   });
 }
-/* ===================== 文案自定义面板 ===================== */
+/* ===================== 文案 / 元素样式自定义面板 ===================== */
+function fontOptions(selected) {
+  const builtins = [
+    { value: '', label: '默认' },
+    { value: 'var(--font)', label: '系统默认' },
+    { value: FONT_MAP.kai, label: '楷体' },
+    { value: FONT_MAP.xingkai, label: '华文行楷' },
+    { value: FONT_MAP.yuan, label: '圆体' },
+    { value: FONT_MAP.dengxian, label: '等线' }
+  ];
+  const custom = (data.settings.fonts || []).filter(f => f.name).map(f => ({ value: `"${f.name}"`, label: f.name }));
+  const all = builtins.concat(custom);
+  return all.map(o => `<option value="${esc(o.value)}" ${o.value === selected ? 'selected' : ''}>${esc(o.label)}</option>`).join('');
+}
+function previewElStyle(key, st) {
+  const cfg = EL_CFG[key];
+  if (!cfg || !cfg.selector) return;
+  $all(cfg.selector).forEach(el => {
+    el.style.fontFamily = st.font || '';
+    el.style.color = st.color || '';
+    el.style.fontSize = (st.size > 0 ? st.size + 'px' : '');
+  });
+}
 function openText() {
-  const ov = data.settings.text || {};
-  const groupsHtml = TEXT_GROUPS.map(g => `
-    <div class="style-group" style="border-top:1px solid var(--border);padding-top:12px;margin-top:14px;">
-      <div style="font-size:14px;font-weight:500;color:var(--text);margin-bottom:8px;">${g.name}</div>
-      ${g.keys.map(k => `<div class="field"><label>${k}</label><input type="text" data-tedit="${k}" value="${esc(ov[k] != null ? ov[k] : (TEXT[k] != null ? TEXT[k] : ''))}" placeholder="${TEXT[k] != null ? esc(TEXT[k]) : ''}" /></div>`).join('')}
-    </div>`).join('');
+  const text = data.settings.text || {};
+  const style = data.settings.elStyle || {};
+  const groups = {};
+  Object.keys(EL_CFG).forEach(key => {
+    const cfg = EL_CFG[key];
+    if (!groups[cfg.group]) groups[cfg.group] = [];
+    groups[cfg.group].push({ key, ...cfg });
+  });
+  const groupOrder = ['纪念日','纪念日类型','日历','聊天','心愿单','朋友圈','设置','底部导航','通用'];
+  const sortedGroups = groupOrder.filter(g => groups[g]).map(g => ({ name: g, items: groups[g] }));
+  const itemsHtml = sortedGroups.map(g => {
+    const rows = g.items.map(it => {
+      const ov = text[it.key] || '';
+      const st = style[it.key] || {};
+      const canText = it.default != null || it.dynamic;
+      const textInput = canText ? `<input type="text" class="et-text" data-et-key="${it.key}" value="${esc(ov)}" placeholder="${esc(it.default || '')}" />` : '';
+      return `
+        <div class="et-row" data-et-key="${it.key}">
+          <div class="et-label">${esc(it.label)}</div>
+          <div class="et-controls">
+            ${textInput}
+            <select class="et-font" data-et-key="${it.key}">${fontOptions(st.font || '')}</select>
+            <input type="color" class="et-color" data-et-key="${it.key}" value="${st.color || '#C2185B'}" />
+            <div class="et-size-wrap">
+              <input type="range" class="et-size" data-et-key="${it.key}" min="0" max="72" value="${st.size || 0}" />
+              <span class="et-size-v">${st.size || 0}px</span>
+            </div>
+          </div>
+        </div>`;
+    }).join('');
+    return `<div class="et-group"><div class="et-group-name">${esc(g.name)}</div>${rows}</div>`;
+  }).join('');
   openModal(`
-    <h3>文案自定义</h3>
-    <p style="font-size:12px;color:var(--text-muted);line-height:1.6;margin:-6px 0 12px;">把界面里写死的词改成你想要的。留空 = 用默认；改完立即全站生效。想恢复某项就清空它。</p>
-    ${groupsHtml}
+    <h3>文案与字体自定义</h3>
+    <p style="font-size:12px;color:var(--text-muted);line-height:1.6;margin:-6px 0 12px;">每一行可独立改文案、字体、颜色、字号。字号填 0 = 用默认大小。想恢复某项，清空对应输入即可。</p>
+    <div class="modal-actions" style="margin-bottom:12px;">
+      <button class="btn btn-ghost" id="tx-fonts">字体管理</button>
+      <button class="btn btn-danger" id="tx-reset">全部恢复</button>
+    </div>
+    <div class="et-list">${itemsHtml}</div>
     <div class="modal-actions">
-      <button class="btn btn-ghost" id="tx-reset">恢复默认</button>
+      <button class="btn btn-ghost" id="tx-cancel">取消</button>
       <button class="btn btn-primary" id="tx-save">保存</button>
     </div>
   `);
+  // 实时预览
+  $all('.et-row').forEach(row => {
+    const key = row.dataset.etKey;
+    const inpText = row.querySelector('.et-text');
+    const selFont = row.querySelector('.et-font');
+    const inpColor = row.querySelector('.et-color');
+    const inpSize = row.querySelector('.et-size');
+    const spSize = row.querySelector('.et-size-v');
+    function read() {
+      return { font: selFont ? selFont.value : '', color: inpColor ? inpColor.value : '', size: inpSize ? Number(inpSize.value) : 0 };
+    }
+    if (inpText) inpText.addEventListener('input', () => {
+      const cfg = EL_CFG[key];
+      if (!cfg || !cfg.selector) return;
+      const v = inpText.value.trim();
+      if (v !== '') {
+        $all(cfg.selector).forEach(el => { if (cfg.prop === 'placeholder') el.placeholder = v; else el.textContent = v; });
+      } else {
+        // 清空：恢复默认或动态值
+        if (cfg.default != null) {
+          $all(cfg.selector).forEach(el => { if (cfg.prop === 'placeholder') el.placeholder = cfg.default; else el.textContent = cfg.default; });
+        } else if (cfg.dynamic) {
+          renderActive();
+        }
+      }
+    });
+    if (selFont) selFont.addEventListener('change', () => previewElStyle(key, read()));
+    if (inpColor) inpColor.addEventListener('input', () => previewElStyle(key, read()));
+    if (inpSize) inpSize.addEventListener('input', () => { if (spSize) spSize.textContent = inpSize.value + 'px'; previewElStyle(key, read()); });
+  });
+  $('#tx-fonts').addEventListener('click', () => { closeModal(); setTimeout(openFonts, 220); });
+  $('#tx-cancel').addEventListener('click', closeModal);
   $('#tx-reset').addEventListener('click', () => {
-    data.settings.text = {}; save(); closeModal(); applyText(); renderActive(); toast('已恢复默认文案');
+    data.settings.text = {};
+    data.settings.elStyle = {};
+    save(); closeModal(); applyText(); renderActive(); toast('已恢复默认');
   });
   $('#tx-save').addEventListener('click', () => {
-    const out = {};
-    $all('[data-tedit]').forEach(inp => { const v = inp.value; if (v != null && v.trim() !== '') out[inp.dataset.tedit] = v; });
-    data.settings.text = out; save(); closeModal(); applyText(); renderActive(); toast('已保存');
+    const newText = {}; const newStyle = {};
+    $all('.et-row').forEach(row => {
+      const key = row.dataset.etKey;
+      const inpText = row.querySelector('.et-text');
+      const selFont = row.querySelector('.et-font');
+      const inpColor = row.querySelector('.et-color');
+      const inpSize = row.querySelector('.et-size');
+      if (inpText) { const v = inpText.value.trim(); if (v !== '') newText[key] = v; }
+      const font = selFont ? selFont.value : '';
+      const color = inpColor ? inpColor.value : '';
+      const size = inpSize ? Number(inpSize.value) : 0;
+      if (font || color || size > 0) newStyle[key] = { font, color, size };
+    });
+    data.settings.text = newText;
+    data.settings.elStyle = newStyle;
+    save(); closeModal(); applyText(); renderActive(); toast('已保存');
+  });
+}
+function openFonts() {
+  const fonts = data.settings.fonts || [];
+  const rows = fonts.map((f, i) => `
+    <div class="font-row" data-fi="${i}">
+      <div class="font-name">${esc(f.name)}</div>
+      <div class="font-actions">
+        <button class="btn btn-ghost font-preview" data-fi="${i}">预览</button>
+        <button class="btn btn-danger font-del" data-fi="${i}">删除</button>
+      </div>
+    </div>`).join('') || '<p style="color:var(--text-muted);font-size:13px;text-align:center;padding:10px 0;">还没有导入字体</p>';
+  openModal(`
+    <h3>字体管理</h3>
+    <p style="font-size:12px;color:var(--text-muted);line-height:1.6;margin:-6px 0 12px;">支持两种方式导入字体：① 粘贴网络字体 CSS 链接（如 Google Fonts）；② 上传本地字体文件（TTF/OTF/WOFF/WOFF2）。</p>
+    <div class="field"><label>网络字体 CSS 链接</label><input type="text" id="font-url" placeholder="https://fonts.googleapis.com/css2?family=..." /></div>
+    <div class="field"><label>或上传本地字体</label><input type="file" id="font-file" accept=".ttf,.otf,.woff,.woff2" /></div>
+    <div class="field"><label>字体名称（用于选择）</label><input type="text" id="font-name" placeholder="例如：MyFont" /></div>
+    <div class="modal-actions" style="margin-bottom:12px;">
+      <button class="btn btn-primary" id="font-add">导入字体</button>
+    </div>
+    <div class="font-list">${rows}</div>
+    <div class="field"><label>全局字体</label><select id="global-font">${fontOptions(data.settings.globalFont || '')}</select></div>
+    <p style="font-size:11px;color:var(--text-muted);line-height:1.5;margin:4px 0 0;">全局字体会影响整个 App 的默认字体；单独元素的字体可在「文案与字体自定义」里覆盖。</p>
+    <div class="modal-actions">
+      <button class="btn btn-ghost" id="font-close">关闭</button>
+      <button class="btn btn-primary" id="font-save">保存</button>
+    </div>
+  `);
+  const fileInput = $('#font-file');
+  fileInput && fileInput.addEventListener('change', () => {
+    const file = fileInput.files[0];
+    if (file && !$('#font-name').value.trim()) {
+      $('#font-name').value = file.name.replace(/\.[^.]+$/, '');
+    }
+  });
+  $('#font-add').addEventListener('click', () => {
+    const name = $('#font-name').value.trim();
+    if (!name) { toast('请输入字体名称'); return; }
+    const url = $('#font-url').value.trim();
+    const file = fileInput.files[0];
+    if (url) {
+      // 外部 CSS：通过 link 加载，不存 base64，但把 CSS URL 记下来，注入时 fetch 不一定跨域可用；这里只支持直接字体文件 URL
+      toast('请粘贴字体文件直链，或上传本地字体');
+      return;
+    }
+    if (!file) { toast('请选择字体文件或粘贴直链'); return; }
+    const reader = new FileReader();
+    reader.onload = e => {
+      data.settings.fonts.push({ name, url: e.target.result });
+      save(); injectFonts(); openFonts(); toast('字体导入成功');
+    };
+    reader.readAsDataURL(file);
+  });
+  $all('.font-del').forEach(btn => btn.addEventListener('click', () => {
+    const i = Number(btn.dataset.fi);
+    data.settings.fonts.splice(i, 1);
+    save(); injectFonts(); openFonts();
+  }));
+  $all('.font-preview').forEach(btn => btn.addEventListener('click', () => {
+    const i = Number(btn.dataset.fi);
+    const f = data.settings.fonts[i];
+    if (!f) return;
+    toast(`字体「${f.name}」已试用`);
+    document.body.style.fontFamily = `"${f.name}"`;
+  }));
+  $('#font-close').addEventListener('click', closeModal);
+  $('#font-save').addEventListener('click', () => {
+    data.settings.globalFont = $('#global-font').value;
+    save(); closeModal(); applyFonts(); toast('已保存');
   });
 }
 
-/* ===================== 长按编辑任意元素 ===================== */
-function applyOneOverride(el, ov) {
-  if (ov.text != null && ov.text !== '') el.textContent = ov.text;
-  if (ov.color) el.style.color = ov.color;
-  if (ov.size) el.style.fontSize = ov.size + 'px';
-}
-function applyElOverrides() {
-  $all('[data-tkey]').forEach(el => {
-    const ov = data.settings.elementOverrides && data.settings.elementOverrides['tkey:' + el.dataset.tkey];
-    if (ov) applyOneOverride(el, ov);
-  });
-  $all('[data-eid]').forEach(el => {
-    const ov = data.settings.elementOverrides && data.settings.elementOverrides['eid:' + el.dataset.eid];
-    if (ov) applyOneOverride(el, ov);
-  });
-}
-function openElementEditor(key, el) {
-  const ov = (data.settings.elementOverrides && data.settings.elementOverrides[key]) || {};
-  openModal(`
-    <h3>编辑这个元素</h3>
-    <p style="font-size:12px;color:var(--text-muted);line-height:1.6;margin:-6px 0 12px;">只改这一个小地方，不影响别处。颜色 / 字号立即生效。</p>
-    <div class="field"><label>文字</label><input id="el-text" type="text" value="${esc(ov.text != null ? ov.text : (el.textContent || ''))}" /></div>
-    <div class="field"><label>颜色</label><input type="color" id="el-color" value="${ov.color || '#C2185B'}" /></div>
-    <div class="field"><label>字号（${ov.size || 14}px）</label>
-      <div class="range-row"><input type="range" min="10" max="40" id="el-size" value="${ov.size || 14}"/><span id="el-size-v">${ov.size || 14}px</span></div></div>
-    <div class="modal-actions">
-      <button class="btn btn-danger" id="el-clear">恢复</button>
-      <button class="btn btn-primary" id="el-save">保存</button>
-    </div>
-  `);
-  const sz = $('#el-size');
-  if (sz) sz.addEventListener('input', () => { const v = $('#el-size-v'); if (v) v.textContent = sz.value + 'px'; });
-  $('#el-clear').addEventListener('click', () => {
-    if (data.settings.elementOverrides) delete data.settings.elementOverrides[key];
-    save(); closeModal(); applyElOverrides(); toast('已恢复');
-  });
-  $('#el-save').addEventListener('click', () => {
-    if (!data.settings.elementOverrides) data.settings.elementOverrides = {};
-    data.settings.elementOverrides[key] = { text: $('#el-text').value, color: $('#el-color').value, size: Number($('#el-size').value) };
-    save(); closeModal(); applyElOverrides(); toast('已保存');
-  });
-}
-(function initLongPress() {
-  let timer = null, startX = 0, startY = 0, suppress = false;
-  document.addEventListener('pointerdown', e => {
-    const el = e.target.closest('[data-tkey],[data-eid]');
-    if (!el || el.tagName === 'INPUT' || el.tagName === 'TEXTAREA' || el.tagName === 'SELECT') return;
-    startX = e.clientX; startY = e.clientY;
-    timer = setTimeout(() => {
-      suppress = true;
-      if (navigator.vibrate) navigator.vibrate(15);
-      const key = el.dataset.tkey ? 'tkey:' + el.dataset.tkey : 'eid:' + el.dataset.eid;
-      openElementEditor(key, el);
-    }, 550);
-  });
-  const cancel = () => { if (timer) { clearTimeout(timer); timer = null; } };
-  document.addEventListener('pointermove', e => { if (timer && (Math.abs(e.clientX - startX) > 8 || Math.abs(e.clientY - startY) > 8)) cancel(); });
-  document.addEventListener('pointerup', cancel);
-  document.addEventListener('pointercancel', cancel);
-  document.addEventListener('click', e => { if (suppress) { suppress = false; e.stopPropagation(); e.preventDefault(); } }, true);
-})();
 
 function renderChat() {
   const s = data.settings;
@@ -2021,6 +2225,7 @@ document.addEventListener('click', e => {
   else if (act === 'edit-layout') openLayout();
   else if (act === 'edit-style') openStyle();
   else if (act === 'edit-text') openText();
+  else if (act === 'edit-fonts') openFonts();
   else if (act === 'edit-lang') openLang();
   else if (act === 'edit-chatpos') openChatPos();
   else if (act === 'backup') { closeMenu(); openBackup(); }
@@ -2081,7 +2286,8 @@ function renderAll() {
   renderWishlist();
   applyLang();
   applyText();
-  applyElOverrides();
+  applyElStyle();
+  applyFonts();
   applyChatInputPos();
 }
 

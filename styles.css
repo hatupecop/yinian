@@ -714,3 +714,25 @@ body.glassmorphism-on .modal-actions {
 .day-type.intimate { background: var(--dot-intimate); }
 .day-type.anniversary { background: var(--dot-anniversary); }
 .day-type.normal { background: var(--text-muted); }
+
+/* ===================== 文案 / 字体自定义面板 ===================== */
+.et-list { max-height: 56vh; overflow: auto; padding-right: 4px; }
+.et-group { margin-bottom: 16px; }
+.et-group-name { font-size: 13px; font-weight: 600; color: var(--accent-deep); margin-bottom: 8px; padding-bottom: 4px; border-bottom: 1px solid var(--border); }
+.et-row { display: flex; flex-direction: column; gap: 6px; padding: 8px 0; border-bottom: 1px dashed var(--border); }
+.et-row:last-child { border-bottom: none; }
+.et-label { font-size: 12px; color: var(--text-muted); }
+.et-controls { display: flex; flex-wrap: wrap; align-items: center; gap: 8px; }
+.et-controls input[type="text"] { flex: 1 1 120px; min-width: 100px; }
+.et-controls select { min-width: 90px; }
+.et-controls input[type="color"] { width: 36px; height: 28px; padding: 0; border: none; background: none; }
+.et-size-wrap { display: flex; align-items: center; gap: 6px; flex: 1 1 110px; }
+.et-size-wrap input[type="range"] { flex: 1; }
+.et-size-v { font-size: 11px; color: var(--text-muted); min-width: 34px; text-align: right; }
+
+/* 字体管理 */
+.font-list { max-height: 30vh; overflow: auto; margin: 12px 0; }
+.font-row { display: flex; justify-content: space-between; align-items: center; padding: 10px 0; border-bottom: 1px solid var(--border); }
+.font-name { font-size: 14px; color: var(--text); }
+.font-actions { display: flex; gap: 8px; }
+.font-actions .btn { padding: 5px 10px; font-size: 12px; }

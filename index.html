@@ -6,7 +6,7 @@
 <meta name="theme-color" content="#FBF1EC" />
 <title>小窝</title>
 <link rel="manifest" href="manifest.json" />
-<link rel="stylesheet" href="styles.css" />
+<link rel="stylesheet" href="styles.css?v=20260725b" />
 </head>
 <body>
 <div class="phone">
@@ -17,13 +17,13 @@
       <button class="icon-btn" data-action="menu" aria-label="菜单">
         <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"><path d="M4 7h16M4 12h16M4 17h16"/></svg>
       </button>
-      <div class="topbar-title" id="rel-name-top">Claire &amp; Claude</div>
+      <div class="topbar-title" id="rel-name-top" data-eid="anni.relNameTop">Claire &amp; Claude</div>
     </header>
 
     <div class="scroll">
       <div class="hero-card">
-        <div class="hero-name" id="rel-name-card">Claire &amp; Claude</div>
-        <div class="hero-number" id="days-together" data-eid="hero-days">44</div>
+        <div class="hero-name" id="rel-name-card" data-eid="anni.relNameCard">Claire &amp; Claude</div>
+        <div class="hero-number" id="days-together" data-eid="anni.heroDays">44</div>
         <div class="hero-sub" data-tkey="anni.heroSub">days together for</div>
         <div class="hero-avatars">
           <div class="avatar-lg" id="avatar-me"></div>
@@ -32,7 +32,7 @@
           <div class="hero-line"></div>
           <div class="avatar-lg" id="avatar-ai"></div>
         </div>
-        <div class="hero-since" id="since-text">since 2026.06.02</div>
+        <div class="hero-since" id="since-text" data-eid="anni.sincePrefix">since 2026.06.02</div>
       </div>
 
       <div class="placeholder-row">
@@ -55,8 +55,8 @@
         <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M15 18l-6-6 6-6"/></svg>
       </button>
       <div class="cal-title-wrap">
-        <div class="cal-month-en" id="cal-month-en">July</div>
-        <div class="cal-year" id="cal-year">2026</div>
+        <div class="cal-month-en" id="cal-month-en" data-eid="cal.month">July</div>
+        <div class="cal-year" id="cal-year" data-eid="cal.year">2026</div>
       </div>
       <button class="icon-btn" data-action="cal-next" aria-label="下个月">
         <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M9 18l6-6-6-6"/></svg>
@@ -78,8 +78,8 @@
       <div class="chat-user">
         <div class="chat-ava" id="chat-ava"></div>
         <div class="chat-user-info">
-          <div class="chat-user-name" id="chat-user-name">Claude</div>
-          <div class="chat-user-status"><span class="chat-online-dot"></span><span data-tkey="chat.online">在线</span></div>
+          <div class="chat-user-name" id="chat-user-name" data-eid="chat.userName">Claude</div>
+          <div class="chat-user-status"><span class="chat-online-dot"></span><span data-tkey="chat.online" data-eid="chat.online">在线</span></div>
         </div>
       </div>
       <div class="chat-tools">
@@ -123,7 +123,7 @@
       <div class="moments-cover" id="moments-cover">
         <div class="moments-profile">
           <div class="moments-info">
-            <div class="moments-profile-name" id="moments-profile-name">: Claire</div>
+            <div class="moments-profile-name" id="moments-profile-name" data-eid="moments.profileName">: Claire</div>
             <div class="moments-sign" id="moments-sign"></div>
           </div>
           <div class="avatar-xl" id="moments-avatar"></div>
@@ -173,19 +173,20 @@
   <!-- ============ Setting ============ -->
   <section class="screen" id="screen-setting">
     <header class="topbar">
-      <div class="topbar-title">Setting</div>
+      <div class="topbar-title" data-tkey="setting.title" data-eid="setting.title">Setting</div>
     </header>
     <div class="scroll">
       <div class="setting-group">
-        <div class="setting-row" data-action="edit-profile"><span data-tkey="setting.row.profile">个人资料</span><span class="chev">›</span></div>
-        <div class="setting-row" data-action="edit-personalize"><span data-tkey="setting.row.personalize">个性化</span><span class="chev">›</span></div>
-        <div class="setting-row" data-action="edit-style"><span data-tkey="setting.row.style">外观自定义</span><span class="chev">›</span></div>
-        <div class="setting-row" data-action="edit-text"><span data-tkey="setting.row.text">文案自定义</span><span class="chev">›</span></div>
-        <div class="setting-row" data-action="edit-layout"><span data-tkey="setting.row.layout">位置调节</span><span class="chev">›</span></div>
-        <div class="setting-row" data-action="edit-api"><span data-tkey="setting.row.api">API 连接</span><span class="chev">›</span></div>
-        <div class="setting-row" data-action="edit-memory"><span data-tkey="setting.row.memory">记忆</span><span class="chev">›</span></div>
-        <div class="setting-row" data-action="edit-sync"><span data-tkey="setting.row.sync">云同步（共享数据）</span><span class="chev">›</span></div>
-        <div class="setting-row" data-action="backup"><span data-tkey="setting.row.backup">导出 / 导入备份</span><span class="chev">›</span></div>
+        <div class="setting-row" data-action="edit-profile"><span data-tkey="setting.row.profile" data-eid="setting.row.profile">个人资料</span><span class="chev">›</span></div>
+        <div class="setting-row" data-action="edit-personalize"><span data-tkey="setting.row.personalize" data-eid="setting.row.personalize">个性化</span><span class="chev">›</span></div>
+        <div class="setting-row" data-action="edit-style"><span data-tkey="setting.row.style" data-eid="setting.row.style">外观自定义</span><span class="chev">›</span></div>
+        <div class="setting-row" data-action="edit-text"><span data-tkey="setting.row.text" data-eid="setting.row.text">文案自定义</span><span class="chev">›</span></div>
+        <div class="setting-row" data-action="edit-fonts"><span data-tkey="setting.row.fonts" data-eid="setting.row.fonts">字体管理</span><span class="chev">›</span></div>
+        <div class="setting-row" data-action="edit-layout"><span data-tkey="setting.row.layout" data-eid="setting.row.layout">位置调节</span><span class="chev">›</span></div>
+        <div class="setting-row" data-action="edit-api"><span data-tkey="setting.row.api" data-eid="setting.row.api">API 连接</span><span class="chev">›</span></div>
+        <div class="setting-row" data-action="edit-memory"><span data-tkey="setting.row.memory" data-eid="setting.row.memory">记忆</span><span class="chev">›</span></div>
+        <div class="setting-row" data-action="edit-sync"><span data-tkey="setting.row.sync" data-eid="setting.row.sync">云同步（共享数据）</span><span class="chev">›</span></div>
+        <div class="setting-row" data-action="backup"><span data-tkey="setting.row.backup" data-eid="setting.row.backup">导出 / 导入备份</span><span class="chev">›</span></div>
       </div>
       <p class="setting-foot">默认数据只存在本机浏览器。想和 TA 共享，请开启「云同步（共享数据）」。清缓存会丢失，建议定期导出备份。</p>
     </div>
@@ -225,7 +226,7 @@
     </div>
     <div class="menu-row" data-action="goto" data-target="wishlist">
       <span class="menu-ico"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><rect x="4" y="9" width="16" height="11" rx="1.5"/><path d="M4 13h16M12 9v11M12 9c0 0-2-5-4.5-3.5S9.5 9 12 9zM12 9c0 0 2-5 4.5-3.5S14.5 9 12 9z"/></svg></span>
-      <span class="menu-label">心愿单</span>
+      <span class="menu-label" data-tkey="menu.wishlist" data-eid="menu.wishlist">心愿单</span>
       <span class="chev">›</span>
     </div>
   </div>
@@ -241,6 +242,6 @@
   <div class="toast" id="toast"></div>
 </div>
 
-<script src="app.js"></script>
+<script src="app.js?v=20260725b"></script>
 </body>
 </html>
