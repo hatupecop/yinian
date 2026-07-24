@@ -56,6 +56,11 @@
   --st-cardbg-opacity: 1;
   --st-pagebg-color: var(--bg-page);
   --st-pagebg-opacity: 1;
+
+  /* 键盘高度（由 JS 经 visualViewport 写入）：--kb 用于把导航栏压到屏幕最底（被键盘盖住）；--kb-input 仅覆盖层模式下用于把输入框抬到键盘上方 */
+  --kb: 0px;
+  --kb-input: 0px;
+  --chat-offset: 0px;
 }
 
 /* ===================== Base ===================== */
@@ -233,7 +238,7 @@ button { font-family: inherit; cursor: pointer; border: none; background: none; 
 .chat-tools { display: flex; align-items: center; gap: 6px; }
 .chat-tools .icon-btn { width: 32px; height: 32px; background: transparent; color: var(--text-muted); }
 .chat-tools .icon-btn svg { width: 18px; height: 18px; }
-.chat-body { flex: 1; overflow-y: auto; padding: 14px 16px calc(96px + env(safe-area-inset-bottom)); display: flex; flex-direction: column; gap: 12px; position: relative; z-index: 1; }
+.chat-body { flex: 1; overflow-y: auto; padding: 14px 16px calc(134px + env(safe-area-inset-bottom)); display: flex; flex-direction: column; gap: 12px; position: relative; z-index: 1; }
 .bubble-row { display: flex; gap: 8px; align-items: flex-end; }
 .bubble-row.me { flex-direction: row-reverse; }
 .bubble {
@@ -243,21 +248,19 @@ button { font-family: inherit; cursor: pointer; border: none; background: none; 
 .bubble-row.ai .bubble { background-color: color-mix(in srgb, var(--st-cardbg-color) calc(var(--st-cardbg-opacity)*100%), transparent); color: var(--text); border-bottom-left-radius: 6px; box-shadow: var(--shadow-card); }
 .bubble-row.me .bubble { background: var(--accent); color: #fff; border-bottom-right-radius: 6px; }
 .chat-input-bar {
-  position: relative; z-index: 2;
+  position: fixed; left: 50%; transform: translateX(-50%);
+  width: calc(100% - 28px); max-width: 412px;
+  bottom: calc(var(--kb-input, 0px) + 76px + var(--chat-offset, 0px));
+  z-index: 12;
   display: flex; align-items: center; gap: 5px;
-  margin: 10px 14px calc(84px + env(safe-area-inset-bottom));
   padding: 5px 6px 5px 12px;
   background: transparent;
   border-radius: var(--r-pill);
   box-shadow: none;
   border: 1.5px solid color-mix(in srgb, var(--text) 26%, transparent);
-  -webkit-backdrop-filter: blur(3px);
-  backdrop-filter: blur(3px);
   overflow: hidden;
-  transition: margin-bottom .18s ease, border-color .18s ease;
+  transition: bottom .18s ease, border-color .18s ease;
 }
-/* 打字时输入框贴近键盘（导航栏固定在最底部，被键盘盖住，无需再留空间） */
-.chat-input-bar.focused { margin-bottom: 12px; }
 .chat-input-bar input {
   flex: 1; min-width: 0; border: none; background: transparent;
   padding: 9px 4px; font-size: 15px; color: var(--text); outline: none;
@@ -469,7 +472,7 @@ button { font-family: inherit; cursor: pointer; border: none; background: none; 
 
 /* ===================== Tab Bar ===================== */
 .tabbar {
-  position: fixed; left: 50%; transform: translateX(-50%); width: calc(100% - 32px); max-width: 408px; bottom: calc(var(--nav-bottom, 10px) + env(safe-area-inset-bottom));
+  position: fixed; left: 50%; transform: translateX(-50%); width: calc(100% - 32px); max-width: 408px; bottom: calc(var(--nav-bottom, 10px) + env(safe-area-inset-bottom) + var(--kb, 0px));
   background-color: color-mix(in srgb, var(--st-cardbg-color) calc(var(--st-cardbg-opacity)*100%), transparent); border-radius: var(--r-pill);
   box-shadow: 0 8px 22px rgba(180,140,150,.18);
   display: flex; justify-content: space-around; padding: 2px 6px; z-index: 20;

@@ -1458,7 +1458,7 @@ function applyChatInputPos() {
   const bar = document.querySelector('#screen-chat .chat-input-bar');
   if (!bar) return;
   const off = data.settings.chatInputOffset || 0;
-  bar.style.marginBottom = (96 + off) + 'px';
+  bar.style.setProperty('--chat-offset', off + 'px');
 }
 function openLang() {
   const s = data.settings;
@@ -1790,13 +1790,28 @@ document.addEventListener('click', e => {
   if (!['moment-menu','moment-like','moment-comment'].includes(act)) closeMomentMenus();
 });
 $('#chat-input') && $('#chat-input').addEventListener('keydown', e => { if (e.key === 'Enter') sendChat(); });
-/* 输入聚焦时让输入条贴近键盘：导航栏已 fixed 钉在底部，无需再为其留白 */
+/* 键盘高度检测（visualViewport）：把导航栏压到屏幕最底、被键盘盖住；覆盖层模式下把输入框抬到键盘上方 */
 (function () {
-  const ci = $('#chat-input'); const bar = document.querySelector('#screen-chat .chat-input-bar');
-  if (ci && bar) {
-    ci.addEventListener('focus', () => bar.classList.add('focused'));
-    ci.addEventListener('blur', () => bar.classList.remove('focused'));
+  const root = document.documentElement;
+  let baseH = window.innerHeight;
+  function update() {
+    const vv = window.visualViewport;
+    const vh = vv ? vv.height : window.innerHeight;
+    const vTop = vv ? vv.offsetTop : 0;
+    // 键盘高度：兼容“视口收缩”与“键盘覆盖”两种模式
+    const kb = Math.max(0, window.innerHeight - vh - vTop, baseH - window.innerHeight);
+    // 覆盖层模式：布局视口不收缩，但 visualViewport 缩小 → 输入框需额外抬升
+    const overlay = (window.innerHeight >= baseH - 2) && (vh < baseH - 2);
+    root.style.setProperty('--kb', kb + 'px');
+    root.style.setProperty('--kb-input', (overlay ? kb : 0) + 'px');
   }
+  function recapBase() { if (window.innerHeight > baseH) baseH = window.innerHeight; }
+  if (window.visualViewport) {
+    window.visualViewport.addEventListener('resize', update);
+    window.visualViewport.addEventListener('scroll', update);
+  }
+  window.addEventListener('resize', () => { recapBase(); update(); });
+  update();
 })();
 
 /* ===================== 启动 ===================== */
