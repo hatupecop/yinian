@@ -565,7 +565,7 @@ body.kb-open .tabbar {
 .field label { display: block; font-size: 13px; color: var(--text-muted); margin-bottom: 6px; }
 .field input, .field textarea, .field select {
   width: 100%; border: 1px solid var(--border); border-radius: var(--r-sm);
-  padding: 11px 12px; font-size: 14px; background: var(--bg-page); color: var(--text); outline: none;
+  padding: 11px 12px; font-size: 14px; background: transparent; color: var(--text); outline: none;
   font-family: inherit;
 }
 .field input:focus, .field textarea:focus { border-color: var(--accent); }
@@ -573,10 +573,9 @@ body.kb-open .tabbar {
 .modal-actions {
   position: sticky; bottom: 0; z-index: 5;
   display: flex; gap: 10px; margin-top: 8px; padding-top: 12px;
-  background: color-mix(in srgb, var(--st-cardbg-color) 94%, transparent);
-  backdrop-filter: blur(10px); -webkit-backdrop-filter: blur(10px);
+  background: transparent;
   border-top: 1px solid var(--border);
-  box-shadow: 0 -8px 20px -10px rgba(40,30,40,.22);
+  box-shadow: none;
 }
 .btn {
   flex: 1; padding: 12px; border-radius: var(--r-pill); font-size: 14px; text-align: center;
@@ -695,14 +694,14 @@ body.glassmorphism-on .modal-actions {
 .inline-picker { position: relative; }
 .ip-current {
   width: 100%; border: 1px solid var(--border); border-radius: var(--r-sm);
-  padding: 11px 12px; font-size: 14px; background: var(--bg-page); color: var(--text);
+  padding: 11px 12px; font-size: 14px; background: transparent; color: var(--text);
   display: flex; align-items: center; justify-content: space-between; cursor: pointer;
 }
 .ip-current::after { content: ""; width: 8px; height: 8px; border-right: 2px solid var(--text-muted); border-bottom: 2px solid var(--text-muted); transform: rotate(45deg); margin-left: 8px; flex-shrink: 0; transition: transform .2s; }
 .inline-picker.open .ip-current::after { transform: rotate(-135deg); }
 .ip-list {
   position: absolute; left: 0; right: 0; top: calc(100% + 6px); z-index: 30;
-  background: var(--bg-page); border: 1px solid var(--border); border-radius: var(--r-sm);
+  background: transparent; border: 1px solid var(--border); border-radius: var(--r-sm);
   box-shadow: 0 8px 22px rgba(40,30,40,.18); overflow: hidden; display: none;
 }
 .inline-picker.open .ip-list { display: block; }

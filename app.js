@@ -103,7 +103,12 @@ if (!data.settings.style) data.settings.style = {
 };
 if (!data.settings.glass) data.settings.glass = { on: false, blur: 14, opacity: 65 };
 if (!data.settings.glassmorphism) data.settings.glassmorphism = { on: false, highlight: 70 };
-if (data.settings.topFade === undefined) data.settings.topFade = 100;
+if (data.settings.topFadeA === undefined) {
+  // 兼容旧版单值 topFade：作为“透明度”，高度用默认 20%
+  data.settings.topFadeA = (data.settings.topFade !== undefined ? data.settings.topFade : 100);
+  data.settings.topFadeH = 20;
+}
+if (data.settings.topFadeH === undefined) data.settings.topFadeH = 20;
 if (!data.settings.sync) data.settings.sync = { on: false, url: '', anon: '' };
 if (data.settings.sync.on === undefined) data.settings.sync.on = false;
 if (data.settings.sync.url === undefined) data.settings.sync.url = '';
@@ -1254,7 +1259,8 @@ function applyTheme() {
   const [r, g, b] = hexToRgb(theme.vars['--bg-page']);
   // 每页背景：全局优先
   const hasGlobal = data.settings.pageBg.global;
-  const tf = (data.settings.topFade != null ? data.settings.topFade : 100) / 100;
+  const ta = (data.settings.topFadeA != null ? data.settings.topFadeA : 100) / 100;
+  const th = (data.settings.topFadeH != null ? data.settings.topFadeH : 20);
   $all('.screen').forEach(s => {
     const key = s.id.replace('screen-', '');
     const mkey = key === 'mymoments' ? 'moments' : key;
@@ -1267,14 +1273,14 @@ function applyTheme() {
       const chatBg = s.querySelector('.chat-bg');
       if (chatBg) {
         if (bg) {
-          chatBg.style.backgroundImage = `linear-gradient(to bottom, rgba(${r},${g},${b},${tf}) 0%, rgba(${r},${g},${b},${1 - op}) 20%, rgba(${r},${g},${b},${1 - op}) 100%), url(${bg})`;
+          chatBg.style.backgroundImage = `linear-gradient(to bottom, rgba(${r},${g},${b},${ta}) 0%, rgba(${r},${g},${b},${ta}) ${th * 0.5}%, rgba(${r},${g},${b},${1 - op}) ${th}%, rgba(${r},${g},${b},${1 - op}) 100%), url(${bg})`;
         } else { chatBg.style.backgroundImage = ''; }
       }
       s.style.backgroundImage = '';
       return;
     }
     if (bg) {
-      s.style.backgroundImage = `linear-gradient(to bottom, rgba(${r},${g},${b},${tf}) 0%, rgba(${r},${g},${b},${1 - op}) 20%, rgba(${r},${g},${b},${1 - op}) 100%), url(${bg})`;
+      s.style.backgroundImage = `linear-gradient(to bottom, rgba(${r},${g},${b},${ta}) 0%, rgba(${r},${g},${b},${ta}) ${th * 0.5}%, rgba(${r},${g},${b},${1 - op}) ${th}%, rgba(${r},${g},${b},${1 - op}) 100%), url(${bg})`;
       s.style.backgroundSize = 'cover'; s.style.backgroundPosition = 'center';
     } else { s.style.backgroundImage = ''; }
   });
@@ -1709,8 +1715,10 @@ function openStyle() {
     <div class="style-group" style="border-top:1px solid var(--border);padding-top:12px;margin-top:14px;">
       <div style="font-size:14px;font-weight:500;color:var(--text);margin-bottom:8px;">顶部背景渐隐</div>
       <p style="font-size:12px;color:var(--text-muted);line-height:1.6;margin:-4px 0 10px;">顶部栏那一截会盖一层主题色，让菜单文字更清楚。调低则背景图在顶部露出来更多，调高则盖得更实。</p>
-      <div class="field"><label>渐隐浓度（${data.settings.topFade != null ? data.settings.topFade : 100}%）</label>
-        <div class="range-row"><input type="range" min="0" max="100" id="st-topfade" value="${data.settings.topFade != null ? data.settings.topFade : 100}"/><span id="st-topfade-v">${data.settings.topFade != null ? data.settings.topFade : 100}%</span></div></div>
+      <div class="field"><label>顶部渐隐范围（${data.settings.topFadeH != null ? data.settings.topFadeH : 20}%，越大盖住越高）</label>
+        <div class="range-row"><input type="range" min="0" max="40" id="st-topfade-h" value="${data.settings.topFadeH != null ? data.settings.topFadeH : 20}"/><span id="st-topfade-h-v">${data.settings.topFadeH != null ? data.settings.topFadeH : 20}%</span></div></div>
+      <div class="field"><label>顶部渐隐透明度（${data.settings.topFadeA != null ? data.settings.topFadeA : 100}%，0 = 完全透明露出背景）</label>
+        <div class="range-row"><input type="range" min="0" max="100" id="st-topfade-a" value="${data.settings.topFadeA != null ? data.settings.topFadeA : 100}"/><span id="st-topfade-a-v">${data.settings.topFadeA != null ? data.settings.topFadeA : 100}%</span></div></div>
     </div>
     <div class="style-group" style="border-top:1px solid var(--border);padding-top:12px;margin-top:14px;">
       <div style="font-size:14px;font-weight:500;color:var(--text);margin-bottom:8px;">底部导航语言</div>
@@ -1743,8 +1751,10 @@ function openStyle() {
   if (gmo) gmo.addEventListener('click', () => gmo.classList.toggle('on'));
   const gmh = $('#st-gm-highlight');
   if (gmh) gmh.addEventListener('input', () => { const v = $('#st-gm-highlightv'); if (v) v.textContent = gmh.value + '%'; });
-  const tfEl = $('#st-topfade');
-  if (tfEl) tfEl.addEventListener('input', () => { const v = $('#st-topfade-v'); if (v) v.textContent = tfEl.value + '%'; });
+  const tfh = $('#st-topfade-h');
+  if (tfh) tfh.addEventListener('input', () => { const v = $('#st-topfade-h-v'); if (v) v.textContent = tfh.value + '%'; data.settings.topFadeH = Number(tfh.value); applyTheme(); });
+  const tfa = $('#st-topfade-a');
+  if (tfa) tfa.addEventListener('input', () => { const v = $('#st-topfade-a-v'); if (v) v.textContent = tfa.value + '%'; data.settings.topFadeA = Number(tfa.value); applyTheme(); });
   $('#st-reset').addEventListener('click', () => {
     data.settings.style = {
       title: { color: '', opacity: 1, font: 'default' },
@@ -1757,8 +1767,8 @@ function openStyle() {
     };
     data.settings.glass = { on: false, blur: 14, opacity: 65 };
     data.settings.glassmorphism = { on: false, highlight: 70 };
-    data.settings.topFade = 100;
-    save(); applyStyle(); closeModal(); toast('已恢复主题');
+    data.settings.topFadeA = 100; data.settings.topFadeH = 20;
+    save(); applyTheme(); closeModal(); toast('已恢复主题');
   });
   $('#st-save').addEventListener('click', () => {
     const out = {};
@@ -1772,9 +1782,10 @@ function openStyle() {
     data.settings.style = out;
     data.settings.glass = { on: $('#st-glass-on').classList.contains('on'), blur: Number($('#st-glass-blur').value), opacity: Number($('#st-glass-opacity').value) };
     data.settings.glassmorphism = { on: $('#st-gm-on').classList.contains('on'), highlight: Number($('#st-gm-highlight').value) };
-    data.settings.topFade = Number($('#st-topfade').value);
+    data.settings.topFadeH = Number($('#st-topfade-h').value);
+    data.settings.topFadeA = Number($('#st-topfade-a').value);
     const langEl = $('#st-lang'); if (langEl) data.settings.lang = langEl.value;
-    save(); closeModal(); applyStyle(); applyLang(); toast('已保存');
+    save(); closeModal(); applyTheme(); applyLang(); toast('已保存');
   });
 }
 function renderChat() {
