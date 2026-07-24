@@ -1790,6 +1790,14 @@ document.addEventListener('click', e => {
   if (!['moment-menu','moment-like','moment-comment'].includes(act)) closeMomentMenus();
 });
 $('#chat-input') && $('#chat-input').addEventListener('keydown', e => { if (e.key === 'Enter') sendChat(); });
+/* 输入聚焦时让输入条贴近键盘：导航栏已 fixed 钉在底部，无需再为其留白 */
+(function () {
+  const ci = $('#chat-input'); const bar = document.querySelector('#screen-chat .chat-input-bar');
+  if (ci && bar) {
+    ci.addEventListener('focus', () => bar.classList.add('focused'));
+    ci.addEventListener('blur', () => bar.classList.remove('focused'));
+  }
+})();
 
 /* ===================== 启动 ===================== */
 function renderAll() {

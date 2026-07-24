@@ -246,12 +246,18 @@ button { font-family: inherit; cursor: pointer; border: none; background: none; 
   position: relative; z-index: 2;
   display: flex; align-items: center; gap: 5px;
   margin: 10px 14px calc(84px + env(safe-area-inset-bottom));
-  padding: 5px 5px 5px 10px;
-  background: #FFFFFF; border-radius: var(--r-pill);
-  box-shadow: 0 6px 24px rgba(120,90,100,.13), 0 2px 8px rgba(120,90,100,.08);
-  border: 1px solid rgba(240,220,228,.55);
+  padding: 5px 6px 5px 12px;
+  background: transparent;
+  border-radius: var(--r-pill);
+  box-shadow: none;
+  border: 1.5px solid color-mix(in srgb, var(--text) 26%, transparent);
+  -webkit-backdrop-filter: blur(3px);
+  backdrop-filter: blur(3px);
   overflow: hidden;
+  transition: margin-bottom .18s ease, border-color .18s ease;
 }
+/* 打字时输入框贴近键盘（导航栏固定在最底部，被键盘盖住，无需再留空间） */
+.chat-input-bar.focused { margin-bottom: 12px; }
 .chat-input-bar input {
   flex: 1; min-width: 0; border: none; background: transparent;
   padding: 9px 4px; font-size: 15px; color: var(--text); outline: none;
@@ -263,7 +269,7 @@ button { font-family: inherit; cursor: pointer; border: none; background: none; 
 }
 .chat-plus, .chat-mic {
   width: 32px; height: 32px; border-radius: 50%;
-  background: var(--bg-page); color: var(--text-muted);
+  background: transparent; color: var(--text-muted);
   display: flex; align-items: center; justify-content: center; flex-shrink: 0;
 }
 .chat-plus svg, .chat-mic svg { width: 17px; height: 17px; }
@@ -463,11 +469,11 @@ button { font-family: inherit; cursor: pointer; border: none; background: none; 
 
 /* ===================== Tab Bar ===================== */
 .tabbar {
-  position: absolute; left: var(--nav-inset, 16px); right: var(--nav-inset, 16px); bottom: calc(var(--nav-bottom, 10px) + env(safe-area-inset-bottom));
+  position: fixed; left: 50%; transform: translateX(-50%); width: calc(100% - 32px); max-width: 408px; bottom: calc(var(--nav-bottom, 10px) + env(safe-area-inset-bottom));
   background-color: color-mix(in srgb, var(--st-cardbg-color) calc(var(--st-cardbg-opacity)*100%), transparent); border-radius: var(--r-pill);
   box-shadow: 0 8px 22px rgba(180,140,150,.18);
   display: flex; justify-content: space-around; padding: 2px 6px; z-index: 20;
-  transition: opacity .2s ease, transform .2s ease;
+  transition: opacity .2s ease;
 }
 .tab {
   display: flex; flex-direction: column; align-items: center; gap: var(--nav-gap, 1px);
