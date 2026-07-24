@@ -23,8 +23,8 @@
     <div class="scroll">
       <div class="hero-card">
         <div class="hero-name" id="rel-name-card">Claire &amp; Claude</div>
-        <div class="hero-number" id="days-together">44</div>
-        <div class="hero-sub">days together for</div>
+        <div class="hero-number" id="days-together" data-eid="hero-days">44</div>
+        <div class="hero-sub" data-tkey="anni.heroSub">days together for</div>
         <div class="hero-avatars">
           <div class="avatar-lg" id="avatar-me"></div>
           <div class="hero-line"></div>
@@ -41,7 +41,7 @@
       </div>
 
       <div class="section-head">
-        <h2>Important Days</h2>
+        <h2 data-tkey="anni.sectionTitle">Important Days</h2>
         <button class="add-btn" data-action="add-day" aria-label="添加">+</button>
       </div>
       <div id="important-list" class="day-list"></div>
@@ -79,7 +79,7 @@
         <div class="chat-ava" id="chat-ava"></div>
         <div class="chat-user-info">
           <div class="chat-user-name" id="chat-user-name">Claude</div>
-          <div class="chat-user-status"><span class="chat-online-dot"></span>在线</div>
+          <div class="chat-user-status"><span class="chat-online-dot"></span><span data-tkey="chat.online">在线</span></div>
         </div>
       </div>
       <div class="chat-tools">
@@ -119,7 +119,7 @@
       </button>
     </header>
     <div class="scroll moments-scroll">
-      <div class="ptr-hint" id="moments-ptr">下拉刷新</div>
+      <div class="ptr-hint" id="moments-ptr" data-tkey="moments.ptr">下拉刷新</div>
       <div class="moments-cover" id="moments-cover">
         <div class="moments-profile">
           <div class="moments-info">
@@ -144,7 +144,7 @@
       </button>
     </header>
     <div class="scroll moments-scroll">
-      <div class="ptr-hint" id="mymoments-ptr">下拉刷新</div>
+      <div class="ptr-hint" id="mymoments-ptr" data-tkey="moments.ptr">下拉刷新</div>
       <div class="moments-cover" id="mymoments-cover">
         <div class="mymoments-name" id="mymoments-name"></div>
       </div>
@@ -177,14 +177,15 @@
     </header>
     <div class="scroll">
       <div class="setting-group">
-        <div class="setting-row" data-action="edit-profile"><span>个人资料</span><span class="chev">›</span></div>
-        <div class="setting-row" data-action="edit-personalize"><span>个性化</span><span class="chev">›</span></div>
-        <div class="setting-row" data-action="edit-style"><span>外观自定义</span><span class="chev">›</span></div>
-        <div class="setting-row" data-action="edit-layout"><span>位置调节</span><span class="chev">›</span></div>
-        <div class="setting-row" data-action="edit-api"><span>API 连接</span><span class="chev">›</span></div>
-        <div class="setting-row" data-action="edit-memory"><span>记忆</span><span class="chev">›</span></div>
-        <div class="setting-row" data-action="edit-sync"><span>云同步（共享数据）</span><span class="chev">›</span></div>
-        <div class="setting-row" data-action="backup"><span>导出 / 导入备份</span><span class="chev">›</span></div>
+        <div class="setting-row" data-action="edit-profile"><span data-tkey="setting.row.profile">个人资料</span><span class="chev">›</span></div>
+        <div class="setting-row" data-action="edit-personalize"><span data-tkey="setting.row.personalize">个性化</span><span class="chev">›</span></div>
+        <div class="setting-row" data-action="edit-style"><span data-tkey="setting.row.style">外观自定义</span><span class="chev">›</span></div>
+        <div class="setting-row" data-action="edit-text"><span data-tkey="setting.row.text">文案自定义</span><span class="chev">›</span></div>
+        <div class="setting-row" data-action="edit-layout"><span data-tkey="setting.row.layout">位置调节</span><span class="chev">›</span></div>
+        <div class="setting-row" data-action="edit-api"><span data-tkey="setting.row.api">API 连接</span><span class="chev">›</span></div>
+        <div class="setting-row" data-action="edit-memory"><span data-tkey="setting.row.memory">记忆</span><span class="chev">›</span></div>
+        <div class="setting-row" data-action="edit-sync"><span data-tkey="setting.row.sync">云同步（共享数据）</span><span class="chev">›</span></div>
+        <div class="setting-row" data-action="backup"><span data-tkey="setting.row.backup">导出 / 导入备份</span><span class="chev">›</span></div>
       </div>
       <p class="setting-foot">默认数据只存在本机浏览器。想和 TA 共享，请开启「云同步（共享数据）」。清缓存会丢失，建议定期导出备份。</p>
     </div>

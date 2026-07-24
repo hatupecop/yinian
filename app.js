@@ -114,6 +114,8 @@ if (data.settings.sync.on === undefined) data.settings.sync.on = false;
 if (data.settings.sync.url === undefined) data.settings.sync.url = '';
 if (data.settings.sync.anon === undefined) data.settings.sync.anon = '';
 if (!data.deletedIds) data.deletedIds = [];
+if (!data.settings.text) data.settings.text = {};
+if (!data.settings.elementOverrides) data.settings.elementOverrides = {};
 if (!data.settings.lang) data.settings.lang = 'en';
 if (data.settings.chatInputOffset === undefined) data.settings.chatInputOffset = 0;
 if (data.settings.chatInputHeight === undefined) data.settings.chatInputHeight = 54;
@@ -468,12 +470,12 @@ function renderAnniversary() {
     const target = parseDot(d.date);
     const diff = daysBetween(new Date(), target);
     let num, unit, passed = '';
-    if (diff > 0) { num = diff; unit = 'days left'; }
-    else if (diff < 0) { num = -diff; unit = 'days passed'; passed = 'passed'; }
-    else { num = 'Today'; unit = ''; }
+    if (diff > 0) { num = diff; unit = TT('anni.daysLeft'); }
+    else if (diff < 0) { num = -diff; unit = TT('anni.daysPassed'); passed = 'passed'; }
+    else { num = TT('anni.today'); unit = ''; }
     return `<div class="day-row" data-day="${d.id}">
       <div class="day-left">
-        <div class="day-title">${esc(d.title)}${d.pinned ? '<span class="pin">置顶</span>' : ''}${d.type && d.type !== 'normal' ? '<span class="day-type ' + d.type + '">' + (d.type === 'intimate' ? '亲密' : d.type === 'anniversary' ? '纪念日' : '') + '</span>' : ''}</div>
+        <div class="day-title">${esc(d.title)}${d.pinned ? '<span class="pin">' + TT('anni.pinned') + '</span>' : ''}${d.type && d.type !== 'normal' ? '<span class="day-type ' + d.type + '">' + TT('anni.type.' + d.type) + '</span>' : ''}</div>
         <div class="day-date">${d.date}</div>
       </div>
       <div class="day-right ${passed}">
@@ -504,7 +506,7 @@ function editDay(id) {
     <div class="field"><label>备注</label><textarea id="f-content">${esc(d.content || '')}</textarea></div>
     <div class="field"><label>类型</label>
       <div class="inline-picker" id="d-type-picker">
-        <div class="ip-current" id="d-type-cur">${d.type === 'intimate' ? '亲密' : d.type === 'anniversary' ? '纪念日' : '普通'}</div>
+        <div class="ip-current" id="d-type-cur">${TT('anni.type.' + d.type)}</div>
         <div class="ip-list">
           <div class="ip-opt ${d.type === 'intimate' ? 'sel' : ''}" data-v="intimate">亲密</div>
           <div class="ip-opt ${d.type === 'anniversary' ? 'sel' : ''}" data-v="anniversary">纪念日</div>
@@ -524,6 +526,8 @@ function editDay(id) {
   const typePicker = $('#d-type-picker');
   const typeCur = $('#d-type-cur');
   if (typePicker) {
+    $all('.ip-opt', typePicker).forEach(o => o.textContent = TT('anni.type.' + o.dataset.v));
+    typeCur.textContent = TT('anni.type.' + dayType);
     typeCur.addEventListener('click', () => typePicker.classList.toggle('open'));
     $all('.ip-opt', typePicker).forEach(opt => opt.addEventListener('click', () => {
       dayType = opt.dataset.v;
@@ -557,7 +561,7 @@ function addDay() {
     <div class="field"><label>备注</label><textarea id="f-content"></textarea></div>
     <div class="field"><label>类型</label>
       <div class="inline-picker" id="d-type-picker">
-        <div class="ip-current" id="d-type-cur">亲密</div>
+        <div class="ip-current" id="d-type-cur">${TT('anni.type.intimate')}</div>
         <div class="ip-list">
           <div class="ip-opt sel" data-v="intimate">亲密</div>
           <div class="ip-opt" data-v="anniversary">纪念日</div>
@@ -576,6 +580,8 @@ function addDay() {
   const typePicker = $('#d-type-picker');
   const typeCur = $('#d-type-cur');
   if (typePicker) {
+    $all('.ip-opt', typePicker).forEach(o => o.textContent = TT('anni.type.' + o.dataset.v));
+    typeCur.textContent = TT('anni.type.' + dayType);
     typeCur.addEventListener('click', () => typePicker.classList.toggle('open'));
     $all('.ip-opt', typePicker).forEach(opt => opt.addEventListener('click', () => {
       dayType = opt.dataset.v;
@@ -1544,6 +1550,53 @@ function applyLang() {
     if (map) { const lbl = tab.querySelector('.tab-label'); if (lbl) lbl.textContent = map[lang]; }
   });
 }
+
+/* ===================== 文案自定义 ===================== */
+/* 所有写死的界面文案集中在此。TT(key) 读「用户覆盖」或默认；applyText() 把覆盖应用到界面。
+   用户可在「设置 → 文案自定义」逐个改；长按带 data-tkey 的元素也能改。 */
+const TEXT = {
+  'nav.anniversary': '纪念日', 'nav.calendar': '日历', 'nav.chat': '聊天',
+  'nav.moments': '朋友圈', 'nav.setting': '设置',
+  'anni.sectionTitle': 'Important Days',
+  'anni.heroSub': 'days together for',
+  'anni.daysLeft': 'days left', 'anni.daysPassed': 'days passed', 'anni.today': 'Today',
+  'anni.pinned': '置顶',
+  'anni.type.intimate': '亲密', 'anni.type.anniversary': '纪念日', 'anni.type.normal': '普通',
+  'wishlist.title': 'wishlist',
+  'setting.row.profile': '个人资料', 'setting.row.personalize': '个性化', 'setting.row.style': '外观自定义',
+  'setting.row.layout': '位置调节', 'setting.row.api': 'API 连接', 'setting.row.memory': '记忆',
+  'setting.row.sync': '云同步（共享数据）', 'setting.row.backup': '导出 / 导入备份', 'setting.row.text': '文案自定义',
+  'menu.wishlist': '心愿单',
+  'common.save': '保存', 'common.cancel': '取消', 'common.delete': '删除', 'common.add': '添加',
+  'moments.ptr': '下拉刷新',
+  'chat.placeholder': '和 AI 说点什么…', 'chat.online': '在线'
+};
+const TEXT_GROUPS = [
+  { name: '底部导航', keys: ['nav.anniversary', 'nav.calendar', 'nav.chat', 'nav.moments', 'nav.setting'] },
+  { name: '纪念日', keys: ['anni.sectionTitle', 'anni.heroSub', 'anni.daysLeft', 'anni.daysPassed', 'anni.today', 'anni.pinned', 'anni.type.intimate', 'anni.type.anniversary', 'anni.type.normal'] },
+  { name: '心愿单', keys: ['wishlist.title'] },
+  { name: '设置页', keys: ['setting.row.profile', 'setting.row.personalize', 'setting.row.style', 'setting.row.layout', 'setting.row.api', 'setting.row.memory', 'setting.row.sync', 'setting.row.backup', 'setting.row.text'] },
+  { name: '侧边栏', keys: ['menu.wishlist'] },
+  { name: '通用按钮', keys: ['common.save', 'common.cancel', 'common.delete', 'common.add'] },
+  { name: '朋友圈', keys: ['moments.ptr'] },
+  { name: '对话', keys: ['chat.placeholder', 'chat.online'] }
+];
+function TT(key) {
+  const ov = data.settings.text;
+  if (ov && ov[key] != null && String(ov[key]).trim() !== '') return ov[key];
+  return TEXT[key] != null ? TEXT[key] : key;
+}
+function applyText() {
+  $all('.tab').forEach(tab => {
+    const t = tab.dataset.target; const el = tab.querySelector('.tab-label');
+    const ov = data.settings.text;
+    if (el) {
+      if (ov && ov['nav.' + t] != null && String(ov['nav.' + t]).trim() !== '') el.textContent = ov['nav.' + t];
+      else { const m = NAV_LABELS[t]; if (m) el.textContent = m[data.settings.lang === 'zh' ? 'zh' : 'en']; }
+    }
+  });
+  $all('[data-tkey]').forEach(el => { el.textContent = TT(el.dataset.tkey); });
+}
 function applyChatInputPos() {
   const bar = document.querySelector('#screen-chat .chat-input-bar');
   if (!bar) return;
@@ -1605,6 +1658,7 @@ function renderActive() {
   else if (id === 'screen-moments') renderMoments();
   else if (id === 'screen-mymoments') renderMyMoments();
   else if (id === 'screen-wishlist') renderWishlist();
+  applyElOverrides();
 }
 let _autoTimer = null, _lastSyncToast = 0;
 function startAutoSync() {
@@ -1788,9 +1842,99 @@ function openStyle() {
     save(); closeModal(); applyTheme(); applyLang(); toast('已保存');
   });
 }
+/* ===================== 文案自定义面板 ===================== */
+function openText() {
+  const ov = data.settings.text || {};
+  const groupsHtml = TEXT_GROUPS.map(g => `
+    <div class="style-group" style="border-top:1px solid var(--border);padding-top:12px;margin-top:14px;">
+      <div style="font-size:14px;font-weight:500;color:var(--text);margin-bottom:8px;">${g.name}</div>
+      ${g.keys.map(k => `<div class="field"><label>${k}</label><input type="text" data-tedit="${k}" value="${esc(ov[k] != null ? ov[k] : (TEXT[k] != null ? TEXT[k] : ''))}" placeholder="${TEXT[k] != null ? esc(TEXT[k]) : ''}" /></div>`).join('')}
+    </div>`).join('');
+  openModal(`
+    <h3>文案自定义</h3>
+    <p style="font-size:12px;color:var(--text-muted);line-height:1.6;margin:-6px 0 12px;">把界面里写死的词改成你想要的。留空 = 用默认；改完立即全站生效。想恢复某项就清空它。</p>
+    ${groupsHtml}
+    <div class="modal-actions">
+      <button class="btn btn-ghost" id="tx-reset">恢复默认</button>
+      <button class="btn btn-primary" id="tx-save">保存</button>
+    </div>
+  `);
+  $('#tx-reset').addEventListener('click', () => {
+    data.settings.text = {}; save(); closeModal(); applyText(); renderActive(); toast('已恢复默认文案');
+  });
+  $('#tx-save').addEventListener('click', () => {
+    const out = {};
+    $all('[data-tedit]').forEach(inp => { const v = inp.value; if (v != null && v.trim() !== '') out[inp.dataset.tedit] = v; });
+    data.settings.text = out; save(); closeModal(); applyText(); renderActive(); toast('已保存');
+  });
+}
+
+/* ===================== 长按编辑任意元素 ===================== */
+function applyOneOverride(el, ov) {
+  if (ov.text != null && ov.text !== '') el.textContent = ov.text;
+  if (ov.color) el.style.color = ov.color;
+  if (ov.size) el.style.fontSize = ov.size + 'px';
+}
+function applyElOverrides() {
+  $all('[data-tkey]').forEach(el => {
+    const ov = data.settings.elementOverrides && data.settings.elementOverrides['tkey:' + el.dataset.tkey];
+    if (ov) applyOneOverride(el, ov);
+  });
+  $all('[data-eid]').forEach(el => {
+    const ov = data.settings.elementOverrides && data.settings.elementOverrides['eid:' + el.dataset.eid];
+    if (ov) applyOneOverride(el, ov);
+  });
+}
+function openElementEditor(key, el) {
+  const ov = (data.settings.elementOverrides && data.settings.elementOverrides[key]) || {};
+  openModal(`
+    <h3>编辑这个元素</h3>
+    <p style="font-size:12px;color:var(--text-muted);line-height:1.6;margin:-6px 0 12px;">只改这一个小地方，不影响别处。颜色 / 字号立即生效。</p>
+    <div class="field"><label>文字</label><input id="el-text" type="text" value="${esc(ov.text != null ? ov.text : (el.textContent || ''))}" /></div>
+    <div class="field"><label>颜色</label><input type="color" id="el-color" value="${ov.color || '#C2185B'}" /></div>
+    <div class="field"><label>字号（${ov.size || 14}px）</label>
+      <div class="range-row"><input type="range" min="10" max="40" id="el-size" value="${ov.size || 14}"/><span id="el-size-v">${ov.size || 14}px</span></div></div>
+    <div class="modal-actions">
+      <button class="btn btn-danger" id="el-clear">恢复</button>
+      <button class="btn btn-primary" id="el-save">保存</button>
+    </div>
+  `);
+  const sz = $('#el-size');
+  if (sz) sz.addEventListener('input', () => { const v = $('#el-size-v'); if (v) v.textContent = sz.value + 'px'; });
+  $('#el-clear').addEventListener('click', () => {
+    if (data.settings.elementOverrides) delete data.settings.elementOverrides[key];
+    save(); closeModal(); applyElOverrides(); toast('已恢复');
+  });
+  $('#el-save').addEventListener('click', () => {
+    if (!data.settings.elementOverrides) data.settings.elementOverrides = {};
+    data.settings.elementOverrides[key] = { text: $('#el-text').value, color: $('#el-color').value, size: Number($('#el-size').value) };
+    save(); closeModal(); applyElOverrides(); toast('已保存');
+  });
+}
+(function initLongPress() {
+  let timer = null, startX = 0, startY = 0, suppress = false;
+  document.addEventListener('pointerdown', e => {
+    const el = e.target.closest('[data-tkey],[data-eid]');
+    if (!el || el.tagName === 'INPUT' || el.tagName === 'TEXTAREA' || el.tagName === 'SELECT') return;
+    startX = e.clientX; startY = e.clientY;
+    timer = setTimeout(() => {
+      suppress = true;
+      if (navigator.vibrate) navigator.vibrate(15);
+      const key = el.dataset.tkey ? 'tkey:' + el.dataset.tkey : 'eid:' + el.dataset.eid;
+      openElementEditor(key, el);
+    }, 550);
+  });
+  const cancel = () => { if (timer) { clearTimeout(timer); timer = null; } };
+  document.addEventListener('pointermove', e => { if (timer && (Math.abs(e.clientX - startX) > 8 || Math.abs(e.clientY - startY) > 8)) cancel(); });
+  document.addEventListener('pointerup', cancel);
+  document.addEventListener('pointercancel', cancel);
+  document.addEventListener('click', e => { if (suppress) { suppress = false; e.stopPropagation(); e.preventDefault(); } }, true);
+})();
+
 function renderChat() {
   const s = data.settings;
   $('#chat-user-name').textContent = s.aiName;
+  const ci = $('#chat-input'); if (ci) ci.placeholder = TT('chat.placeholder');
   if (s.aiAvatar) $('#chat-ava').style.backgroundImage = 'url(' + s.aiAvatar + ')';
   const body = $('#chat-body');
   let html = '';
@@ -1876,6 +2020,7 @@ document.addEventListener('click', e => {
   else if (act === 'edit-memory') openMemory();
   else if (act === 'edit-layout') openLayout();
   else if (act === 'edit-style') openStyle();
+  else if (act === 'edit-text') openText();
   else if (act === 'edit-lang') openLang();
   else if (act === 'edit-chatpos') openChatPos();
   else if (act === 'backup') { closeMenu(); openBackup(); }
@@ -1935,6 +2080,8 @@ function renderAll() {
   renderMoments();
   renderWishlist();
   applyLang();
+  applyText();
+  applyElOverrides();
   applyChatInputPos();
 }
 
