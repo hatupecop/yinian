@@ -1,0 +1,11 @@
+{
+  "name": "小窝",
+  "short_name": "小窝",
+  "display": "standalone",
+  "background_color": "#FBF1EC",
+  "theme_color": "#FBF1EC",
+  "start_url": ".",
+  "icons": [
+    { "src": "icon.svg", "sizes": "any", "type": "image/svg+xml", "purpose": "any" }
+  ]
+}
