@@ -103,6 +103,7 @@ if (!data.settings.style) data.settings.style = {
 };
 if (!data.settings.glass) data.settings.glass = { on: false, blur: 14, opacity: 65 };
 if (!data.settings.glassmorphism) data.settings.glassmorphism = { on: false, highlight: 70 };
+if (data.settings.topFade === undefined) data.settings.topFade = 100;
 if (!data.settings.sync) data.settings.sync = { on: false, url: '', anon: '' };
 if (data.settings.sync.on === undefined) data.settings.sync.on = false;
 if (data.settings.sync.url === undefined) data.settings.sync.url = '';
@@ -1253,6 +1254,7 @@ function applyTheme() {
   const [r, g, b] = hexToRgb(theme.vars['--bg-page']);
   // 每页背景：全局优先
   const hasGlobal = data.settings.pageBg.global;
+  const tf = (data.settings.topFade != null ? data.settings.topFade : 100) / 100;
   $all('.screen').forEach(s => {
     const key = s.id.replace('screen-', '');
     const mkey = key === 'mymoments' ? 'moments' : key;
@@ -1265,14 +1267,14 @@ function applyTheme() {
       const chatBg = s.querySelector('.chat-bg');
       if (chatBg) {
         if (bg) {
-          chatBg.style.backgroundImage = `linear-gradient(to bottom, rgba(${r},${g},${b},1) 0%, rgba(${r},${g},${b},${1 - op}) 20%, rgba(${r},${g},${b},${1 - op}) 100%), url(${bg})`;
+          chatBg.style.backgroundImage = `linear-gradient(to bottom, rgba(${r},${g},${b},${tf}) 0%, rgba(${r},${g},${b},${1 - op}) 20%, rgba(${r},${g},${b},${1 - op}) 100%), url(${bg})`;
         } else { chatBg.style.backgroundImage = ''; }
       }
       s.style.backgroundImage = '';
       return;
     }
     if (bg) {
-      s.style.backgroundImage = `linear-gradient(to bottom, rgba(${r},${g},${b},1) 0%, rgba(${r},${g},${b},${1 - op}) 20%, rgba(${r},${g},${b},${1 - op}) 100%), url(${bg})`;
+      s.style.backgroundImage = `linear-gradient(to bottom, rgba(${r},${g},${b},${tf}) 0%, rgba(${r},${g},${b},${1 - op}) 20%, rgba(${r},${g},${b},${1 - op}) 100%), url(${bg})`;
       s.style.backgroundSize = 'cover'; s.style.backgroundPosition = 'center';
     } else { s.style.backgroundImage = ''; }
   });
@@ -1705,6 +1707,12 @@ function openStyle() {
         <div class="range-row"><input type="range" min="0" max="100" id="st-gm-highlight" value="${data.settings.glassmorphism ? data.settings.glassmorphism.highlight : 70}"/><span id="st-gm-highlightv">${data.settings.glassmorphism ? data.settings.glassmorphism.highlight : 70}%</span></div></div>
     </div>
     <div class="style-group" style="border-top:1px solid var(--border);padding-top:12px;margin-top:14px;">
+      <div style="font-size:14px;font-weight:500;color:var(--text);margin-bottom:8px;">顶部背景渐隐</div>
+      <p style="font-size:12px;color:var(--text-muted);line-height:1.6;margin:-4px 0 10px;">顶部栏那一截会盖一层主题色，让菜单文字更清楚。调低则背景图在顶部露出来更多，调高则盖得更实。</p>
+      <div class="field"><label>渐隐浓度（${data.settings.topFade != null ? data.settings.topFade : 100}%）</label>
+        <div class="range-row"><input type="range" min="0" max="100" id="st-topfade" value="${data.settings.topFade != null ? data.settings.topFade : 100}"/><span id="st-topfade-v">${data.settings.topFade != null ? data.settings.topFade : 100}%</span></div></div>
+    </div>
+    <div class="style-group" style="border-top:1px solid var(--border);padding-top:12px;margin-top:14px;">
       <div style="font-size:14px;font-weight:500;color:var(--text);margin-bottom:8px;">底部导航语言</div>
       <div class="field"><label>语言</label>
         <select id="st-lang">
@@ -1735,6 +1743,8 @@ function openStyle() {
   if (gmo) gmo.addEventListener('click', () => gmo.classList.toggle('on'));
   const gmh = $('#st-gm-highlight');
   if (gmh) gmh.addEventListener('input', () => { const v = $('#st-gm-highlightv'); if (v) v.textContent = gmh.value + '%'; });
+  const tfEl = $('#st-topfade');
+  if (tfEl) tfEl.addEventListener('input', () => { const v = $('#st-topfade-v'); if (v) v.textContent = tfEl.value + '%'; });
   $('#st-reset').addEventListener('click', () => {
     data.settings.style = {
       title: { color: '', opacity: 1, font: 'default' },
@@ -1747,6 +1757,7 @@ function openStyle() {
     };
     data.settings.glass = { on: false, blur: 14, opacity: 65 };
     data.settings.glassmorphism = { on: false, highlight: 70 };
+    data.settings.topFade = 100;
     save(); applyStyle(); closeModal(); toast('已恢复主题');
   });
   $('#st-save').addEventListener('click', () => {
@@ -1761,6 +1772,7 @@ function openStyle() {
     data.settings.style = out;
     data.settings.glass = { on: $('#st-glass-on').classList.contains('on'), blur: Number($('#st-glass-blur').value), opacity: Number($('#st-glass-opacity').value) };
     data.settings.glassmorphism = { on: $('#st-gm-on').classList.contains('on'), highlight: Number($('#st-gm-highlight').value) };
+    data.settings.topFade = Number($('#st-topfade').value);
     const langEl = $('#st-lang'); if (langEl) data.settings.lang = langEl.value;
     save(); closeModal(); applyStyle(); applyLang(); toast('已保存');
   });
