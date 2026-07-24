@@ -60,6 +60,7 @@
   /* 键盘高度（由 JS 经 visualViewport 写入）：--kb-input 仅覆盖层模式下用于把输入框抬到键盘上方 */
   --kb-input: 0px;
   --chat-offset: 0px;
+  --chat-height: 54px;
 }
 
 /* ===================== Base ===================== */
@@ -97,6 +98,9 @@ button { font-family: inherit; cursor: pointer; border: none; background: none; 
   display: flex; align-items: center; justify-content: space-between;
   padding: calc(env(safe-area-inset-top) + 14px) 18px 6px;
   flex-shrink: 0;
+  background-color: var(--bg-page);
+  box-shadow: 0 2px 10px -8px rgba(40,30,40,.25);
+  z-index: 5;
 }
 .topbar-title { position: absolute; left: 50%; transform: translateX(-50%); font-weight: 500; font-size: 13px; color: var(--text-muted); }
 .icon-btn {
@@ -235,8 +239,8 @@ button { font-family: inherit; cursor: pointer; border: none; background: none; 
 .chat-user-status { font-size: 12px; color: color-mix(in srgb, var(--st-muted-color) calc(var(--st-muted-opacity)*100%), transparent); font-family: var(--st-muted-font); display: flex; align-items: center; gap: 4px; }
 .chat-online-dot { width: 7px; height: 7px; border-radius: 50%; background: #7FD36A; }
 .chat-tools { display: flex; align-items: center; gap: 6px; }
-.chat-tools .icon-btn { width: 32px; height: 32px; background: transparent; color: var(--text-muted); }
-.chat-tools .icon-btn svg { width: 18px; height: 18px; }
+.chat-tools .icon-btn { width: 28px; height: 28px; background: transparent; color: var(--text-muted); }
+.chat-tools .icon-btn svg { width: 16px; height: 16px; }
 .chat-body { flex: 1; overflow-y: auto; padding: 14px 16px calc(134px + env(safe-area-inset-bottom)); display: flex; flex-direction: column; gap: 12px; position: relative; z-index: 1; }
 /* 键盘弹起：聊天内容底部留白收紧，最后一条消息贴近输入框 */
 body.kb-open .chat-body { padding-bottom: 66px; }
@@ -254,6 +258,7 @@ body.kb-open .chat-body { padding-bottom: 66px; }
   /* 平时：停在底部导航栏上方（导航栏高约 56px + 间距） */
   bottom: calc(10px + env(safe-area-inset-bottom) + 66px + var(--chat-offset, 0px));
   z-index: 12;
+  min-height: var(--chat-height, 54px);
   display: flex; align-items: center; gap: 5px;
   padding: 5px 6px 5px 12px;
   background-color: color-mix(in srgb, var(--st-cardbg-color) calc(var(--st-cardbg-opacity)*100%), transparent);
@@ -684,3 +689,28 @@ body.glassmorphism-on .modal-actions {
   border-top: 1.5px solid rgba(255,255,255, calc(var(--gm-highlight) * .5));
   box-shadow: none;
 }
+
+/* ===================== 内联选择器（替代原生弹出的 select） ===================== */
+.inline-picker { position: relative; }
+.ip-current {
+  width: 100%; border: 1px solid var(--border); border-radius: var(--r-sm);
+  padding: 11px 12px; font-size: 14px; background: var(--bg-page); color: var(--text);
+  display: flex; align-items: center; justify-content: space-between; cursor: pointer;
+}
+.ip-current::after { content: ""; width: 8px; height: 8px; border-right: 2px solid var(--text-muted); border-bottom: 2px solid var(--text-muted); transform: rotate(45deg); margin-left: 8px; flex-shrink: 0; transition: transform .2s; }
+.inline-picker.open .ip-current::after { transform: rotate(-135deg); }
+.ip-list {
+  position: absolute; left: 0; right: 0; top: calc(100% + 6px); z-index: 30;
+  background: var(--bg-page); border: 1px solid var(--border); border-radius: var(--r-sm);
+  box-shadow: 0 8px 22px rgba(40,30,40,.18); overflow: hidden; display: none;
+}
+.inline-picker.open .ip-list { display: block; }
+.ip-opt { padding: 11px 12px; font-size: 14px; color: var(--text); cursor: pointer; }
+.ip-opt:active { background: var(--bg-soft); }
+.ip-opt.sel { color: var(--accent-deep); font-weight: 500; background: var(--bg-soft); }
+
+/* 纪念日类型小标签 */
+.day-type { font-size: 10px; color: #fff; border-radius: 6px; padding: 0 6px; margin-left: 6px; }
+.day-type.intimate { background: var(--dot-intimate); }
+.day-type.anniversary { background: var(--dot-anniversary); }
+.day-type.normal { background: var(--text-muted); }

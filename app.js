@@ -110,6 +110,7 @@ if (data.settings.sync.anon === undefined) data.settings.sync.anon = '';
 if (!data.deletedIds) data.deletedIds = [];
 if (!data.settings.lang) data.settings.lang = 'en';
 if (data.settings.chatInputOffset === undefined) data.settings.chatInputOffset = 0;
+if (data.settings.chatInputHeight === undefined) data.settings.chatInputHeight = 54;
 // 自动接入已部署的聊天函数（用户已配置好 Key）：曾选过「演示」的，默认升级为真实聊天
 const CHAT_FN = 'https://vlrqxguctptinozjuyds.supabase.co/functions/v1/chat';
 if (data.settings.apiMode === 'none') {
@@ -466,7 +467,7 @@ function renderAnniversary() {
     else { num = 'Today'; unit = ''; }
     return `<div class="day-row" data-day="${d.id}">
       <div class="day-left">
-        <div class="day-title">${esc(d.title)}${d.pinned ? '<span class="pin">置顶</span>' : ''}</div>
+        <div class="day-title">${esc(d.title)}${d.pinned ? '<span class="pin">置顶</span>' : ''}${d.type && d.type !== 'normal' ? '<span class="day-type ' + d.type + '">' + (d.type === 'intimate' ? '亲密' : d.type === 'anniversary' ? '纪念日' : '') + '</span>' : ''}</div>
         <div class="day-date">${d.date}</div>
       </div>
       <div class="day-right ${passed}">
@@ -495,6 +496,16 @@ function editDay(id) {
     <div class="field"><label>标题</label><input id="f-title" value="${esc(d.title)}" /></div>
     <div class="field"><label>日期 (YYYY.MM.DD)</label><input id="f-date" value="${d.date}" /></div>
     <div class="field"><label>备注</label><textarea id="f-content">${esc(d.content || '')}</textarea></div>
+    <div class="field"><label>类型</label>
+      <div class="inline-picker" id="d-type-picker">
+        <div class="ip-current" id="d-type-cur">${d.type === 'intimate' ? '亲密' : d.type === 'anniversary' ? '纪念日' : '普通'}</div>
+        <div class="ip-list">
+          <div class="ip-opt ${d.type === 'intimate' ? 'sel' : ''}" data-v="intimate">亲密</div>
+          <div class="ip-opt ${d.type === 'anniversary' ? 'sel' : ''}" data-v="anniversary">纪念日</div>
+          <div class="ip-opt ${(!d.type || d.type === 'normal') ? 'sel' : ''}" data-v="normal">普通</div>
+        </div>
+      </div>
+    </div>
     <div class="field switch-row"><span>置顶</span><div class="switch ${d.pinned ? 'on' : ''}" id="f-pin"></div></div>
     <div class="modal-actions">
       <button class="btn btn-danger" id="del-day">删除</button>
@@ -503,12 +514,25 @@ function editDay(id) {
     </div>
   `);
   let pinned = d.pinned;
+  let dayType = d.type || 'normal';
+  const typePicker = $('#d-type-picker');
+  const typeCur = $('#d-type-cur');
+  if (typePicker) {
+    typeCur.addEventListener('click', () => typePicker.classList.toggle('open'));
+    $all('.ip-opt', typePicker).forEach(opt => opt.addEventListener('click', () => {
+      dayType = opt.dataset.v;
+      typeCur.textContent = opt.textContent;
+      $all('.ip-opt', typePicker).forEach(o => o.classList.toggle('sel', o === opt));
+      typePicker.classList.remove('open');
+    }));
+  }
   $('#f-pin').addEventListener('click', () => { pinned = !pinned; $('#f-pin').classList.toggle('on', pinned); });
   $('#cancel-day').addEventListener('click', closeModal);
   $('#save-day').addEventListener('click', () => {
     d.title = $('#f-title').value.trim() || '未命名';
     d.date = $('#f-date').value.trim();
     d.content = $('#f-content').value.trim();
+    d.type = dayType;
     d.pinned = pinned;
     d.time = Date.now();
     save(); renderAnniversary(); closeModal(); toast('已保存');
@@ -525,6 +549,16 @@ function addDay() {
     <div class="field"><label>标题</label><input id="f-title" placeholder="例如：在一起纪念日" /></div>
     <div class="field"><label>日期 (YYYY.MM.DD)</label><input id="f-date" placeholder="2026.06.02" /></div>
     <div class="field"><label>备注</label><textarea id="f-content"></textarea></div>
+    <div class="field"><label>类型</label>
+      <div class="inline-picker" id="d-type-picker">
+        <div class="ip-current" id="d-type-cur">亲密</div>
+        <div class="ip-list">
+          <div class="ip-opt sel" data-v="intimate">亲密</div>
+          <div class="ip-opt" data-v="anniversary">纪念日</div>
+          <div class="ip-opt" data-v="normal">普通</div>
+        </div>
+      </div>
+    </div>
     <div class="field switch-row"><span>置顶</span><div class="switch" id="f-pin"></div></div>
     <div class="modal-actions">
       <button class="btn btn-ghost" id="cancel-day">取消</button>
@@ -532,10 +566,22 @@ function addDay() {
     </div>
   `);
   let pinned = false;
+  let dayType = 'intimate';
+  const typePicker = $('#d-type-picker');
+  const typeCur = $('#d-type-cur');
+  if (typePicker) {
+    typeCur.addEventListener('click', () => typePicker.classList.toggle('open'));
+    $all('.ip-opt', typePicker).forEach(opt => opt.addEventListener('click', () => {
+      dayType = opt.dataset.v;
+      typeCur.textContent = opt.textContent;
+      $all('.ip-opt', typePicker).forEach(o => o.classList.toggle('sel', o === opt));
+      typePicker.classList.remove('open');
+    }));
+  }
   $('#f-pin').addEventListener('click', () => { pinned = !pinned; $('#f-pin').classList.toggle('on', pinned); });
   $('#cancel-day').addEventListener('click', closeModal);
   $('#save-day').addEventListener('click', () => {
-    const nd = { id: uid(), title: $('#f-title').value.trim() || '未命名', date: $('#f-date').value.trim() || '2026.01.01', content: $('#f-content').value.trim(), pinned, time: Date.now() };
+    const nd = { id: uid(), title: $('#f-title').value.trim() || '未命名', date: $('#f-date').value.trim() || '2026.01.01', content: $('#f-content').value.trim(), type: dayType, pinned, time: Date.now() };
     data.importantDays.push(nd);
     save(); renderAnniversary(); closeModal(); toast('已添加');
     addPending({ type: 'anniversary', id: nd.id, text: nd.title });
@@ -1014,10 +1060,13 @@ function editWish(id) {
       <div class="picker-row"><div class="picker-prev picker-prev-wide" id="w-img-prev" style="${w && w.image ? 'background-image:url(' + w.image + ')' : ''}"></div><button class="btn btn-ghost" id="w-img-btn">从相册选择</button></div>
     </div>
     <div class="field"><label>状态</label>
-      <select id="w-status">
-        <option value="want" ${!w || w.status === 'want' ? 'selected' : ''}>想要</option>
-        <option value="got" ${w && w.status === 'got' ? 'selected' : ''}>已获得</option>
-      </select>
+      <div class="inline-picker" id="w-status-picker">
+        <div class="ip-current" id="w-status-cur">${(!w || w.status === 'want') ? '想要' : '已获得'}</div>
+        <div class="ip-list">
+          <div class="ip-opt ${!w || w.status === 'want' ? 'sel' : ''}" data-v="want">想要</div>
+          <div class="ip-opt ${w && w.status === 'got' ? 'sel' : ''}" data-v="got">已获得</div>
+        </div>
+      </div>
     </div>
     <div class="field switch-row"><span>去除白底（白底素材自动抠图）</span><div class="switch" id="w-white"></div></div>
     <div class="modal-actions">
@@ -1027,6 +1076,19 @@ function editWish(id) {
     </div>
   `);
   let imgTmp = w ? w.image || '' : '';
+  let wishStatus = w ? w.status : 'want';
+  // 内联选择器（状态）：点击展开 / 收起，选中后更新当前值
+  const statusPicker = $('#w-status-picker');
+  const statusCur = $('#w-status-cur');
+  if (statusPicker) {
+    statusCur.addEventListener('click', () => statusPicker.classList.toggle('open'));
+    $all('.ip-opt', statusPicker).forEach(opt => opt.addEventListener('click', () => {
+      wishStatus = opt.dataset.v;
+      statusCur.textContent = opt.textContent;
+      $all('.ip-opt', statusPicker).forEach(o => o.classList.toggle('sel', o === opt));
+      statusPicker.classList.remove('open');
+    }));
+  }
   const wWhite = () => $('#w-white') && $('#w-white').classList.contains('on');
   $('#w-white').addEventListener('click', () => $('#w-white').classList.toggle('on'));
   $('#w-img-btn').addEventListener('click', () => pickImage(1024, async d => { const o = wWhite() ? await removeWhiteBackground(d) : d; imgTmp = o; $('#w-img-prev').style.backgroundImage = 'url(' + o + ')'; }));
@@ -1035,7 +1097,7 @@ function editWish(id) {
     const payload = {
       title: $('#w-title').value.trim() || '未命名',
       price: $('#w-price').value.trim(),
-      image: imgTmp, status: $('#w-status').value
+      image: imgTmp, status: wishStatus
     };
     if (w) { Object.assign(w, payload); w.time = Date.now(); }
     else { data.wishes.push(Object.assign({ id: uid(), month: monthKey(new Date()), date: '', time: Date.now() }, payload)); }
@@ -1403,7 +1465,9 @@ function openLayout() {
     <div class="layout-panel" data-panel="chat">
       <div class="field"><label>上下位置（${data.settings.chatInputOffset || 0}px，正=上移，负=下移）</label>
         <div class="range-row"><input id="lp-chat-off" type="range" min="-40" max="60" value="${data.settings.chatInputOffset || 0}"/><span id="lp-chat-off-v">${data.settings.chatInputOffset || 0}</span></div></div>
-      <p style="font-size:11px;color:var(--text-muted);line-height:1.5;margin:4px 0 0;">调整聊天输入框离底部的高度，让发送栏不被键盘或底部导航挡住。</p>
+      <div class="field"><label>输入框高度（${data.settings.chatInputHeight || 54}px）</label>
+        <div class="range-row"><input id="lp-chat-h" type="range" min="40" max="80" value="${data.settings.chatInputHeight || 54}"/><span id="lp-chat-h-v">${data.settings.chatInputHeight || 54}</span></div></div>
+      <p style="font-size:11px;color:var(--text-muted);line-height:1.5;margin:4px 0 0;">上下位置：调整输入框离底部的高度；输入框高度：调整输入框本身的粗细。</p>
     </div>
     <div class="modal-actions">
       <button class="btn btn-ghost" id="lp-cancel">取消</button>
@@ -1419,7 +1483,7 @@ function openLayout() {
   bind('lp-mp-texty','lp-mp-texty-v'); bind('lp-mp-avax','lp-mp-avax-v'); bind('lp-mp-avy','lp-mp-avy-v');
   bind('lp-nv-icon','lp-nv-icon-v'); bind('lp-nv-gap','lp-nv-gap-v'); bind('lp-nv-inset','lp-nv-inset-v'); bind('lp-nv-bottom','lp-nv-bottom-v');
   bind('lp-cal-pad','lp-cal-pad-v'); bind('lp-cal-title','lp-cal-title-v'); bind('lp-cal-rowgap','lp-cal-rowgap-v'); bind('lp-cal-dot','lp-cal-dot-v');
-  bind('lp-chat-off','lp-chat-off-v');
+  bind('lp-chat-off','lp-chat-off-v'); bind('lp-chat-h','lp-chat-h-v');
   $('#lp-cancel').addEventListener('click', closeModal);
   $('#lp-save').addEventListener('click', () => {
     data.settings.moments = {
@@ -1435,6 +1499,7 @@ function openLayout() {
       rowGap: Number($('#lp-cal-rowgap').value), dotSize: Number($('#lp-cal-dot').value)
     };
     data.settings.chatInputOffset = Number($('#lp-chat-off').value);
+    data.settings.chatInputHeight = Number($('#lp-chat-h').value);
     save(); closeModal(); applyMoments(); applyNav(); applyCalendar(); applyChatInputPos(); toast('已保存');
   });
 }
@@ -1459,6 +1524,8 @@ function applyChatInputPos() {
   if (!bar) return;
   const off = data.settings.chatInputOffset || 0;
   bar.style.setProperty('--chat-offset', off + 'px');
+  const h = data.settings.chatInputHeight || 54;
+  bar.style.setProperty('--chat-height', h + 'px');
 }
 function openLang() {
   const s = data.settings;
