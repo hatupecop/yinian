@@ -1,4 +1,29 @@
-/* ===================== Design Tokens ===================== */
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>styles.css 查看</title>
+<style>
+  :root { --bg:#FBF1EC; --card:#fff; --accent:#F48FB1; --text:#6B5B63; --muted:#B0A0A8; }
+  * { box-sizing:border-box; }
+  body { margin:0; font-family:-apple-system,BlinkMacSystemFont,"PingFang SC","Microsoft YaHei",system-ui,sans-serif; background:var(--bg); color:var(--text); }
+  header { padding:18px 20px; background:var(--card); border-bottom:1px solid #F0DCE4; position:sticky; top:0; z-index:5; display:flex; align-items:center; gap:12px; }
+  header h1 { font-size:16px; margin:0; }
+  header .meta { font-size:12px; color:var(--muted); }
+  .copy { margin-left:auto; border:none; background:var(--accent); color:#fff; padding:8px 16px; border-radius:20px; cursor:pointer; font-size:13px; }
+  .copy:active { transform:scale(.96); }
+  pre { margin:0; padding:20px; white-space:pre-wrap; word-break:break-word; line-height:1.55; font-size:13px; tab-size:2; }
+  code { font-family:"SFMono-Regular",Consolas,"Liberation Mono",Menlo,monospace; }
+</style>
+</head>
+<body>
+<header>
+  <h1>styles.css</h1>
+  <span class="meta">912 行 · 56769 字符 · 文件完好</span>
+  <button class="copy" onclick="copyCss()">复制全部</button>
+</header>
+<pre><code id="css">/* ===================== Design Tokens ===================== */
 :root {
   /* 颜色 —— 全部可调，后续在设置里换色即全站生效 */
   --bg-page: #FBF1EC;        /* 页面奶油底 */
@@ -827,7 +852,7 @@ body.glassmorphism-on .modal-actions {
 .wf-side .act.liked svg path{fill:#fe2c55;stroke:#fe2c55}
 .wf-side .act.faved svg{animation:favPop .45s cubic-bezier(.2,1.4,.4,1)}
 .wf-side .act.faved svg path{fill:#F7C948;stroke:#F7C948}
-.wf-bottom{position:absolute;left:0;right:80px;bottom:0;padding:14px 16px;color:#fff;background:linear-gradient(transparent,rgba(0,0,0,.72));z-index:3}
+.wf-bottom{position:absolute;left:0;right:80px;bottom:92px;padding:14px 16px;color:#fff;background:linear-gradient(transparent,rgba(0,0,0,.72));z-index:3}
 .wf-bottom .wf-name{font-size:15px;font-weight:600;margin-bottom:5px;text-shadow:0 1px 4px rgba(0,0,0,.5)}
 .wf-bottom .wf-caption{font-size:14px;line-height:1.5;text-shadow:0 1px 4px rgba(0,0,0,.5)}
 @keyframes likePop{0%{transform:scale(1)}35%{transform:scale(1.4)}70%{transform:scale(.9)}100%{transform:scale(1)}}
@@ -903,10 +928,20 @@ body.glassmorphism-on .modal-actions {
 .call-status { font-size: 14px; color: rgba(255,255,255,.7); margin-top: 8px; }
 .call-timer { font-size: 14px; color: rgba(255,255,255,.7); margin-top: 6px; min-height: 20px; }
 .call-controls { position: absolute; left: 0; right: 0; bottom: 8vh; z-index: 1; display: flex; justify-content: space-around; align-items: center; padding: 0 24px; }
-.call-btn { display: flex; flex-direction: column; align-items: center; gap: 4px; background: rgba(255,255,255,.15); border: none; color: #fff; width: 64px; height: 64px; border-radius: 50%; justify-content: center; backdrop-filter: blur(8px); transition: background .15s ease; }
+.call-btn { display: flex; flex-direction: column; align-items: center; gap: 8px; background: rgba(255,255,255,.15); border: none; color: #fff; width: 64px; height: 64px; border-radius: 50%; justify-content: center; backdrop-filter: blur(8px); transition: background .15s ease; }
 .call-btn svg { width: 24px; height: 24px; }
 .call-btn span { font-size: 11px; }
 .call-btn:active { background: rgba(255,255,255,.3); }
 .call-btn.end { background: #ff4d4f; }
 .call-btn.end:active { background: #ff7875; }
 .call-btn.on { background: rgba(255,255,255,.35); }
+</code></pre>
+<script>
+function copyCss() {
+  navigator.clipboard.writeText(document.getElementById('css').innerText).then(function(){
+    var b=document.querySelector('.copy'); var t=b.textContent; b.textContent='已复制 ✔'; setTimeout(function(){b.textContent=t;},1500);
+  });
+}
+</script>
+</body>
+</html>

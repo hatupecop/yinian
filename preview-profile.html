@@ -1,0 +1,437 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no" />
+<title>余年 · 主页预览（抖音风作品流）</title>
+<style>
+  :root{
+    --accent:#ff5c8a;
+    --bg:#fff5f7;
+    --text:#2b2230;
+    --text-muted:#9a8c93;
+    --text-soft:#6f6470;
+    --cardbg:#ffffff;
+    --border:#f0dde3;
+    --pink:#ff5c8a;
+  }
+  *{box-sizing:border-box;-webkit-tap-highlight-color:transparent}
+  body{margin:0;font-family:-apple-system,BlinkMacSystemFont,"PingFang SC","Segoe UI",sans-serif;
+       background:#efe9ec;color:var(--text);display:flex;flex-direction:column;align-items:center;min-height:100vh}
+  /* 控制台（用来让你“选一选”底部栏风格） */
+  .console{width:100%;max-width:430px;padding:14px 16px 6px}
+  .console h2{font-size:14px;margin:0 0 8px;color:#6f6470;font-weight:600}
+  .style-btns{display:flex;gap:8px;flex-wrap:wrap}
+  .style-btns button{border:1px solid var(--border);background:#fff;border-radius:10px;padding:8px 12px;
+       font-size:13px;color:#6f6470;cursor:pointer;transition:.15s}
+  .style-btns button.active{background:var(--accent);color:#fff;border-color:var(--accent)}
+  .hint{font-size:12px;color:#a99aa1;margin:8px 2px 0;line-height:1.6}
+
+  /* 手机外框 */
+  .phone{width:390px;max-width:96vw;height:780px;max-height:88vh;background:var(--bg);border-radius:38px;
+       box-shadow:0 20px 60px rgba(120,80,100,.25);overflow:hidden;position:relative;margin:10px 0 30px;
+       border:10px solid #1c1620;}
+  .screen{position:absolute;inset:0;display:flex;flex-direction:column;overflow:hidden}
+  /* 顶部栏 */
+  .topbar{display:flex;align-items:center;justify-content:space-between;padding:14px 14px 6px;
+       position:relative;z-index:3}
+  .top-name{font-size:17px;font-weight:700;display:flex;align-items:center;gap:4px}
+  .top-name svg{width:15px;height:15px;color:var(--text-muted)}
+  .top-actions{display:flex;align-items:center;gap:4px}
+  .icon-btn{width:34px;height:34px;border-radius:50%;border:none;background:rgba(0,0,0,.04);
+       color:var(--text);display:flex;align-items:center;justify-content:center;cursor:pointer}
+  .icon-btn svg{width:20px;height:20px}
+  /* 加号：方形描边贴着加号 */
+  .icon-btn.plus-square{border-radius:6px;border:1.4px solid var(--text);background:transparent;
+       width:24px;height:24px;margin-left:1px}
+  .icon-btn.plus-square svg{width:13px;height:13px}
+
+  .scroll{flex:1;overflow-y:auto;padding:8px 16px 16px}
+  .profile-head{display:flex;align-items:center;gap:16px;margin-top:6px}
+  .avatar{width:78px;height:78px;border-radius:50%;background:linear-gradient(135deg,#ffd1dc,#ff9bbb);
+       border:2px solid #fff;box-shadow:0 4px 12px rgba(255,120,160,.25);flex-shrink:0}
+  .meta .name{font-size:20px;font-weight:700}
+  /* 注意：@账号（抖音号）已按要求去掉 */
+  .bio{font-size:13px;color:var(--text-soft);line-height:1.7;margin-top:16px}
+  .tags{display:flex;flex-wrap:wrap;gap:8px;margin-top:12px}
+  .tag{font-size:12px;color:var(--text-muted);background:var(--cardbg);border:1px solid var(--border);
+       border-radius:16px;padding:4px 10px}
+  .actions{display:flex;gap:10px;margin-top:18px}
+  .btn{height:36px;border-radius:10px;border:1px solid var(--border);background:var(--cardbg);
+       color:var(--text);font-size:14px;font-weight:600;flex:1;display:flex;align-items:center;justify-content:center;cursor:pointer}
+  .btn.follow{background:var(--accent);color:#fff;border-color:var(--accent)}
+  .btn.add{flex:0 0 40px}
+  .btn.add svg{width:16px;height:16px}
+
+  /* ============ 底部三按钮：三种风格 ============ */
+  .bottom-tabs{display:flex;border-top:1px solid var(--border);background:var(--bg)}
+  .btab{flex:1;display:flex;flex-direction:column;align-items:center;gap:3px;padding:11px 0;
+       color:var(--text-muted);cursor:pointer;font-size:12px}
+  .btab svg{width:22px;height:22px}
+  .btab.active{color:var(--text)}
+  /* 风格A：简约线（细顶边，激活仅变色） */
+  .bottom-tabs.style-line{border-top:1px solid var(--border)}
+  .bottom-tabs.style-line .btab.active{color:var(--accent)}
+  /* 风格B：分段胶囊（滑动高亮） */
+  .bottom-tabs.style-pill{position:relative;gap:6px;padding:8px;background:var(--bg)}
+  .bottom-tabs.style-pill .btab{border-radius:12px;flex-direction:row;gap:6px;padding:9px 0}
+  .bottom-tabs.style-pill .pill{position:absolute;top:8px;bottom:8px;background:var(--cardbg);
+       border-radius:12px;box-shadow:0 2px 8px rgba(255,120,160,.18);transition:.25s;z-index:0}
+  .bottom-tabs.style-pill .btab{position:relative;z-index:1}
+  .bottom-tabs.style-pill .btab.active{color:var(--accent);font-weight:600}
+  /* 风格C：下划线（激活下方小横条） */
+  .bottom-tabs.style-underline{border-top:1px solid var(--border)}
+  .bottom-tabs.style-underline .btab{position:relative}
+  .bottom-tabs.style-underline .btab.active{color:var(--accent);font-weight:600}
+  .bottom-tabs.style-underline .btab.active::after{content:"";position:absolute;bottom:0;left:50%;
+       transform:translateX(-50%);width:26px;height:3px;border-radius:3px;background:var(--accent)}
+
+  .grid{display:grid;grid-template-columns:repeat(3,1fr);gap:2px;margin-top:10px}
+  .grid-item{aspect-ratio:1;background:var(--cardbg) center/cover;border-radius:0;position:relative}
+  .grid-item .play{position:absolute;right:6px;bottom:6px;color:#fff;filter:drop-shadow(0 1px 2px rgba(0,0,0,.4))}
+  .grid-item .play svg{width:18px;height:18px}
+  .empty{grid-column:1/4;text-align:center;color:var(--text-muted);font-size:13px;padding:40px 0}
+
+  /* ============ 作品竖向滑动 feed（抖音风） ============ */
+  .feed{position:absolute;inset:0;background:#000;display:none;z-index:20;overflow-y:auto;scroll-snap-type:y mandatory;-webkit-overflow-scrolling:touch}
+  .feed.show{display:block}
+  .feed-items{height:100%}
+  .feed-item{height:100%;scroll-snap-align:start;position:relative;display:flex;align-items:center;justify-content:center;background:#000}
+  .feed-item img,.feed-item video{max-width:100%;max-height:100%;object-fit:contain}
+  .feed-side{position:absolute;right:12px;bottom:120px;display:flex;flex-direction:column;gap:22px;align-items:center;color:#fff;z-index:4}
+  .act{display:flex;flex-direction:column;align-items:center;gap:4px;font-size:12px;cursor:pointer;position:relative}
+  .act svg{width:30px;height:30px;filter:drop-shadow(0 1px 3px rgba(0,0,0,.5))}
+  .feed-bottom{position:absolute;left:0;right:74px;bottom:0;padding:16px;color:#fff;background:linear-gradient(transparent,rgba(0,0,0,.82));z-index:3}
+  .fb-caption{font-size:14px;line-height:1.6}
+  .fb-caption b{color:#ffd1dc}
+  .comment-panel{position:absolute;left:0;right:0;bottom:0;height:62%;background:#fff;border-radius:18px 18px 0 0;
+       transform:translateY(100%);transition:.28s;display:flex;flex-direction:column;z-index:30}
+  .comment-panel.show{transform:translateY(0)}
+  .cp-head{padding:14px;text-align:center;font-weight:600;border-bottom:1px solid #eee;position:relative}
+  .cp-head .x{position:absolute;right:14px;top:12px;color:#999;cursor:pointer}
+  .cp-list{flex:1;overflow-y:auto;padding:8px 12px;scrollbar-width:none}
+  .cp-list::-webkit-scrollbar{display:none}
+  .cmt{display:flex;gap:9px;padding:10px 0;border-bottom:1px solid #f5f0f2;align-items:flex-start;cursor:pointer;text-align:left}
+  .cmt .cava{width:34px;height:34px;border-radius:50%;background:#ffd1dc;flex-shrink:0}
+  .cmt .cbody{flex:1;min-width:0}
+  .cmt .cname{font-size:13px;color:#9a8c93;font-weight:600}
+  .cmt .ctext{font-size:14px;margin:3px 0;color:#2b2230;word-break:break-word}
+  .cmt .cmeta{font-size:12px;color:#bba;display:flex;gap:14px;align-items:center}
+  .cmt .clike{cursor:pointer;display:flex;align-items:center;gap:3px}
+  .cmt .reply{color:var(--accent);cursor:pointer;font-size:12px}
+  .replies{margin-left:43px;margin-top:6px}
+  .replies .cmt{border-bottom:none;padding:6px 0}
+  .cp-input{display:flex;gap:8px;padding:10px 14px;border-top:1px solid #eee}
+  .cp-input input{flex:1;border:1px solid #eee;border-radius:20px;padding:9px 14px;font-size:14px;outline:none}
+  .cp-input button{background:var(--accent);color:#fff;border:none;border-radius:20px;padding:0 18px;font-size:14px;cursor:pointer}
+
+  /* ============ 发帖流程 ============ */
+  .composer{position:absolute;inset:0;background:var(--bg);display:none;flex-direction:column;z-index:25}
+  .composer.show{display:flex}
+  .comp-top{display:flex;align-items:center;justify-content:space-between;padding:14px}
+  .comp-top .t{font-weight:600}
+  .comp-top .pub{background:var(--accent);color:#fff;border:none;border-radius:18px;padding:7px 18px;font-size:14px;cursor:pointer}
+  .comp-top .cancel{background:none;border:none;color:#9a8c93;font-size:15px;cursor:pointer}
+  .comp-body{flex:1;overflow-y:auto;padding:0 16px}
+  .pick-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:8px;margin-top:10px}
+  .pick-cell{aspect-ratio:1;border:1px dashed var(--border);border-radius:10px;display:flex;align-items:center;
+       justify-content:center;color:#bba;font-size:13px;cursor:pointer;background:#fff;position:relative;overflow:hidden}
+  .pick-cell img,.pick-cell video{width:100%;height:100%;object-fit:cover}
+  .pick-cell .rm{position:absolute;top:4px;right:4px;background:rgba(0,0,0,.5);color:#fff;border-radius:50%;
+       width:20px;height:20px;display:flex;align-items:center;justify-content:center;font-size:13px}
+  .caption-box{width:100%;border:1px solid var(--border);border-radius:12px;padding:12px;margin-top:16px;
+       min-height:90px;font-size:14px;outline:none;resize:none;font-family:inherit}
+  .sheet{position:absolute;left:0;right:0;bottom:0;background:#fff;border-radius:18px 18px 0 0;padding:10px 0 24px;
+       transform:translateY(100%);transition:.25s;z-index:40;display:none}
+  .sheet.show{transform:translateY(0);display:block}
+  .sheet .row{padding:15px 20px;font-size:16px;display:flex;align-items:center;gap:12px;cursor:pointer}
+  .sheet .row svg{width:22px;height:22px;color:var(--accent)}
+  .sheet .cancel{padding:14px 20px;text-align:center;color:#999;border-top:1px solid #eee;margin-top:6px;cursor:pointer}
+  .toast{position:absolute;bottom:90px;left:50%;transform:translateX(-50%);background:rgba(0,0,0,.8);color:#fff;
+       padding:10px 18px;border-radius:20px;font-size:13px;opacity:0;transition:.2s;z-index:50;pointer-events:none}
+  .toast.show{opacity:1}
+  /* 点赞抖音特效 */
+  @keyframes likePop{0%{transform:scale(1)}35%{transform:scale(1.4)}70%{transform:scale(.9)}100%{transform:scale(1)}}
+  .act.liked svg{animation:likePop .45s cubic-bezier(.2,1.4,.4,1)}
+  .act.liked svg path{fill:#fe2c55;stroke:#fe2c55}
+  .burst-heart{position:absolute;left:50%;color:#fe2c55;font-size:13px;pointer-events:none;animation:burstUp .65s ease-out forwards}
+  @keyframes burstUp{0%{opacity:1;transform:translate(-50%,0) scale(1)}100%{opacity:0;transform:translate(calc(-50% + var(--bx,0px)),-34px) scale(.5)}}
+  @keyframes favPop{0%{transform:scale(1)}35%{transform:scale(1.45)}70%{transform:scale(.9)}100%{transform:scale(1)}}
+  .act.faved svg{animation:favPop .45s cubic-bezier(.2,1.4,.4,1)}
+  .act.faved svg path{fill:#F7C948;stroke:#F7C948}
+  .burst-star{position:absolute;left:50%;top:2px;color:#F7C948;font-size:13px;pointer-events:none;animation:burstStar .7s ease-out forwards}
+  @keyframes burstStar{0%{opacity:1;transform:translate(-50%,0) scale(1) rotate(0)}100%{opacity:0;transform:translate(calc(-50% + var(--bx,0px)),-30px) scale(.4) rotate(140deg)}}
+
+</style>
+</head>
+<body>
+  <div class="console">
+    <h2>底部栏风格 · 你选一选（点下面切换看效果）</h2>
+    <div class="style-btns" id="styleBtns">
+      <button data-s="style-line" class="active">简约线</button>
+      <button data-s="style-pill">分段胶囊</button>
+      <button data-s="style-underline">下划线</button>
+    </div>
+    <div class="hint">说明：主页里那行「@账号（抖音号）」已按你要求去掉；Follow / Message 右边的加号已删；右上角加号改成「方形描边 + 发图片/视频」。底部三个按钮我建议用 <b>作品 / 喜欢 / 收藏</b>（抖音标准三栏），你也可以在预览后让我改成别的。</div>
+  </div>
+
+  <div class="phone">
+    <!-- 主页 -->
+    <div class="screen" id="profileScreen">
+      <div class="topbar">
+        <button class="icon-btn" onclick="toast('返回聊天')">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M15 18l-6-6 6-6"/></svg>
+        </button>
+        <div class="top-name">Claire<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M6 9l6 6 6-6"/></svg></div>
+        <div class="top-actions">
+          <button class="icon-btn plus-square" onclick="openComposer()">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M12 5v14M5 12h14"/></svg>
+          </button>
+          <button class="icon-btn" onclick="toast('主页菜单（后续扩展）')">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="3" y1="12" x2="21" y2="12"/><line x1="3" y1="6" x2="21" y2="6"/><line x1="3" y1="18" x2="21" y2="18"/></svg>
+          </button>
+        </div>
+      </div>
+      <div class="scroll">
+        <div class="profile-head">
+          <div class="avatar"></div>
+          <div class="meta">
+            <div class="name">Claire</div>
+            <!-- @账号（抖音号）已去掉 -->
+          </div>
+        </div>
+        <div class="bio">不吵架 不撕逼 不社交 不混圈 专心经营自己的弱智生活</div>
+        <div class="tags"><span class="tag">BG</span><span class="tag">单机入</span><span class="tag">狗狗</span></div>
+        <div class="actions">
+          <button class="btn follow">Follow</button>
+          <button class="btn message" onclick="toast('打开聊天')">Message</button>
+          <!-- Message 右边的加号已删 -->
+        </div>
+        <div class="bottom-tabs style-line" id="bottomTabs">
+          <div class="btab active" data-tab="works" onclick="switchTab('works')">
+            <svg viewBox="0 0 24 24" fill="currentColor"><path d="M3 3h7v7H3zM14 3h7v7h-7zM14 14h7v7h-7zM3 14h7v7H3z"/></svg><span>作品</span>
+          </div>
+          <div class="btab" data-tab="like" onclick="switchTab('like')">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M20.8 4.6a5.5 5.5 0 0 0-7.8 0L12 5.6l-1-1a5.5 5.5 0 0 0-7.8 7.8l1 1L12 21l7.8-7.6 1-1a5.5 5.5 0 0 0 0-7.8z"/></svg><span>喜欢</span>
+          </div>
+          <div class="btab" data-tab="collect" onclick="switchTab('collect')">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 17.27L18.18 21l-1.64-7.03L22 9.24l-7.19-.61L12 2 9.19 8.63 2 9.24l5.46 4.73L5.82 21z"/></svg><span>收藏</span>
+          </div>
+        </div>
+        <div class="grid" id="postGrid"></div>
+      </div>
+    </div>
+
+    <!-- 作品竖向滑动 feed -->
+    <div class="feed" id="feed">
+      <button class="icon-btn feed-back" style="position:absolute;top:14px;left:14px;z-index:6;background:rgba(0,0,0,.4);color:#fff" onclick="closeFeed()">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M15 18l-6-6 6-6"/></svg>
+      </button>
+      <div class="feed-items" id="feedItems"></div>
+    </div>
+    <!-- 评论区（覆盖在 feed 之上） -->
+    <div class="comment-panel" id="commentPanel">
+      <div class="cp-head">评论 <span id="cpCount">36</span><span class="x" onclick="closeComments()">✕</span></div>
+      <div class="cp-list" id="cpList"></div>
+      <div class="cp-input">
+        <input id="cpInput" placeholder="说点什么…" />
+        <button onclick="sendComment()">发送</button>
+      </div>
+    </div>
+
+    <!-- 发帖 -->
+    <div class="composer" id="composer">
+      <div class="comp-top">
+        <button class="cancel" onclick="closeComposer()">取消</button>
+        <div class="t">新作品</div>
+        <button class="pub" onclick="publish()">发布</button>
+      </div>
+      <div class="comp-body">
+        <div class="pick-grid" id="pickGrid">
+          <div class="pick-cell" onclick="openSheet()">+ 添加</div>
+        </div>
+        <textarea class="caption-box" id="captionBox" placeholder="写文案…（可 @、可加话题 #）"></textarea>
+      </div>
+    </div>
+
+    <!-- 选择图片/视频 底部弹层 -->
+    <div class="sheet" id="sheet">
+      <div class="row" onclick="pickFile('image')"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="3" width="18" height="18" rx="2"/><circle cx="8.5" cy="8.5" r="1.5"/><path d="M21 15l-5-5L5 21"/></svg>图片</div>
+      <div class="row" onclick="pickFile('video')"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polygon points="23 7 16 12 23 17 23 7"/><rect x="1" y="5" width="15" height="14" rx="2"/></svg>视频</div>
+      <div class="cancel" onclick="closeSheet()">取消</div>
+    </div>
+    <input type="file" id="fileInput" accept="image/*,video/*" style="display:none" />
+    <div class="toast" id="toast"></div>
+  </div>
+
+<script>
+  // 底部栏风格切换
+  const styleBtns=document.getElementById('styleBtns');
+  const bottomTabs=document.getElementById('bottomTabs');
+  styleBtns.addEventListener('click',e=>{
+    const b=e.target.closest('button'); if(!b)return;
+    styleBtns.querySelectorAll('button').forEach(x=>x.classList.remove('active'));
+    b.classList.add('active');
+    bottomTabs.className='bottom-tabs '+b.dataset.s;
+    positionPill();
+  });
+  function positionPill(){
+    if(!bottomTabs.classList.contains('style-pill')){const p=bottomTabs.querySelector('.pill');if(p)p.remove();return;}
+    let p=bottomTabs.querySelector('.pill'); if(!p){p=document.createElement('div');p.className='pill';bottomTabs.prepend(p);}
+    const active=bottomTabs.querySelector('.btab.active'); if(!active)return;
+    p.style.left=active.offsetLeft+'px'; p.style.width=active.offsetWidth+'px';
+  }
+
+  // 底部三栏切换
+  let curTab='works';
+  const samplePosts=[
+    {type:'image',src:'https://picsum.photos/seed/yinian1/400/700',caption:'周末和小狗的野餐 🐶 风很轻，云很慢。',author:'Claire',likes:128,comments:36,favs:9,poster:'https://picsum.photos/seed/yinian1p/400/700'},
+    {type:'image',src:'https://picsum.photos/seed/yinian2/400/700',caption:'它又睡成了一张饼。',author:'Claire',likes:86,comments:21,favs:5,poster:'https://picsum.photos/seed/yinian2p/400/700'},
+    {type:'video',src:'',caption:'海边的风，听了一下午。',author:'Claire',likes:204,comments:58,favs:30,poster:'https://picsum.photos/seed/yinianv/400/700'},
+    {type:'image',src:'https://picsum.photos/seed/yinian3/400/700',caption:'咖啡时光，偷得半日闲。',author:'Claire',likes:64,comments:12,favs:3,poster:'https://picsum.photos/seed/yinian3p/400/700'},
+  ];
+  function switchTab(t){
+    curTab=t;
+    bottomTabs.querySelectorAll('.btab').forEach(x=>x.classList.toggle('active',x.dataset.tab===t));
+    positionPill();
+    renderGrid();
+  }
+  function renderGrid(){
+    const g=document.getElementById('postGrid');
+    if(curTab!=='works'){
+      g.innerHTML='<div class="empty">「'+(curTab==='like'?'喜欢':'收藏')+'」功能预览中，后续接入真实数据～</div>';
+      return;
+    }
+    g.innerHTML=samplePosts.map((p,i)=>`
+      <div class="grid-item" onclick="openFeed(${i})" style="background-image:url(${p.type==='image'?p.src:''})">
+        ${p.type==='video'?'<div class="play"><svg viewBox="0 0 24 24" fill="currentColor"><polygon points="5 3 19 12 5 21 5 3"/></svg></div>':''}
+      </div>`).join('');
+  }
+  renderGrid();
+
+  // 作品竖向滑动 feed（抖音风）
+  let curFeedItem=0;
+  let likedArr=[], favedArr=[];
+  let commentsByItem={};
+  const baseComments=[
+    {name:'我',text:'好可爱！云真的好慢☁️',likes:3,replies:[{name:'Claire',text:'下次带你去～',likes:1}]},
+    {name:'阿白',text:'小狗表情绝了',likes:8,replies:[]},
+    {name:'丸子',text:'野餐都吃什么了呀',likes:2,replies:[{name:'Claire',text:'三明治和草莓',likes:0}]},
+  ];
+  function getComments(i){if(!commentsByItem[i])commentsByItem[i]=JSON.parse(JSON.stringify(baseComments));return commentsByItem[i];}
+  function renderFeed(){
+    const fi=document.getElementById('feedItems');
+    fi.innerHTML=samplePosts.map((p,i)=>`
+      <div class="feed-item" data-i="${i}">
+        ${p.type==='image'?`<img src="${p.src}"/>`:`<video src="" poster="${p.poster}" controls></video>`}
+        <div class="feed-side">
+          <div class="act ${likedArr[i]?'liked':''}" onclick="toggleLike(${i})"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M20.8 4.6a5.5 5.5 0 0 0-7.8 0L12 5.6l-1-1a5.5 5.5 0 0 0-7.8 7.8l1 1L12 21l7.8-7.6 1-1a5.5 5.5 0 0 0 0-7.8z"/></svg><span class="lk">${p.likes+(likedArr[i]?1:0)}</span></div>
+          <div class="act" onclick="openComments(${i})"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 11.5a8.4 8.4 0 0 1-8.5 8.5 8.6 8.6 0 0 1-3.8-.9L3 21l1.9-5.7A8.4 8.4 0 0 1 12.5 3 8.4 8.4 0 0 1 21 11.5z"/></svg><span>${p.comments}</span></div>
+          <div class="act ${favedArr[i]?'faved':''}" onclick="toggleFav(${i})"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 17.27L18.18 21l-1.64-7.03L22 9.24l-7.19-.61L12 2 9.19 8.63 2 9.24l5.46 4.73L5.82 21z"/></svg><span>${p.favs}</span></div>
+          <div class="act" onclick="toast('已转发')"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M4 8h11l-3-3M20 16H9l3 3"/></svg><span>转发</span></div>
+        </div>
+        <div class="feed-bottom"><div class="fb-caption"><b>${p.author}</b> ${p.caption}</div></div>
+      </div>`).join('');
+  }
+  function openFeed(i){
+    curFeedItem=i;
+    const f=document.getElementById('feed');f.classList.add('show');
+    renderFeed();
+    requestAnimationFrame(()=>{f.scrollTop=i*f.clientHeight;});
+  }
+  function closeFeed(){document.getElementById('feed').classList.remove('show');closeComments();}
+  function toggleLike(i){likedArr[i]=!likedArr[i];const acts=document.querySelectorAll('.feed-item[data-i="'+i+'"] .feed-side .act');
+    const act=acts[0];if(!act)return;act.classList.toggle('liked',likedArr[i]);
+    const lk=act.querySelector('.lk');if(lk)lk.textContent=samplePosts[i].likes+(likedArr[i]?1:0);
+    if(likedArr[i])spawnBurst(act);}
+  function toggleFav(i){favedArr[i]=!favedArr[i];const acts=document.querySelectorAll('.feed-item[data-i="'+i+'"] .feed-side .act');
+    const act=acts[2];if(!act)return;act.classList.toggle('faved',favedArr[i]);
+    if(favedArr[i])spawnStarBurst(act);}
+  function spawnBurst(act){
+    for(let k=0;k<6;k++){const h=document.createElement('span');h.className='burst-heart';h.textContent='♥';
+      const ang=Math.PI*(0.18+k*0.13);const bx=Math.cos(ang)*30*(k%2?1:-1);
+      h.style.setProperty('--bx',bx+'px');h.style.top='2px';h.style.animationDelay=(k*0.03)+'s';
+      act.appendChild(h);setTimeout(()=>h.remove(),720);}}
+  function spawnStarBurst(act){
+    for(let k=0;k<5;k++){const h=document.createElement('span');h.className='burst-star';h.textContent='✦';
+      const bx=Math.cos(Math.PI*(0.2+k*0.3))*26*(k%2?1:-1);
+      h.style.setProperty('--bx',bx+'px');h.style.animationDelay=(k*0.03)+'s';
+      act.appendChild(h);setTimeout(()=>h.remove(),760);}}
+
+  // 评论区
+  function renderComments(){
+    const list=document.getElementById('cpList');
+    const cs=getComments(curFeedItem);
+    document.getElementById('cpCount').textContent=cs.length;
+    list.innerHTML=cs.map((c,ci)=>`
+      <div class="cmt" onclick="cmtClick(${ci},event)">
+        <div class="cava"></div>
+        <div class="cbody">
+          <div class="cname">${c.name}</div>
+          <div class="ctext">${c.text}</div>
+          <div class="cmeta"><span>${ci+1}小时前</span>
+            <span class="clike" onclick="likeComment(${ci})">♥ <span id="cl${ci}">${c.likes}</span></span>
+            <span class="reply" onclick="replyTo('${c.name}')">回复</span></div>
+          <div class="replies">${c.replies.map((r,ri)=>`
+            <div class="cmt" onclick="cmtClickReply('${r.name}',event)"><div class="cava" style="width:28px;height:28px"></div>
+              <div class="cbody"><div class="cname">${r.name}</div><div class="ctext">${r.text}</div>
+              <div class="cmeta"><span class="clike" onclick="toast('赞了回复')">♥ ${r.likes}</span></div></div></div>`).join('')}</div>
+        </div>
+      </div>`).join('');
+  }
+  function likeComment(ci){const el=document.getElementById('cl'+ci);let n=+el.textContent;el.textContent=n+1;toast('已赞');}
+  // 点评论任意处（除名字/头像/赞）即回复，并自动弹键盘
+  function cmtClick(ci,e){
+    if(e.target.closest('.cava')||e.target.closest('.cname')||e.target.closest('.clike'))return;
+    replyTo(getComments(curFeedItem)[ci].name);
+  }
+  function cmtClickReply(name,e){
+    if(e.target.closest('.cava')||e.target.closest('.cname')||e.target.closest('.clike'))return;
+    replyTo(name);
+  }
+  function replyTo(name){const inp=document.getElementById('cpInput');inp.value='回复 '+name+'：';inp.focus();}
+  function sendComment(){
+    const v=document.getElementById('cpInput').value.trim();if(!v)return;
+    getComments(curFeedItem).unshift({name:'我',text:v,likes:0,replies:[]});
+    document.getElementById('cpInput').value='';renderComments();toast('已发布评论');
+  }
+  function openComments(i){curFeedItem=i;renderComments();document.getElementById('commentPanel').classList.add('show');}
+  function closeComments(){document.getElementById('commentPanel').classList.remove('show');}
+  // 点评论区以外的任意位置（媒体区）即退出评论区
+  document.getElementById('feed').addEventListener('click',function(ev){
+    const cp=document.getElementById('commentPanel');
+    if(!cp.classList.contains('show'))return;
+    if(ev.target.closest('.comment-panel')||ev.target.closest('.feed-side')||ev.target.closest('.feed-bottom')||ev.target.closest('.feed-back'))return;
+    closeComments();
+  });
+
+  // 发帖
+  function openComposer(){document.getElementById('composer').classList.add('show');}
+  function closeComposer(){document.getElementById('composer').classList.remove('show');}
+  function openSheet(){document.getElementById('sheet').classList.add('show');}
+  function closeSheet(){document.getElementById('sheet').classList.remove('show');}
+  let pendingType=null;
+  function pickFile(type){pendingType=type;closeSheet();document.getElementById('fileInput').click();}
+  document.getElementById('fileInput').addEventListener('change',e=>{
+    const f=e.target.files[0];if(!f)return;
+    const url=URL.createObjectURL(f);
+    const grid=document.getElementById('pickGrid');
+    const cell=document.createElement('div');cell.className='pick-cell';
+    cell.innerHTML=(pendingType==='video'?'<video src="'+url+'" muted></video>':'<img src="'+url+'"/>')+
+      '<div class="rm" onclick="this.parentNode.remove()">✕</div>';
+    grid.insertBefore(cell,grid.lastElementChild);
+  });
+  function publish(){
+    const cap=document.getElementById('captionBox').value.trim()||'新作品';
+    samplePosts.unshift({type:pendingType==='video'?'video':'image',src:'https://picsum.photos/seed/new'+(Date.now())+'/400/400',caption:cap});
+    closeComposer();document.getElementById('captionBox').value='';
+    switchTab('works');toast('已发布到「作品」');
+  }
+
+  function toast(msg){const t=document.getElementById('toast');t.textContent=msg;t.classList.add('show');
+    setTimeout(()=>t.classList.remove('show'),1600);}
+  window.addEventListener('resize',positionPill);
+  positionPill();
+</script>
+</body>
+</html>

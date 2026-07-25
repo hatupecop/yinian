@@ -6,7 +6,7 @@
 <meta name="theme-color" content="#FBF1EC" />
 <title>小窝</title>
 <link rel="manifest" href="manifest.json" />
-<link rel="stylesheet" href="styles.css?v=20260725k" />
+<link rel="stylesheet" href="styles.css?v=20260725l" />
 </head>
 <body>
 <div class="phone">
@@ -219,6 +219,13 @@
       </div>
       <div class="comp-body">
         <div class="pick-grid" id="workPickGrid"></div>
+        <div class="work-cover-field">
+          <label>封面（视频建议设置，退出也能显示画面；图文也可单独设封面）</label>
+          <div class="picker-row">
+            <div class="picker-prev picker-prev-wide" id="workCoverPrev"></div>
+            <button class="btn btn-ghost" id="workCoverBtn" type="button">选择封面</button>
+          </div>
+        </div>
         <textarea class="caption-box" id="workCaption" placeholder="写点什么吧…（TA 也能在云本子里看到你的作品）"></textarea>
       </div>
       <input type="file" id="workFile" accept="image/*,video/*" multiple style="display:none" />
@@ -356,6 +363,6 @@
   <div class="toast" id="toast"></div>
 </div>
 
-<script src="app.js?v=20260725k"></script>
+<script src="app.js?v=20260725l"></script>
 </body>
 </html>

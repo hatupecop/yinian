@@ -1197,10 +1197,10 @@ function openProfile() {
         <div class="picker-row"><div class="picker-prev" id="p-ava-prev" style="${ava ? 'background-image:url(' + ava + ')' : ''}"></div><button class="btn btn-ghost" id="p-ava-btn">从相册选择</button></div></div>
       <div class="field"><label>封面图</label>
         <div class="picker-row"><div class="picker-prev picker-prev-wide" id="p-cover-prev" style="${cover ? 'background-image:url(' + cover + ')' : ''}"></div><button class="btn btn-ghost" id="p-cover-btn">从相册选择</button></div></div>
-      <div class="field"><label>朋友圈个签</label><input id="p-momentsign" value="${esc(momentSign)}" placeholder="例如：今天也要开心" /></div>
-      <div class="field"><label>主页简介</label><input id="p-bio" value="${esc(bio)}" placeholder="例如：陪你去看世界" /></div>
-      <div class="field"><label>主页标签（逗号分隔）</label><input id="p-tags" value="${esc(tags)}" placeholder="例如：BG, 单机入, 狗狗" /></div>
-      <div class="field"><label>地区</label><input id="p-region" value="${esc(region)}" placeholder="例如：上海" /></div>
+      <div class="field"><label>朋友圈个签</label><input id="p-momentsign" value="${esc(momentSign)}" placeholder="今天也要开心" /></div>
+      <div class="field"><label>主页简介</label><input id="p-bio" value="${esc(bio)}" placeholder="陪你去看世界" /></div>
+      <div class="field"><label>主页标签（逗号分隔）</label><input id="p-tags" value="${esc(tags)}" placeholder="BG, 单机入, 狗狗" /></div>
+      <div class="field"><label>地区</label><input id="p-region" value="${esc(region)}" placeholder="上海" /></div>
     `;
   };
   openModal(`
@@ -2405,7 +2405,7 @@ function renderAiProfile() {
   if (items.length) {
     grid.innerHTML = items.map(o => {
       const play = o.w.type === 'video' ? '<span class="play-badge">▶</span>' : '';
-      return `<div class="aiprofile-grid-item" data-action="work-grid-item" data-i="${o.i}" style="background-image:url(${esc(o.w.src)})">${play}</div>`;
+      return `<div class="aiprofile-grid-item" data-action="work-grid-item" data-i="${o.i}" style="background-image:url(${esc(o.w.cover || o.w.src)})">${play}</div>`;
     }).join('');
   } else {
     const emptyText = aiprofileTab === 'likes' ? '他还没有点赞的作品' : aiprofileTab === 'favs' ? '他还没有收藏的作品' : '还没有作品，点右上角 + 发布第一个吧';
@@ -2420,14 +2420,14 @@ function switchAiProfileTab(tab) {
 }
 
 /* ===================== 作品（抖音风）feed / 评论 / 发帖 ===================== */
-let workFeedIndex = 0, workPicks = [], _workFileBound = false;
+let workFeedIndex = 0, workPicks = [], workCover = '', _workFileBound = false;
 function openWorkFeed(i) {
   const feed = $('#workFeed'), items = $('#workFeedItems');
   const aiName = data.settings.aiName || 'TA';
   items.innerHTML = data.works.map((w, idx) => {
     const media = w.type === 'video'
-      ? `<video src="${esc(w.src)}" poster="${esc(w.poster || w.src)}" controls></video>`
-      : `<img src="${esc(w.src)}" alt="">`;
+      ? `<video src="${esc(w.src)}" poster="${esc(w.cover || w.poster || w.src)}" controls></video>`
+      : `<img src="${esc(w.cover || w.src)}" alt="">`;
     const cmtN = (w.comments || []).reduce((n, c) => n + 1 + (c.replies ? c.replies.length : 0), 0);
     return `
       <div class="wf-item" data-idx="${idx}">
@@ -2552,11 +2552,16 @@ function workLikeReply(ci, ri, e) {
 }
 /* 发作品 */
 function openWorkComposer() {
-  workPicks = []; renderWorkPicks(); $('#workCaption').value = '';
+  workPicks = []; workCover = ''; renderWorkPicks(); $('#workCaption').value = '';
+  const cp = $('#workCoverPrev'); if (cp) cp.style.backgroundImage = '';
   $('#workComposer').classList.add('show');
   if (!_workFileBound) {
     const f = document.getElementById('workFile');
     if (f) { f.addEventListener('change', workFileChange); _workFileBound = true; }
+    const cb = document.getElementById('workCoverBtn');
+    if (cb) cb.addEventListener('click', () => pickImage(1024, d => {
+      workCover = d; const p = $('#workCoverPrev'); if (p) p.style.backgroundImage = 'url(' + d + ')';
+    }));
   }
 }
 function closeWorkComposer() { $('#workComposer').classList.remove('show'); $('#workSheet').classList.remove('show'); }
@@ -2589,7 +2594,7 @@ function publishWork() {
   const caption = $('#workCaption').value.trim();
   workPicks.forEach((p, k) => {
     data.works.unshift({
-      id: 'w' + Date.now() + '_' + k, type: p.type, src: p.src, caption: caption,
+      id: 'w' + Date.now() + '_' + k, type: p.type, src: p.src, cover: workCover, caption: caption,
       likes: 0, liked: false, faved: false, time: Date.now(), comments: []
     });
   });
