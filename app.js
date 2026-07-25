@@ -2349,8 +2349,18 @@ function renderChat() {
     }
     last = t;
     const mine = (m.role === 'me' || m.role === 'user');
+    let think = '';
+    if (!mine && m.reasoning) {
+      think = `<div class="think-block">
+        <button class="think-toggle" type="button" onclick="toggleThink(this)" aria-label="展开/收起思考过程"><svg class="chev" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><path d="M9 6l6 6-6 6"/></svg></button>
+        <div class="think-main"><div class="think-label">思考过程</div><div class="think-text">${esc(m.reasoning)}</div></div>
+      </div>`;
+    }
     html += `<div class="bubble-row ${mine ? 'me' : 'ai'}">
-      <div class="bubble">${esc(m.text)}</div>
+      <div class="bubble-wrap">
+        ${think}
+        <div class="bubble">${esc(m.text)}</div>
+      </div>
     </div>`;
   });
   if (chatThinking) {
@@ -2361,6 +2371,10 @@ function renderChat() {
   body.innerHTML = html;
   body.scrollTop = body.scrollHeight;
 }
+function toggleThink(btn) {
+  const b = btn.closest('.think-block');
+  if (b) b.classList.toggle('open');
+}
 async function sendChat() {
   const input = $('#chat-input');
   const text = input.value.trim(); if (!text) return;
@@ -2368,7 +2382,7 @@ async function sendChat() {
   data.chat.push({ role: 'user', text, time: Date.now() });
   save(); chatThinking = true; renderChat();
   const s = data.settings;
-  let reply = null;
+  let reply = null, reasoning = '';
   try {
     if (s.apiMode === 'backend' && s.backendUrl) {
       const base = (s.backendUrl || '').replace(/\/+$/, '');
@@ -2379,12 +2393,14 @@ async function sendChat() {
       });
       const j = await r.json().catch(() => ({}));
       reply = (r.ok && j.reply) ? j.reply : (j.error ? '（TA 回话出错：' + j.error + '）' : '（TA 暂时没回话）');
+      reasoning = (r.ok && j.reasoning) ? j.reasoning : '';
     } else if (s.apiMode === 'direct' && s.deepseekKey) {
       const r = await fetch('https://api.deepseek.com/v1/chat/completions', {
         method: 'POST', headers: { 'Content-Type': 'application/json', 'Authorization': 'Bearer ' + s.deepseekKey },
         body: JSON.stringify({ model: s.chatModel, messages: [{ role: 'user', content: text }] })
       });
       const j = await r.json(); reply = j.choices[0].message.content;
+      reasoning = j.choices[0].message.reasoning_content || '';
     } else {
       await new Promise(r => setTimeout(r, 800));
       reply = '（演示模式）这是一条示例回复。在“设置 → API 连接”里配置后端或 Key 后，我就能真的和你对话啦。';
@@ -2393,7 +2409,7 @@ async function sendChat() {
     reply = '（连接失败，请检查设置）';
   }
   chatThinking = false;
-  data.chat.push({ role: 'ai', text: reply, time: Date.now() });
+  data.chat.push({ role: 'ai', text: reply, reasoning: reasoning || '', time: Date.now() });
   save(); renderChat();
 }
 
@@ -2491,7 +2507,11 @@ function openWorkFeed(i) {
   workFeedIndex = i || 0;
   if (items.children[workFeedIndex]) items.children[workFeedIndex].scrollIntoView();
 }
-function closeWorkFeed() { $('#workFeed').classList.remove('show'); closeWorkComment(); }
+function closeWorkFeed() {
+  $('#workFeed').classList.remove('show');
+  closeWorkComment();
+  document.querySelectorAll('#workFeed video').forEach(v => { try { v.pause(); v.currentTime = 0; } catch (e) {} });
+}
 function spawnWorkBurst(act, ch, color) {
   for (let i = 0; i < 6; i++) {
     const s = document.createElement('span');
