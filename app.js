@@ -554,8 +554,8 @@ function renderAnniversary() {
 function esc(s) { return String(s).replace(/[&<>"]/g, c => ({ '&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;' }[c])); }
 function hexToRgb(hex) {
   const m = String(hex).replace('#', '').match(/^(..)(..)(..)$/);
-  if (!m) return [251, 241, 236];
-  return [parseInt(m[1], 16), parseInt(m[2], 16), parseInt(m[3], 16)];
+  if (!m) return { r: 251, g: 241, b: 236 };
+  return { r: parseInt(m[1], 16), g: parseInt(m[2], 16), b: parseInt(m[3], 16) };
 }
 
 function editDay(id) {

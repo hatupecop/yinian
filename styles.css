@@ -664,6 +664,7 @@ body.frost-on .bubble-row.ai .bubble,
 body.frost-on .chat-thinking-row .bubble.thinking {
   backdrop-filter: blur(var(--frost-blur));
   -webkit-backdrop-filter: blur(var(--frost-blur));
+  background-color: color-mix(in srgb, var(--st-cardbg-color, var(--bg-card)) calc(var(--frost-opacity) * 100%), transparent);
 }
 body.frost-on .bubble-row.ai .bubble {
   background-color: var(--ai-bubble-bg, color-mix(in srgb, var(--st-cardbg-color, var(--bg-card)) calc(var(--frost-opacity) * 100%), transparent));
@@ -691,6 +692,7 @@ body.glassmorphism-on #menu-sheet,
 body.glassmorphism-on .chat-input-bar,
 body.glassmorphism-on .bubble-row.ai .bubble,
 body.glassmorphism-on .chat-thinking-row .bubble.thinking {
+  background-color: transparent;
   box-shadow: none;
   backdrop-filter: none;
   -webkit-backdrop-filter: none;
