@@ -166,6 +166,7 @@ if (!data.settings._colorFixV1) {
 if (!data.settings.lang) data.settings.lang = 'en';
 if (data.settings.chatInputOffset === undefined) data.settings.chatInputOffset = 0;
 if (data.settings.chatInputHeight === undefined) data.settings.chatInputHeight = 54;
+if (!data.settings.think) data.settings.think = { bgColor: '#ffffff', bgOpacity: 0, textColor: '#9b8e88', lineColor: '#F48FB1' };
 // 自动接入已部署的聊天函数（用户已配置好 Key）：曾选过「演示」的，默认升级为真实聊天
 const CHAT_FN = 'https://vlrqxguctptinozjuyds.supabase.co/functions/v1/chat';
 if (data.settings.apiMode === 'none') {
@@ -1937,10 +1938,27 @@ function applyStyle() {
   const gm = data.settings.glassmorphism || {};
   r.setProperty('--gm-highlight', ((gm.highlight != null ? gm.highlight : 70)) / 100);
   document.body.classList.toggle('glassmorphism-on', !!gm.on);
+  applyThink();
+}
+function applyThink() {
+  applyThinkVars(data.settings.think || {});
+}
+function applyThinkVars(t) {
+  const r = document.documentElement.style;
+  if (t.bgColor && t.bgOpacity > 0) {
+    const c = hexToRgb(t.bgColor);
+    r.setProperty('--think-bg', 'rgba(' + c.r + ',' + c.g + ',' + c.b + ',' + t.bgOpacity + ')');
+  } else {
+    r.setProperty('--think-bg', 'transparent');
+  }
+  r.setProperty('--think-text', t.textColor || 'var(--text-muted)');
+  r.setProperty('--think-line', t.lineColor || 'var(--accent)');
 }
 function openStyle() {
   const st = data.settings.style || {};
   const grp = k => st[k] || { color: '', opacity: 1, font: 'default' };
+  const t = data.settings.think || {};
+  const thinkOp = Math.round((t.bgOpacity != null ? t.bgOpacity : 0) * 100);
   const rowHtml = g => {
     const v = grp(g.key);
     const follow = !v.color;
@@ -2000,6 +2018,14 @@ function openStyle() {
       <div class="field"><label>面板透明度（${data.settings.chatPanelAlpha != null ? data.settings.chatPanelAlpha : 90}%，越低越透）</label>
         <div class="range-row"><input type="range" min="0" max="100" id="st-chatalpha" value="${data.settings.chatPanelAlpha != null ? data.settings.chatPanelAlpha : 90}"/><span id="st-chatalphav">${data.settings.chatPanelAlpha != null ? data.settings.chatPanelAlpha : 90}%</span></div></div>
     </div>
+    <div class="style-group" style="border-top:1px solid var(--border);padding-top:12px;margin-top:14px;">
+      <div style="font-size:14px;font-weight:500;color:var(--text);margin-bottom:8px;">思考过程（聊天 AI 思考块）</div>
+      <div class="field"><label>思考框背景色</label><input type="color" id="st-think-bg" value="${t.bgColor || '#ffffff'}" style="width:100%;height:38px;border:1px solid var(--border);border-radius:10px;background:var(--cardbg);padding:2px;" /></div>
+      <div class="field"><label>思考框透明度（${thinkOp}%，0 = 完全透明）</label>
+        <div class="range-row"><input type="range" min="0" max="100" id="st-think-op" value="${thinkOp}"/><span id="st-think-opv">${thinkOp}%</span></div></div>
+      <div class="field"><label>思考文字颜色</label><input type="color" id="st-think-text" value="${t.textColor || '#9b8e88'}" style="width:100%;height:38px;border:1px solid var(--border);border-radius:10px;background:var(--cardbg);padding:2px;" /></div>
+      <div class="field"><label>竖线颜色</label><input type="color" id="st-think-line" value="${t.lineColor || '#F48FB1'}" style="width:100%;height:38px;border:1px solid var(--border);border-radius:10px;background:var(--cardbg);padding:2px;" /></div>
+    </div>
     ${STYLE_GROUPS.map(rowHtml).join('')}
     <div class="modal-actions">
       <button class="btn btn-ghost" id="st-reset">恢复主题</button>
@@ -2030,6 +2056,12 @@ function openStyle() {
   const scb = $('#st-chatbg'); const sca = $('#st-chatalpha');
   if (scb) scb.addEventListener('input', () => document.documentElement.style.setProperty('--chat-panel-bg', scb.value));
   if (sca) sca.addEventListener('input', () => { const v = $('#st-chatalphav'); if (v) v.textContent = sca.value + '%'; document.documentElement.style.setProperty('--chat-panel-alpha', sca.value); });
+  const tbg = $('#st-think-bg'), top = $('#st-think-op'), ttxt = $('#st-think-text'), tln = $('#st-think-line');
+  const applyThinkPreview = () => { if (!tbg) return; applyThinkVars({ bgColor: tbg.value, bgOpacity: Number(top.value) / 100, textColor: ttxt.value, lineColor: tln.value }); };
+  if (tbg) tbg.addEventListener('input', applyThinkPreview);
+  if (top) top.addEventListener('input', () => { const v = $('#st-think-opv'); if (v) v.textContent = top.value + '%'; applyThinkPreview(); });
+  if (ttxt) ttxt.addEventListener('input', applyThinkPreview);
+  if (tln) tln.addEventListener('input', applyThinkPreview);
   $('#st-reset').addEventListener('click', () => {
     data.settings.style = {
       title: { color: '', opacity: 1, font: 'default' },
@@ -2044,6 +2076,7 @@ function openStyle() {
     data.settings.glassmorphism = { on: false, highlight: 70 };
     data.settings.topFadeA = 100; data.settings.topFadeH = 20;
     data.settings.topBtnColor = ''; data.settings.chatPanelBg = '#ffffff'; data.settings.chatPanelAlpha = 90;
+    data.settings.think = { bgColor: '#ffffff', bgOpacity: 0, textColor: '#9b8e88', lineColor: '#F48FB1' };
     save(); applyTheme(); closeModal(); toast('已恢复主题');
   });
   $('#st-save').addEventListener('click', () => {
@@ -2063,6 +2096,12 @@ function openStyle() {
     data.settings.topBtnColor = $('#st-topbtn').value;
     data.settings.chatPanelBg = $('#st-chatbg').value;
     data.settings.chatPanelAlpha = Number($('#st-chatalpha').value);
+    data.settings.think = {
+      bgColor: $('#st-think-bg').value,
+      bgOpacity: Number($('#st-think-op').value) / 100,
+      textColor: $('#st-think-text').value,
+      lineColor: $('#st-think-line').value
+    };
     const langEl = $('#st-lang'); if (langEl) data.settings.lang = langEl.value;
     save(); closeModal(); applyTheme(); applyLang(); toast('已保存');
   });
@@ -2351,9 +2390,9 @@ function renderChat() {
     const mine = (m.role === 'me' || m.role === 'user');
     let think = '';
     if (!mine && m.reasoning) {
-      think = `<div class="think-block">
-        <button class="think-toggle" type="button" onclick="toggleThink(this)" aria-label="展开/收起思考过程"><svg class="chev" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><path d="M9 6l6 6-6 6"/></svg></button>
-        <div class="think-main"><div class="think-label">思考过程</div><div class="think-text">${esc(m.reasoning)}</div></div>
+      think = `<div class="think-block open">
+        <button class="think-toggle" type="button" onclick="toggleThink(this)" aria-label="展开/收起思考过程"><svg class="chev" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><path d="M9 6l6 6-6 6"/></svg><span class="think-label">thinking</span></button>
+        <div class="think-main"><div class="think-text">${esc(m.reasoning)}</div></div>
       </div>`;
     }
     html += `<div class="bubble-row ${mine ? 'me' : 'ai'}">
@@ -2381,36 +2420,87 @@ async function sendChat() {
   input.value = '';
   data.chat.push({ role: 'user', text, time: Date.now() });
   save(); chatThinking = true; renderChat();
+
   const s = data.settings;
-  let reply = null, reasoning = '';
+  const body = $('#chat-body');
+  // 用真实 AI 行替换“正在输入”占位行，便于流式写入思考与回答
+  const dotsRow = body.querySelector('.chat-thinking-row');
+  const aiRow = document.createElement('div');
+  aiRow.className = 'bubble-row ai';
+  aiRow.innerHTML = `<div class="bubble-wrap">
+    <div class="think-block open" id="streamThink">
+      <button class="think-toggle" type="button" onclick="toggleThink(this)" aria-label="展开/收起思考过程"><svg class="chev" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><path d="M9 6l6 6-6 6"/></svg><span class="think-label">thinking</span></button>
+      <div class="think-main"><div class="think-text" id="thinkText"></div></div>
+    </div>
+    <div class="bubble" id="aiBubble"></div>
+  </div>`;
+  if (dotsRow) dotsRow.replaceWith(aiRow);
+  const thinkBlock = aiRow.querySelector('#streamThink');
+  const thinkEl = aiRow.querySelector('#thinkText');
+  const bubbleEl = aiRow.querySelector('#aiBubble');
+
+  const messages = data.chat.map(m => ({ role: (m.role === 'ai' || m.role === 'assistant') ? 'assistant' : (m.role === 'me' || m.role === 'user' ? 'user' : m.role), content: m.text }));
+
+  let reasoning = '', reply = '', hasReasoning = false;
+  const scroll = () => { body.scrollTop = body.scrollHeight; };
   try {
-    if (s.apiMode === 'backend' && s.backendUrl) {
-      const base = (s.backendUrl || '').replace(/\/+$/, '');
-      const url = base.endsWith('/chat') ? base : base + '/chat';
-      const r = await fetch(url, {
-        method: 'POST', headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ model: s.chatModel, messages: data.chat.map(m => ({ role: m.role === 'ai' ? 'assistant' : m.role, content: m.text })) })
-      });
-      const j = await r.json().catch(() => ({}));
-      reply = (r.ok && j.reply) ? j.reply : (j.error ? '（TA 回话出错：' + j.error + '）' : '（TA 暂时没回话）');
-      reasoning = (r.ok && j.reasoning) ? j.reasoning : '';
-    } else if (s.apiMode === 'direct' && s.deepseekKey) {
-      const r = await fetch('https://api.deepseek.com/v1/chat/completions', {
-        method: 'POST', headers: { 'Content-Type': 'application/json', 'Authorization': 'Bearer ' + s.deepseekKey },
-        body: JSON.stringify({ model: s.chatModel, messages: [{ role: 'user', content: text }] })
-      });
-      const j = await r.json(); reply = j.choices[0].message.content;
-      reasoning = j.choices[0].message.reasoning_content || '';
-    } else {
-      await new Promise(r => setTimeout(r, 800));
-      reply = '（演示模式）这是一条示例回复。在“设置 → API 连接”里配置后端或 Key 后，我就能真的和你对话啦。';
-    }
+    await streamChat(s, messages, {
+      onReasoning: t => { hasReasoning = true; reasoning += t; thinkEl.textContent = reasoning; scroll(); },
+      onContent: t => { reply += t; bubbleEl.textContent = reply; scroll(); }
+    });
   } catch (e) {
-    reply = '（连接失败，请检查设置）';
+    if (!reply) { reply = '（连接失败，请检查设置）'; bubbleEl.textContent = reply; }
   }
+  if (!hasReasoning) thinkBlock.style.display = 'none';
   chatThinking = false;
   data.chat.push({ role: 'ai', text: reply, reasoning: reasoning || '', time: Date.now() });
-  save(); renderChat();
+  save();
+}
+
+// 流式读取 SSE：逐行把 reasoning_content 与 content 增量回调出去
+async function streamChat(s, messages, cb) {
+  const mkBody = m => JSON.stringify({ model: s.chatModel || 'deepseek-v4-flash', messages: m, stream: true, temperature: 0.8, max_tokens: 1024 });
+  let resp;
+  if (s.apiMode === 'backend' && s.backendUrl) {
+    const base = (s.backendUrl || '').replace(/\/+$/, '');
+    const url = base.endsWith('/chat') ? base : base + '/chat';
+    resp = await fetch(url, { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: mkBody(messages) });
+  } else if (s.apiMode === 'direct' && s.deepseekKey) {
+    resp = await fetch('https://api.deepseek.com/v1/chat/completions', { method: 'POST', headers: { 'Content-Type': 'application/json', 'Authorization': 'Bearer ' + s.deepseekKey }, body: mkBody(messages) });
+  } else {
+    const demo = '（演示模式）这是一条示例回复。在“设置 → API 连接”里配置后端或 Key 后，我就能真的和你对话啦。';
+    for (const ch of demo) { cb.onContent(ch); await new Promise(r => setTimeout(r, 18)); }
+    return;
+  }
+  if (!resp.ok) {
+    let msg = 'HTTP ' + resp.status;
+    try { const j = await resp.json(); if (j && j.error) msg = j.error; } catch (e) {}
+    throw new Error(msg);
+  }
+  const reader = resp.body.getReader();
+  const decoder = new TextDecoder();
+  let buf = '';
+  while (true) {
+    const { done, value } = await reader.read();
+    if (done) break;
+    buf += decoder.decode(value, { stream: true });
+    let nl;
+    while ((nl = buf.indexOf('\n')) >= 0) {
+      const line = buf.slice(0, nl).trim();
+      buf = buf.slice(nl + 1);
+      if (!line.startsWith('data:')) continue;
+      const data = line.slice(5).trim();
+      if (data === '[DONE]') return;
+      try {
+        const j = JSON.parse(data);
+        const d = j.choices && j.choices[0] && j.choices[0].delta;
+        if (!d) continue;
+        const rc = d.reasoning_content || d.reasoning;
+        if (rc) cb.onReasoning(rc);
+        if (d.content) cb.onContent(d.content);
+      } catch (e) {}
+    }
+  }
 }
 
 /* ===================== AI 主页 / 朋友圈入口 ===================== */
