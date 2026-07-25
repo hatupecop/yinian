@@ -258,32 +258,30 @@ body.kb-open .chat-body { padding-bottom: 66px; }
 /* 气泡外层：让思考块可以叠在气泡上方 */
 .bubble-wrap { display: flex; flex-direction: column; gap: 6px; max-width: 80%; min-width: 0; }
 .bubble-wrap .bubble { max-width: 100%; }
-/* 思考过程折叠块：位于 AI 气泡上方、靠左、宽度同气泡；左侧竖线从展开按钮尖尖起 */
-.think-block {
-  display: flex; flex-direction: column; gap: 6px;
-  background: var(--think-bg, transparent);
-  border-radius: 12px; padding: 8px 10px; margin-bottom: 2px;
-}
-/* 收起时贴紧下方气泡：padding 收最小，并用负 margin 抵消气泡外层 6px 间距，使 thinking 字样与回复间距约为原来一半 */
-.think-block:not(.open) { padding-top: 0; padding-bottom: 0; margin-bottom: -6px; }
+/* 思考标头：收起按钮 + thinking 字样，放在卡片外面（不属于卡片本身） */
+.think-head { display: flex; align-items: center; }
 .think-toggle {
   display: flex; align-items: center; gap: 6px;
   background: none; border: none; padding: 0; margin: 0;
   cursor: pointer; color: var(--think-line, var(--accent));
   font: inherit; line-height: 1;
 }
-.think-toggle .chev { width: 14px; height: 14px; flex: 0 0 auto; transition: transform .2s ease; }
-.think-block.open .think-toggle .chev { transform: rotate(90deg); }
+.think-toggle .chev { width: 14px; height: 14px; flex: 0 0 auto; transition: transform .2s ease; transform: rotate(90deg); }
+.bubble-wrap.think-collapsed .think-toggle .chev { transform: rotate(0); }
 .think-label { font-size: 12px; font-weight: 600; letter-spacing: .3px; color: var(--think-line, var(--accent)); }
-.think-main {
-  display: flex; flex-direction: column;
-  border-left: 1px solid var(--think-line, var(--accent));
-  margin-left: 6px; padding-left: 10px;
+/* 思考内容 + 回复：合成一张连着的卡（无间隙、外圆角相连），思考在上、回复在下，中间一条细分隔线 */
+.ai-msg-card { border-radius: 18px; box-shadow: var(--shadow-card); overflow: hidden; }
+.bubble-row.ai .ai-msg-card .bubble { border-radius: 0 0 18px 18px; box-shadow: none; margin: 0; }
+.think-content {
+  background: var(--think-bg, transparent);
+  border-radius: 18px 18px 0 0;
+  padding: 8px 12px 10px;
   max-height: 4000px; opacity: 1; overflow: hidden;
   transition: max-height .25s ease, opacity .2s ease, padding .2s ease;
+  border-bottom: 1px solid rgba(0,0,0,0.06);
 }
-.think-block:not(.open) .think-main { max-height: 0; opacity: 0; padding-top: 0; padding-bottom: 0; margin-top: 0; }
-.think-text { font-size: 13px; line-height: 1.55; color: var(--think-text, var(--text-muted)); white-space: pre-wrap; word-break: break-word; }
+.bubble-wrap.think-collapsed .think-content { max-height: 0; opacity: 0; padding-top: 0; padding-bottom: 0; border-bottom: none; }
+.think-text { font-size: 13px; line-height: 1.55; color: var(--think-text, var(--text-muted)); white-space: pre-wrap; word-break: break-word; border-left: 1px solid var(--think-line, var(--accent)); margin-left: 6px; padding-left: 10px; }
 .chat-input-bar {
   position: fixed; left: 50%; transform: translateX(-50%);
   width: calc(100% - 28px); max-width: 412px;
@@ -661,6 +659,7 @@ body.frost-on .tabbar,
 body.frost-on #menu-sheet,
 body.frost-on .chat-input-bar,
 body.frost-on .bubble-row.ai .bubble,
+body.frost-on .bubble-row.ai .ai-msg-card,
 body.frost-on .chat-thinking-row .bubble.thinking {
   backdrop-filter: blur(var(--frost-blur));
   -webkit-backdrop-filter: blur(var(--frost-blur));
@@ -691,6 +690,7 @@ body.glassmorphism-on .tabbar,
 body.glassmorphism-on #menu-sheet,
 body.glassmorphism-on .chat-input-bar,
 body.glassmorphism-on .bubble-row.ai .bubble,
+body.glassmorphism-on .bubble-row.ai .ai-msg-card,
 body.glassmorphism-on .chat-thinking-row .bubble.thinking {
   background-color: transparent;
   box-shadow: none;

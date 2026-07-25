@@ -2462,17 +2462,21 @@ function renderChat() {
     }
     last = t;
     const mine = (m.role === 'me' || m.role === 'user');
-    let think = '';
+    let thinkHead = '';
+    let mergedCard = '';
     if (!mine && m.reasoning) {
-      think = `<div class="think-block open">
+      thinkHead = `<div class="think-head">
         <button class="think-toggle" type="button" onclick="toggleThink(this)" aria-label="展开/收起思考过程"><svg class="chev" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><path d="M9 6l6 6-6 6"/></svg><span class="think-label">thinking</span></button>
-        <div class="think-main"><div class="think-text">${esc(m.reasoning)}</div></div>
+      </div>`;
+      mergedCard = `<div class="ai-msg-card">
+        <div class="think-content"><div class="think-text">${esc(m.reasoning)}</div></div>
+        <div class="bubble">${esc(m.text)}</div>
       </div>`;
     }
     html += `<div class="bubble-row ${mine ? 'me' : 'ai'}">
       <div class="bubble-wrap">
-        ${think}
-        <div class="bubble">${esc(m.text)}</div>
+        ${thinkHead}
+        ${mergedCard || `<div class="bubble">${esc(m.text)}</div>`}
       </div>
     </div>`;
   });
@@ -2485,8 +2489,8 @@ function renderChat() {
   body.scrollTop = body.scrollHeight;
 }
 function toggleThink(btn) {
-  const b = btn.closest('.think-block');
-  if (b) b.classList.toggle('open');
+  const wrap = btn.closest('.bubble-wrap');
+  if (wrap) wrap.classList.toggle('think-collapsed');
 }
 async function sendChat() {
   const input = $('#chat-input');
@@ -2502,11 +2506,13 @@ async function sendChat() {
   const aiRow = document.createElement('div');
   aiRow.className = 'bubble-row ai';
   aiRow.innerHTML = `<div class="bubble-wrap">
-    <div class="think-block open" id="streamThink">
+    <div class="think-head">
       <button class="think-toggle" type="button" onclick="toggleThink(this)" aria-label="展开/收起思考过程"><svg class="chev" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><path d="M9 6l6 6-6 6"/></svg><span class="think-label">thinking</span></button>
-      <div class="think-main"><div class="think-text" id="thinkText"></div></div>
     </div>
-    <div class="bubble" id="aiBubble"></div>
+    <div class="ai-msg-card">
+      <div class="think-content" id="streamThink"><div class="think-text" id="thinkText"></div></div>
+      <div class="bubble" id="aiBubble"></div>
+    </div>
   </div>`;
   if (dotsRow) dotsRow.replaceWith(aiRow);
   const thinkBlock = aiRow.querySelector('#streamThink');
@@ -2533,7 +2539,7 @@ async function sendChat() {
     if (!reply) { reply = '（连接失败，请检查设置）'; bubbleEl.textContent = reply; }
   }
   if (raf != null) { cancelAnimationFrame(raf); flush(); }
-  if (!hasReasoning) thinkBlock.style.display = 'none';
+  if (!hasReasoning) { thinkBlock.style.display = 'none'; const th = aiRow.querySelector('.think-head'); if (th) th.style.display = 'none'; }
   chatThinking = false;
   data.chat.push({ role: 'ai', text: reply, reasoning: reasoning || '', time: Date.now() });
   save();
