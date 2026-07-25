@@ -1334,6 +1334,8 @@ function openPersonalize() {
   let bgTmp = null;
   let removeBg = false;
   const originalTheme = s.theme;
+  const origPageBg = JSON.parse(JSON.stringify(s.pageBg));
+  const origPageOpacity = JSON.parse(JSON.stringify(s.pageOpacity));
   let themeTmp = originalTheme;
   const pageSel = $('#pe-page');
   function fill() {
@@ -1355,10 +1357,10 @@ function openPersonalize() {
   });
   const peWhite = () => $('#pe-white') && $('#pe-white').classList.contains('on');
   $('#pe-white').addEventListener('click', () => $('#pe-white').classList.toggle('on'));
-  $('#pe-bg-btn').addEventListener('click', () => pickImage(1024, async d => { const o = peWhite() ? await removeWhiteBackground(d) : d; bgTmp = o; removeBg = false; $('#pe-bg-prev').style.backgroundImage = 'url(' + o + ')'; }));
-  $('#pe-bg-remove').addEventListener('click', () => { removeBg = true; bgTmp = null; $('#pe-bg-prev').style.backgroundImage = ''; toast('已标记为移除，保存后生效'); });
-  $('#pe-op').addEventListener('input', () => $('#pe-op-v').textContent = $('#pe-op').value + '%');
-  $('#pe-cancel').addEventListener('click', () => { data.settings.theme = originalTheme; applyTheme(); closeModal(); });
+  $('#pe-bg-btn').addEventListener('click', () => pickImage(1024, async d => { const o = peWhite() ? await removeWhiteBackground(d) : d; bgTmp = o; removeBg = false; const p = pageSel.value; if (p === 'global') { s.pageBg = { global: o }; s.pageOpacity = { global: Number($('#pe-op').value) }; } else { s.pageBg[p] = o; s.pageOpacity[p] = Number($('#pe-op').value); } $('#pe-bg-prev').style.backgroundImage = 'url(' + o + ')'; applyTheme(); }));
+  $('#pe-bg-remove').addEventListener('click', () => { removeBg = true; bgTmp = null; const p = pageSel.value; if (p === 'global') { s.pageBg = {}; s.pageOpacity = {}; } else { delete s.pageBg[p]; delete s.pageOpacity[p]; } $('#pe-bg-prev').style.backgroundImage = ''; applyTheme(); toast('已移除，保存后生效'); });
+  $('#pe-op').addEventListener('input', () => { const v = $('#pe-op').value; $('#pe-op-v').textContent = v + '%'; const p = pageSel.value; if (p === 'global') { s.pageOpacity = { global: Number(v) }; } else { s.pageOpacity[p] = Number(v); } applyTheme(); });
+  $('#pe-cancel').addEventListener('click', () => { data.settings.theme = originalTheme; s.pageBg = JSON.parse(JSON.stringify(origPageBg)); s.pageOpacity = JSON.parse(JSON.stringify(origPageOpacity)); applyTheme(); closeModal(); });
   $('#pe-save').addEventListener('click', () => {
     const p = pageSel.value;
     const op = Number($('#pe-op').value);
@@ -1379,7 +1381,7 @@ function applyTheme() {
   const theme = THEMES[data.settings.theme] || THEMES.default;
   const root = document.documentElement.style;
   Object.entries(theme.vars).forEach(([k, v]) => root.setProperty(k, v));
-  const [r, g, b] = hexToRgb(theme.vars['--bg-page']);
+  const { r, g, b } = hexToRgb(theme.vars['--bg-page']);
   // 每页背景：全局优先
   const hasGlobal = data.settings.pageBg.global;
   const ta = (data.settings.topFadeA != null ? data.settings.topFadeA : 100) / 100;
@@ -1396,15 +1398,18 @@ function applyTheme() {
       const chatBg = s.querySelector('.chat-bg');
       if (chatBg) {
         if (bg) {
-          chatBg.style.backgroundImage = `linear-gradient(to bottom, rgba(${r},${g},${b},${ta}) 0%, rgba(${r},${g},${b},${ta}) ${th * 0.5}%, rgba(${r},${g},${b},${1 - op}) ${th}%, rgba(${r},${g},${b},${1 - op}) 100%), url(${bg})`;
+          const coverAlpha = Math.min(ta, 0.5);
+          chatBg.style.backgroundImage = `linear-gradient(to bottom, rgba(${r},${g},${b},${coverAlpha}) 0%, rgba(${r},${g},${b},${coverAlpha}) ${th * 0.5}%, rgba(${r},${g},${b},${1 - op}) ${th}%, rgba(${r},${g},${b},${1 - op}) 100%), url(${bg})`;
         } else { chatBg.style.backgroundImage = ''; }
       }
       s.style.backgroundImage = '';
       return;
     }
     if (bg) {
-      s.style.backgroundImage = `linear-gradient(to bottom, rgba(${r},${g},${b},${ta}) 0%, rgba(${r},${g},${b},${ta}) ${th * 0.5}%, rgba(${r},${g},${b},${1 - op}) ${th}%, rgba(${r},${g},${b},${1 - op}) 100%), url(${bg})`;
+      const coverAlpha = Math.min(ta, 0.5);
+      s.style.backgroundImage = `linear-gradient(to bottom, rgba(${r},${g},${b},${coverAlpha}) 0%, rgba(${r},${g},${b},${coverAlpha}) ${th * 0.5}%, rgba(${r},${g},${b},${1 - op}) ${th}%, rgba(${r},${g},${b},${1 - op}) 100%), url(${bg})`;
       s.style.backgroundSize = 'cover'; s.style.backgroundPosition = 'center';
+      s.style.backgroundColor = 'transparent';
     } else { s.style.backgroundImage = ''; }
   });
   // 朋友圈页：若设了页面背景且无个人封面，封面区也显示该背景（否则被默认渐变盖住看不到）
@@ -2081,15 +2086,15 @@ function openStyle() {
     if (ci) ci.disabled = on;
   }));
   const go = $('#st-glass-on');
-  if (go) go.addEventListener('click', () => go.classList.toggle('on'));
+  if (go) go.addEventListener('click', () => { data.settings.glass.on = go.classList.toggle('on'); applyStyle(); });
   const gb = $('#st-glass-blur');
-  if (gb) gb.addEventListener('input', () => { const v = $('#st-glass-blurv'); if (v) v.textContent = gb.value + 'px'; });
+  if (gb) gb.addEventListener('input', () => { const v = $('#st-glass-blurv'); if (v) v.textContent = gb.value + 'px'; data.settings.glass.blur = Number(gb.value); applyStyle(); });
   const gop = $('#st-glass-opacity');
-  if (gop) gop.addEventListener('input', () => { const v = $('#st-glass-opacityv'); if (v) v.textContent = gop.value + '%'; });
+  if (gop) gop.addEventListener('input', () => { const v = $('#st-glass-opacityv'); if (v) v.textContent = gop.value + '%'; data.settings.glass.opacity = Number(gop.value); applyStyle(); });
   const gmo = $('#st-gm-on');
-  if (gmo) gmo.addEventListener('click', () => gmo.classList.toggle('on'));
+  if (gmo) gmo.addEventListener('click', () => { data.settings.glassmorphism.on = gmo.classList.toggle('on'); applyStyle(); });
   const gmh = $('#st-gm-highlight');
-  if (gmh) gmh.addEventListener('input', () => { const v = $('#st-gm-highlightv'); if (v) v.textContent = gmh.value + '%'; });
+  if (gmh) gmh.addEventListener('input', () => { const v = $('#st-gm-highlightv'); if (v) v.textContent = gmh.value + '%'; data.settings.glassmorphism.highlight = Number(gmh.value); applyStyle(); });
   const tfh = $('#st-topfade-h');
   if (tfh) tfh.addEventListener('input', () => { const v = $('#st-topfade-h-v'); if (v) v.textContent = tfh.value + '%'; data.settings.topFadeH = Number(tfh.value); applyTheme(); });
   const tfa = $('#st-topfade-a');
