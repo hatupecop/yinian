@@ -9,7 +9,7 @@ const DEFAULT_DATA = {
     relName: 'Claire & Claude',
     myName: 'Claire', aiName: 'Claude',
     startDate: '2026.06.02',
-    myAvatar: '', aiAvatar: '', cover: '', sign: '一句话签名',
+    myAvatar: '', aiAvatar: '', aiHomeAvatar: '', cover: '', sign: '一句话签名',
     theme: 'default',
     themeAccent: '#F48FB1',
     pageBg: {}, pageOpacity: {},
@@ -960,7 +960,7 @@ function openAiProfile() {
   const s = data.settings;
   openModal(`
     <div style="display:flex;align-items:center;gap:14px;padding:4px 0 2px;">
-      <div class="avatar-xl" style="${s.aiAvatar ? 'background-image:url(' + s.aiAvatar + ')' : ''};"></div>
+      <div class="avatar-xl" style="${(s.aiHomeAvatar || s.aiAvatar) ? 'background-image:url(' + (s.aiHomeAvatar || s.aiAvatar) + ')' : ''};"></div>
       <div>
         <div style="font-size:18px;font-weight:600;color:var(--text);">${esc(s.aiName)}</div>
         ${s.aiRegion ? `<div style="font-size:13px;color:var(--text-muted);margin-top:4px;">${esc(s.aiRegion)}</div>` : ''}
@@ -1215,6 +1215,7 @@ function openProfile() {
   const profFields = (who) => {
     const isAi = who === 'ai';
     const ava = isAi ? s.aiAvatar : s.myAvatar;
+    const homeAva = isAi ? (s.aiHomeAvatar || '') : '';
     const cover = isAi ? s.aiCover : s.cover;
     const momentSign = isAi ? (s.aiMomentSign || '') : (s.meMomentSign || '');
     const bio = isAi ? (s.aiSign || '') : (s.sign || '');
@@ -1225,6 +1226,8 @@ function openProfile() {
       <div class="field"><label>${isAi ? 'TA 的名字' : '我的昵称'}</label><input id="p-name" value="${esc(name)}" /></div>
       <div class="field"><label>头像</label>
         <div class="picker-row"><div class="picker-prev" id="p-ava-prev" style="${ava ? 'background-image:url(' + ava + ')' : ''}"></div><button class="btn btn-ghost" id="p-ava-btn">从相册选择</button></div></div>
+      ${isAi ? `<div class="field"><label>主页头像（可与聊天头像不同）</label>
+        <div class="picker-row"><div class="picker-prev" id="p-homeava-prev" style="${homeAva ? 'background-image:url(' + homeAva + ')' : ''}"></div><button class="btn btn-ghost" id="p-homeava-btn">从相册选择</button></div></div>` : ''}
       <div class="field"><label>封面图</label>
         <div class="picker-row"><div class="picker-prev picker-prev-wide" id="p-cover-prev" style="${cover ? 'background-image:url(' + cover + ')' : ''}"></div><button class="btn btn-ghost" id="p-cover-btn">从相册选择</button></div></div>
       <div class="field"><label>朋友圈个签</label><input id="p-momentsign" value="${esc(momentSign)}" placeholder="今天也要开心" /></div>
@@ -1264,7 +1267,7 @@ function openProfile() {
     const tags = ($('#p-tags').value || '').split(',').map(x => x.trim()).filter(Boolean);
     const region = $('#p-region').value.trim();
     commitPicks(who);
-    if (who === 'ai') { s.aiName = name || s.aiName; s.aiMomentSign = ms; s.aiSign = bio; s.aiTags = tags; s.aiRegion = region; }
+    if (who === 'ai') { s.aiName = name || s.aiName; s.aiMomentSign = ms; s.aiSign = bio; s.aiTags = tags; s.aiRegion = region; s.aiHomeAvatar = tmp.aiHomeAvatar || s.aiHomeAvatar; }
     else { s.myName = name || s.myName; s.meMomentSign = ms; s.sign = bio; s.meTags = tags; s.region = region; }
   }
   function bindPickers() {
@@ -1273,6 +1276,8 @@ function openProfile() {
     const coverKey = who === 'ai' ? 'aiCover' : 'cover';
     $('#p-ava-btn').addEventListener('click', () => pickImage(256, async d => { const o = pWhite() ? await removeWhiteBackground(d) : d; tmp[avaKey] = o; $('#p-ava-prev').style.backgroundImage = 'url(' + o + ')'; }));
     $('#p-cover-btn').addEventListener('click', () => pickImage(1024, async d => { const o = pWhite() ? await removeWhiteBackground(d) : d; tmp[coverKey] = o; $('#p-cover-prev').style.backgroundImage = 'url(' + o + ')'; }));
+    const hb = $('#p-homeava-btn');
+    if (hb) hb.addEventListener('click', () => pickImage(256, async d => { const o = pWhite() ? await removeWhiteBackground(d) : d; tmp.aiHomeAvatar = o; $('#p-homeava-prev').style.backgroundImage = 'url(' + o + ')'; }));
   }
   $('#p-seg').querySelectorAll('.seg-opt').forEach(opt => opt.addEventListener('click', () => {
     if (opt.dataset.who === subj.cur) return;
@@ -2393,16 +2398,15 @@ async function sendChat() {
 }
 
 /* ===================== AI 主页 / 朋友圈入口 ===================== */
+function closeChatUserMenu() { const p = $('#chatUserMenu'); if (p) p.classList.remove('show'); }
 function openChatUserMenu() {
-  openModal(`
-    <div style="text-align:center;padding:8px 0 16px;font-size:17px;font-weight:700;color:var(--text);">${esc(data.settings.aiName)}</div>
-    <div class="cu-menu">
-      <div class="cu-row" data-action="goto-aiprofile"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/></svg><span>主页</span></div>
-      <div class="cu-row" data-action="goto-aimoments"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><rect x="3" y="3" width="18" height="18" rx="2"/><circle cx="8.5" cy="8.5" r="1.5"/><path d="M21 15l-5-5L5 21"/></svg><span>朋友圈</span></div>
-    </div>
-    <div class="modal-actions"><button class="btn btn-ghost" id="cu-cancel">取消</button></div>
-  `);
-  $('#cu-cancel').addEventListener('click', closeModal);
+  const panel = $('#chatUserMenu');
+  if (panel.classList.contains('show')) { closeChatUserMenu(); return; }
+  closeChatMenu();
+  panel.innerHTML = `
+    <div class="cu-row" data-action="goto-aiprofile"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/></svg><span>主页</span></div>
+    <div class="cu-row" data-action="goto-aimoments"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="3" width="18" height="18" rx="2"/><circle cx="8.5" cy="8.5" r="1.5"/><path d="M21 15l-5-5L5 21"/></svg><span>朋友圈</span></div>`;
+  panel.classList.add('show');
 }
 function openAiProfilePage() {
   closeModal();
@@ -2421,7 +2425,8 @@ function renderAiProfile() {
   $('#aiprofile-name').textContent = s.aiName;
   $('#aiprofile-bio').textContent = s.aiSign || '这里可以写一段简介。去「设置 → 个人资料」里修改吧。';
   const ava = $('#aiprofile-avatar');
-  if (s.aiAvatar) ava.style.backgroundImage = 'url(' + s.aiAvatar + ')';
+  const ha = s.aiHomeAvatar || s.aiAvatar;
+  if (ha) { ava.style.backgroundImage = 'url(' + ha + ')'; ava.style.backgroundColor = ''; }
   else { ava.style.backgroundImage = ''; ava.style.backgroundColor = 'var(--cardbg)'; }
   // 标签
   const tags = (s.aiTags && s.aiTags.length) ? s.aiTags : ['BG', 'AI', '陪伴'];
@@ -2523,6 +2528,10 @@ function workFav(i, a) {
 }
 function openWorkComment(i) { workFeedIndex = i; renderWorkComments(); $('#workComment').classList.add('show'); }
 function closeWorkComment() { $('#workComment').classList.remove('show'); }
+/* 评论点赞爱心：与朋友圈/作品一致——未点空心、已点实心红 */
+function clikeHeart(on) {
+  return `<svg class="clike-h" viewBox="0 0 24 24" fill="${on ? '#fe2c55' : 'none'}" stroke="${on ? '#fe2c55' : 'currentColor'}" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M20.8 4.6a5.5 5.5 0 0 0-7.8 0L12 5.6l-1-1a5.5 5.5 0 0 0-7.8 7.8l1 1L12 21l7.8-7.6 1-1a5.5 5.5 0 0 0 0-7.8z"/></svg>`;
+}
 function renderWorkComments() {
   const w = data.works[workFeedIndex]; if (!w) return;
   const cs = w.comments || [];
@@ -2534,12 +2543,12 @@ function renderWorkComments() {
         <div class="cname">${esc(c.name)}</div>
         <div class="ctext">${esc(c.text)}</div>
         <div class="cmeta"><span>刚刚</span>
-          <span class="clike ${c.liked ? 'clike-on' : ''}" onclick="workLikeComment(${ci},event)">♥ <span id="wcl${ci}">${c.likes || 0}</span></span>
+          <span class="clike ${c.liked ? 'clike-on' : ''}" onclick="workLikeComment(${ci},event)">${clikeHeart(c.liked)} <span id="wcl${ci}">${c.likes || 0}</span></span>
           <span class="reply" onclick="workReplyTo('${esc(c.name)}')">回复</span></div>
         <div class="replies">${(c.replies || []).map((r, ri) => `
           <div class="cmt" onclick="workCmtClickReply('${esc(r.name)}',event)"><div class="cava" style="width:28px;height:28px"></div>
             <div class="cbody"><div class="cname">${esc(r.name)}</div><div class="ctext">${esc(r.text)}</div>
-            <div class="cmeta"><span class="clike ${r.liked ? 'clike-on' : ''}" onclick="workLikeReply(${ci},${ri},event)">♥ ${r.likes || 0}</span></div></div></div>`).join('')}</div>
+            <div class="cmeta"><span class="clike ${r.liked ? 'clike-on' : ''}" onclick="workLikeReply(${ci},${ri},event)">${clikeHeart(r.liked)} <span id="wrl${ci}_${ri}">${r.likes || 0}</span></span></div></div></div>`).join('')}</div>
       </div>
     </div>`).join('');
 }
@@ -2567,7 +2576,12 @@ function workLikeComment(ci, e) {
   if (c.liked) { c.liked = false; c.likes = Math.max(0, (c.likes || 0) - 1); }
   else { c.liked = true; c.likes = (c.likes || 0) + 1; }
   const el = document.getElementById('wcl' + ci); if (el) el.textContent = c.likes;
-  const sp = e.target.closest('.clike'); if (sp) sp.classList.toggle('clike-on', !!c.liked);
+  const sp = e.target.closest('.clike');
+  if (sp) {
+    sp.classList.toggle('clike-on', !!c.liked);
+    const svg = sp.querySelector('.clike-h');
+    if (svg) { svg.setAttribute('fill', c.liked ? '#fe2c55' : 'none'); svg.style.stroke = c.liked ? '#fe2c55' : 'currentColor'; }
+  }
   save();
 }
 function workLikeReply(ci, ri, e) {
@@ -2576,8 +2590,13 @@ function workLikeReply(ci, ri, e) {
   const r = w.comments[ci].replies[ri];
   if (r.liked) { r.liked = false; r.likes = Math.max(0, (r.likes || 0) - 1); }
   else { r.liked = true; r.likes = (r.likes || 0) + 1; }
-  e.target.textContent = '♥ ' + r.likes;
-  e.target.classList.toggle('clike-on', !!r.liked);
+  const rel = document.getElementById('wrl' + ci + '_' + ri); if (rel) rel.textContent = r.likes;
+  const sp = e.target.closest('.clike');
+  if (sp) {
+    sp.classList.toggle('clike-on', !!r.liked);
+    const svg = sp.querySelector('.clike-h');
+    if (svg) { svg.setAttribute('fill', r.liked ? '#fe2c55' : 'none'); svg.style.stroke = r.liked ? '#fe2c55' : 'currentColor'; }
+  }
   save();
 }
 /* 发作品 */
@@ -2679,6 +2698,8 @@ document.addEventListener('click', e => {
   }
   const panel = $('#chatMorePanel');
   if (panel && panel.classList.contains('show') && !e.target.closest('#chatMorePanel') && !e.target.closest('[data-action="chat-more"]')) closeChatMenu();
+  const up = $('#chatUserMenu');
+  if (up && up.classList.contains('show') && !e.target.closest('#chatUserMenu') && !e.target.closest('[data-action="chat-user-menu"]')) closeChatUserMenu();
   // 作品评论：点评论面板以外（含作品画面/侧栏/返回）即收起
   const wc = document.getElementById('workComment');
   if (wc && wc.classList.contains('show') && !e.target.closest('#workComment') && !e.target.closest('[data-action="work-comment-open"]')) closeWorkComment();
@@ -2714,15 +2735,15 @@ document.addEventListener('click', e => {
   else if (act === 'chat-mic') toast('语音输入后续扩展');
   else if (act === 'chat-call') openCallPage();
   else if (act === 'chat-search') toast('搜索聊天记录后续扩展');
-  else if (act === 'chat-more') openChatMenu();
+  else if (act === 'chat-more') { closeChatUserMenu(); openChatMenu(); }
   else if (act === 'chat-user-menu') openChatUserMenu();
   else if (act === 'mm-model') { data.settings.chatModel = a.dataset.model; save(); openChatMenu(); toast('已切换：' + ((CHAT_MODELS.find(m => m.id === a.dataset.model)) || {}).name); }
   else if (act === 'mm-model-toggle') { const l = $('#cmpModelList'); if (l) { const open = l.style.display === 'none'; l.style.display = open ? 'block' : 'none'; a.classList.toggle('open', open); } }
   else if (act === 'mm-newchat') newChat();
   else if (act === 'mm-history') { const h = $('#cmpHist'); if (h) h.style.display = (h.style.display === 'none' ? 'block' : 'none'); }
   else if (act === 'mm-load') loadConversation(a.dataset.cid);
-  else if (act === 'goto-aiprofile') openAiProfilePage();
-  else if (act === 'goto-aimoments') { closeModal(); openPersonMoments('ai'); }
+  else if (act === 'goto-aiprofile') { closeChatUserMenu(); openAiProfilePage(); }
+  else if (act === 'goto-aimoments') { closeChatUserMenu(); closeModal(); openPersonMoments('ai'); }
   else if (act === 'back-aiprofile') {
     if ($('#workComposer').classList.contains('show')) { closeWorkComposer(); return; }
     if ($('#workFeed').classList.contains('show')) { closeWorkFeed(); return; }

@@ -771,7 +771,7 @@ body.glassmorphism-on .modal-actions {
 .aiprofile-top-actions { display: flex; align-items: center; gap: 4px; }
 .aiprofile-scroll { padding: 0 16px 24px; }
 .aiprofile-header { display: flex; align-items: center; gap: 16px; margin-top: 14px; }
-.aiprofile-avatar { width: 80px; height: 80px; border-radius: 50%; background: var(--cardbg) center/cover; border: 2px solid var(--border); flex-shrink: 0; }
+.aiprofile-avatar { width: 84px; height: 84px; border-radius: 50%; overflow: hidden; box-sizing: border-box; background-color: var(--cardbg); background-position: center; background-size: cover; background-repeat: no-repeat; border: 2px solid var(--border); flex-shrink: 0; }
 .aiprofile-name { font-size: 20px; font-weight: 700; color: var(--text); }
 .aiprofile-handle { font-size: 13px; color: var(--text-muted); margin-top: 4px; }
 .aiprofile-bio { font-size: 13px; color: var(--text-soft); line-height: 1.7; margin-top: 16px; }
@@ -805,6 +805,16 @@ body.glassmorphism-on .modal-actions {
   border: 1px solid rgba(255,255,255,.28); border-radius: 16px; box-shadow: 0 12px 34px rgba(120,80,100,.22);
   padding: 8px; display: none; max-height: 70%; overflow-y: auto; }
 .chat-more-panel.show { display: block; animation: cmpIn .2s ease; }
+/* 聊天页：点 AI 名字/头像 弹出的下拉（仿右上角菜单，不弹新页） */
+.chat-user-menu { position: absolute; top: 56px; left: 12px; right: auto; width: 168px; z-index: 9;
+  background: color-mix(in srgb, var(--chat-panel-bg, #ffffff) calc((var(--chat-panel-alpha, 90)) * 1%), transparent);
+  -webkit-backdrop-filter: blur(18px) saturate(160%); backdrop-filter: blur(18px) saturate(160%);
+  border: 1px solid rgba(255,255,255,.28); border-radius: 16px; box-shadow: 0 12px 34px rgba(120,80,100,.22);
+  padding: 8px; display: none; }
+.chat-user-menu.show { display: block; animation: cmpIn .2s ease; }
+.chat-user-menu .cu-row { display: flex; align-items: center; gap: 10px; padding: 11px 10px; border-radius: 10px; cursor: pointer; font-size: 14px; color: var(--text); }
+.chat-user-menu .cu-row:active { background: var(--bg); }
+.chat-user-menu .cu-row svg { width: 18px; height: 18px; color: var(--text-muted); flex-shrink: 0; }
 @keyframes cmpIn { from { opacity: 0; transform: translateY(-8px); } to { opacity: 1; transform: none; } }
 .cmp-section { padding: 6px 0; }
 .cmp-section + .cmp-section { border-top: 1px solid var(--border); }
@@ -855,6 +865,7 @@ body.glassmorphism-on .modal-actions {
 .work-comment .cmt .ctext{font-size:14px;margin:3px 0;color:var(--text);word-break:break-word}
 .work-comment .cmt .cmeta{font-size:12px;color:#bba;display:flex;gap:14px;align-items:center}
 .work-comment .cmt .clike{cursor:pointer;display:flex;align-items:center;gap:3px}
+.work-comment .clike-h{width:15px;height:15px;flex-shrink:0}
 .work-comment .cmt .reply{color:var(--accent);cursor:pointer;font-size:12px}
 .work-comment .replies{margin-left:0;margin-top:6px}
 .work-comment .clike-on{color:#fe2c55}
