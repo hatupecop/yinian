@@ -65,11 +65,13 @@
 
 /* ===================== Base ===================== */
 * { box-sizing: border-box; -webkit-tap-highlight-color: transparent; }
-html, body { margin: 0; padding: 0; height: 100%; }
+html, body { margin: 0; padding: 0; min-height: 100%; }
 body {
+  min-height: 100vh;
+  min-height: 100dvh;
   font-family: var(--font);
   color: var(--text);
-  background: #EDE3DD;
+  background: var(--bg-page, #EDE3DD);
   display: flex;
   justify-content: center;
   align-items: stretch;
@@ -83,14 +85,14 @@ button { font-family: inherit; cursor: pointer; border: none; background: none; 
   max-width: 440px;
   height: 100vh;
   height: 100dvh;
-  background-color: color-mix(in srgb, var(--st-pagebg-color) calc(var(--st-pagebg-opacity)*100%), transparent);
+  background-color: color-mix(in srgb, var(--st-pagebg-color, var(--bg-page)) calc((var(--st-pagebg-opacity, 1))*100%), transparent);
   overflow: hidden;
   display: flex;
   flex-direction: column;
 }
 
 /* ===================== Screens ===================== */
-.screen { display: none; flex: 1; flex-direction: column; min-height: 0; background-color: color-mix(in srgb, var(--st-pagebg-color) calc(var(--st-pagebg-opacity)*100%), transparent); }
+.screen { display: none; flex: 1; flex-direction: column; min-height: 0; background-color: color-mix(in srgb, var(--st-pagebg-color, var(--bg-page)) calc((var(--st-pagebg-opacity, 1))*100%), transparent); }
 .screen.active { display: flex; }
 
 .topbar {
@@ -116,7 +118,7 @@ button { font-family: inherit; cursor: pointer; border: none; background: none; 
 
 /* ===================== Anniversary ===================== */
 .hero-card {
-  background-color: color-mix(in srgb, var(--st-cardbg-color) calc(var(--st-cardbg-opacity)*100%), transparent); border-radius: var(--r-xl);
+  background-color: color-mix(in srgb, var(--st-cardbg-color, var(--bg-card)) calc(var(--st-cardbg-opacity, 1)*100%), transparent); border-radius: var(--r-xl);
   padding: 34px 28px; box-shadow: var(--shadow-card);
   text-align: center; margin-top: 6px;
 }
@@ -137,7 +139,7 @@ button { font-family: inherit; cursor: pointer; border: none; background: none; 
 
 .placeholder-row { display: flex; gap: 10px; margin-top: 14px; }
 .placeholder-card {
-  flex: 1; height: 72px; background-color: color-mix(in srgb, var(--st-cardbg-color) calc(var(--st-cardbg-opacity)*100%), transparent);
+  flex: 1; height: 72px; background-color: color-mix(in srgb, var(--st-cardbg-color, var(--bg-card)) calc(var(--st-cardbg-opacity, 1)*100%), transparent);
   border-radius: var(--r-md); box-shadow: 0 4px 12px rgba(180,140,150,.1);
 }
 
@@ -153,7 +155,7 @@ button { font-family: inherit; cursor: pointer; border: none; background: none; 
 
 .day-list { display: flex; flex-direction: column; gap: 10px; }
 .day-row {
-  background-color: color-mix(in srgb, var(--st-cardbg-color) calc(var(--st-cardbg-opacity)*100%), transparent); border-radius: var(--r-md);
+  background-color: color-mix(in srgb, var(--st-cardbg-color, var(--bg-card)) calc(var(--st-cardbg-opacity, 1)*100%), transparent); border-radius: var(--r-md);
   padding: 12px 14px; display: flex; align-items: center; justify-content: space-between;
   box-shadow: 0 3px 10px rgba(180,140,150,.08);
 }
@@ -177,7 +179,7 @@ button { font-family: inherit; cursor: pointer; border: none; background: none; 
 
 .cal-scroll { padding-bottom: calc(96px + env(safe-area-inset-bottom)); }
 .calendar-wrap { display: flex; flex-direction: column; gap: 18px; }
-.month-block { background-color: color-mix(in srgb, var(--st-cardbg-color) calc(var(--st-cardbg-opacity)*100%), transparent); border-radius: var(--r-xl); padding: 18px 14px; box-shadow: var(--shadow-card); }
+.month-block { background-color: color-mix(in srgb, var(--st-cardbg-color, var(--bg-card)) calc(var(--st-cardbg-opacity, 1)*100%), transparent); border-radius: var(--r-xl); padding: 18px 14px; box-shadow: var(--shadow-card); }
 .cal-grid { display: grid; grid-template-columns: repeat(7, 1fr); gap: 6px; }
 .cal-dow { font-size: 12px; color: var(--text-muted); text-align: center; padding: 6px 0 8px; font-weight: 500; }
 .cal-cell {
@@ -204,7 +206,7 @@ button { font-family: inherit; cursor: pointer; border: none; background: none; 
 
 /* 本月累计（一个大卡片） */
 .stat-section { margin-top: 8px; }
-.stat-bigcard { background-color: color-mix(in srgb, var(--st-cardbg-color) calc(var(--st-cardbg-opacity)*100%), transparent); border-radius: var(--r-xl); padding: var(--cal-card-padding, 12px) 14px; box-shadow: var(--shadow-card); }
+.stat-bigcard { background-color: color-mix(in srgb, var(--st-cardbg-color, var(--bg-card)) calc(var(--st-cardbg-opacity, 1)*100%), transparent); border-radius: var(--r-xl); padding: var(--cal-card-padding, 12px) 14px; box-shadow: var(--shadow-card); }
 .stat-big-title { font-size: var(--cal-title-size, 13px); font-weight: 500; color: var(--text); text-align: center; margin-bottom: 10px; }
 .stat-rows { display: grid; grid-template-columns: repeat(2, 1fr); gap: var(--cal-row-gap, 8px) 16px; }
 .stat-row { display: flex; align-items: center; gap: 8px; }
@@ -226,7 +228,7 @@ button { font-family: inherit; cursor: pointer; border: none; background: none; 
   width: 100%; max-width: 440px; height: 100vh;
   z-index: 0;
   pointer-events: none;
-  background-color: color-mix(in srgb, var(--st-pagebg-color) calc(var(--st-pagebg-opacity)*100%), transparent);
+  background-color: color-mix(in srgb, var(--st-pagebg-color, var(--bg-page)) calc((var(--st-pagebg-opacity, 1))*100%), transparent);
   background-size: cover; background-position: center;
 }
 .chat-topbar { justify-content: space-between; position: relative; z-index: 1; }
@@ -251,7 +253,7 @@ body.kb-open .chat-body { padding-bottom: 66px; }
   max-width: 74%; padding: 10px 14px; border-radius: 18px; font-size: 14px;
   line-height: 1.5; word-break: break-word;
 }
-.bubble-row.ai .bubble { background-color: color-mix(in srgb, var(--st-cardbg-color) calc(var(--st-cardbg-opacity)*100%), transparent); color: var(--text); border-bottom-left-radius: 6px; box-shadow: var(--shadow-card); }
+.bubble-row.ai .bubble { background-color: color-mix(in srgb, var(--st-cardbg-color, var(--bg-card)) calc(var(--st-cardbg-opacity, 1)*100%), transparent); color: var(--text); border-bottom-left-radius: 6px; box-shadow: var(--shadow-card); }
 .bubble-row.me .bubble { background: var(--accent); color: #fff; border-bottom-right-radius: 6px; }
 .chat-input-bar {
   position: fixed; left: 50%; transform: translateX(-50%);
@@ -262,7 +264,7 @@ body.kb-open .chat-body { padding-bottom: 66px; }
   min-height: var(--chat-height, 54px);
   display: flex; align-items: center; gap: 5px;
   padding: 5px 6px 5px 12px;
-  background-color: color-mix(in srgb, var(--st-cardbg-color) calc(var(--st-cardbg-opacity)*100%), transparent);
+  background-color: color-mix(in srgb, var(--st-cardbg-color, var(--bg-card)) calc(var(--st-cardbg-opacity, 1)*100%), transparent);
   border-radius: var(--r-pill);
   box-shadow: none;
   border: 1.5px solid color-mix(in srgb, var(--text) 26%, transparent);
@@ -303,7 +305,7 @@ body.kb-open .chat-input-bar {
 }
 .chat-thinking-row .bubble.thinking {
   display: inline-flex; align-items: center; gap: 8px;
-  background-color: color-mix(in srgb, var(--st-cardbg-color) calc(var(--st-cardbg-opacity)*100%), transparent); color: var(--text-muted);
+  background-color: color-mix(in srgb, var(--st-cardbg-color, var(--bg-card)) calc(var(--st-cardbg-opacity, 1)*100%), transparent); color: var(--text-muted);
   border-bottom-left-radius: 6px; box-shadow: var(--shadow-card);
   font-size: 13px;
 }
@@ -393,7 +395,7 @@ body.kb-open .chat-input-bar {
 .moment-menu svg { width: 18px; height: 18px; }
 .moment-actions {
   position: absolute; right: 50px; bottom: 10px;
-  display: flex; background-color: color-mix(in srgb, var(--st-cardbg-color) calc(var(--st-cardbg-opacity)*100%), transparent); border-radius: 4px;
+  display: flex; background-color: color-mix(in srgb, var(--st-cardbg-color, var(--bg-card)) calc(var(--st-cardbg-opacity, 1)*100%), transparent); border-radius: 4px;
   box-shadow: 0 6px 18px rgba(120,90,100,.18); overflow: hidden;
   transform: scale(.9); opacity: 0; pointer-events: none; transition: all .15s ease; z-index: 5;
   border: 1px solid var(--border);
@@ -424,7 +426,7 @@ body.kb-open .chat-input-bar {
 .wish-groups { display: flex; flex-direction: column; }
 .wish-profile {
   display: flex; align-items: center; gap: 14px;
-  background-color: color-mix(in srgb, var(--st-cardbg-color) calc(var(--st-cardbg-opacity)*100%), transparent); border-radius: var(--r-lg);
+  background-color: color-mix(in srgb, var(--st-cardbg-color, var(--bg-card)) calc(var(--st-cardbg-opacity, 1)*100%), transparent); border-radius: var(--r-lg);
   padding: 16px; box-shadow: var(--shadow-card); margin-bottom: 14px;
 }
 .wish-ava {
@@ -451,11 +453,11 @@ body.kb-open .chat-input-bar {
 .wish-month-label { display: flex; align-items: center; gap: 10px; font-size: 13px; color: var(--text-muted); margin: 6px 0 14px; }
 .wish-month-label::before, .wish-month-label::after { content: ''; flex: 1; height: 1px; background: var(--border); }
 .wish-grid { display: grid; grid-template-columns: repeat(2, 1fr); gap: 12px; margin-bottom: 18px; }
-.wish-card { background-color: color-mix(in srgb, var(--st-cardbg-color) calc(var(--st-cardbg-opacity)*100%), transparent); border-radius: var(--r-md); overflow: hidden; box-shadow: var(--shadow-card); }
+.wish-card { background-color: color-mix(in srgb, var(--st-cardbg-color, var(--bg-card)) calc(var(--st-cardbg-opacity, 1)*100%), transparent); border-radius: var(--r-md); overflow: hidden; box-shadow: var(--shadow-card); }
 .wish-thumb { height: 130px; background: var(--bg-soft); background-size: cover; background-position: center; position: relative; }
 .wish-got-tag {
   position: absolute; left: 8px; top: 8px;
-  background-color: color-mix(in srgb, var(--st-cardbg-color) calc(var(--st-cardbg-opacity)*100%), transparent); color: var(--accent-deep);
+  background-color: color-mix(in srgb, var(--st-cardbg-color, var(--bg-card)) calc(var(--st-cardbg-opacity, 1)*100%), transparent); color: var(--accent-deep);
   font-size: 10px; padding: 3px 7px; border-radius: 8px;
   box-shadow: 0 2px 6px rgba(0,0,0,.08);
 }
@@ -471,7 +473,7 @@ body.kb-open .chat-input-bar {
 .wish-info .wi-price { font-size: 12px; color: var(--text-muted); margin-top: 3px; }
 
 /* ===================== Setting ===================== */
-.setting-group { background-color: color-mix(in srgb, var(--st-cardbg-color) calc(var(--st-cardbg-opacity)*100%), transparent); border-radius: var(--r-lg); overflow: hidden; box-shadow: var(--shadow-card); margin-top: 6px; }
+.setting-group { background-color: color-mix(in srgb, var(--st-cardbg-color, var(--bg-card)) calc(var(--st-cardbg-opacity, 1)*100%), transparent); border-radius: var(--r-lg); overflow: hidden; box-shadow: var(--shadow-card); margin-top: 6px; }
 .setting-row {
   display: flex; align-items: center; justify-content: space-between;
   padding: 16px 18px; font-size: 15px; color: var(--text);
@@ -485,7 +487,7 @@ body.kb-open .chat-input-bar {
 /* ===================== Tab Bar ===================== */
 .tabbar {
   position: fixed; left: 50%; transform: translateX(-50%); width: calc(100% - 32px); max-width: 408px; bottom: calc(var(--nav-bottom, 10px) + env(safe-area-inset-bottom));
-  background-color: color-mix(in srgb, var(--st-cardbg-color) calc(var(--st-cardbg-opacity)*100%), transparent); border-radius: var(--r-pill);
+  background-color: color-mix(in srgb, var(--st-cardbg-color, var(--bg-card)) calc(var(--st-cardbg-opacity, 1)*100%), transparent); border-radius: var(--r-pill);
   box-shadow: 0 8px 22px rgba(180,140,150,.18);
   display: flex; justify-content: space-around; padding: 2px 6px; z-index: 20;
   transition: none;
@@ -554,7 +556,7 @@ body.kb-open .tabbar {
 .modal-mask.show { opacity: 1; pointer-events: auto; }
 .modal {
   position: absolute; left: 16px; right: 16px; bottom: 0;
-  background-color: color-mix(in srgb, var(--st-cardbg-color) calc(var(--st-cardbg-opacity)*100%), transparent); border-radius: var(--r-xl) var(--r-xl) 0 0;
+  background-color: color-mix(in srgb, var(--st-cardbg-color, var(--bg-card)) calc(var(--st-cardbg-opacity, 1)*100%), transparent); border-radius: var(--r-xl) var(--r-xl) 0 0;
   padding: 20px 18px calc(20px + env(safe-area-inset-bottom));
   transform: translateY(100%); transition: transform .25s ease; z-index: 50;
   max-height: 86%; overflow-y: auto;
@@ -601,7 +603,7 @@ body.kb-open .tabbar {
 /* ===================== 位置调节 / 我的朋友圈 ===================== */
 .layout-tabs { display: flex; gap: 6px; margin-bottom: 16px; background: var(--bg-page); padding: 4px; border-radius: var(--r-pill); }
 .layout-tab { flex: 1; text-align: center; padding: 8px 4px; font-size: 13px; border-radius: var(--r-pill); color: var(--text-muted); }
-.layout-tab.active { background-color: color-mix(in srgb, var(--st-cardbg-color) calc(var(--st-cardbg-opacity)*100%), transparent); color: var(--text); font-weight: 500; box-shadow: 0 2px 6px rgba(180,140,150,.12); }
+.layout-tab.active { background-color: color-mix(in srgb, var(--st-cardbg-color, var(--bg-card)) calc(var(--st-cardbg-opacity, 1)*100%), transparent); color: var(--text); font-weight: 500; box-shadow: 0 2px 6px rgba(180,140,150,.12); }
 .layout-panel { display: none; }
 .layout-panel.active { display: block; }
 .mymoments-name { position: absolute; right: 18px; bottom: 14px; font-size: 17px; font-weight: 600; color: #fff; text-shadow: 0 1px 4px rgba(0,0,0,.4); z-index: 3; }
@@ -630,7 +632,7 @@ body.frost-on .bubble-row.ai .bubble,
 body.frost-on .chat-thinking-row .bubble.thinking {
   backdrop-filter: blur(var(--frost-blur));
   -webkit-backdrop-filter: blur(var(--frost-blur));
-  background-color: color-mix(in srgb, var(--st-cardbg-color) calc(var(--frost-opacity) * 100%), transparent);
+  background-color: color-mix(in srgb, var(--st-cardbg-color, var(--bg-card)) calc(var(--frost-opacity) * 100%), transparent);
 }
 body.frost-on .bubble-row.me .bubble {
   backdrop-filter: blur(var(--frost-blur));
