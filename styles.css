@@ -265,7 +265,7 @@ body.kb-open .chat-body { padding-bottom: 66px; }
   border-radius: 12px; padding: 8px 10px; margin-bottom: 2px;
 }
 /* 收起时贴紧下方气泡：padding 收最小，并用负 margin 抵消气泡外层 6px 间距，使 thinking 字样与回复间距约为原来一半 */
-.think-block:not(.open) { padding-top: 2px; padding-bottom: 2px; margin-bottom: -6px; }
+.think-block:not(.open) { padding-top: 0; padding-bottom: 0; margin-bottom: -6px; }
 .think-toggle {
   display: flex; align-items: center; gap: 6px;
   background: none; border: none; padding: 0; margin: 0;
@@ -334,7 +334,7 @@ body.kb-open .chat-input-bar {
 }
 .chat-thinking-row .bubble.thinking {
   display: inline-flex; align-items: center; gap: 8px;
-  background-color: color-mix(in srgb, var(--st-cardbg-color, var(--bg-card)) calc(var(--st-cardbg-opacity, 1)*100%), transparent); color: var(--text-muted);
+  background-color: var(--think-bg, color-mix(in srgb, var(--st-cardbg-color, var(--bg-card)) calc(var(--st-cardbg-opacity, 1)*100%), transparent)); color: var(--think-text, var(--text-muted));
   border-bottom-left-radius: 6px; box-shadow: var(--shadow-card);
   font-size: 13px;
 }
@@ -664,7 +664,12 @@ body.frost-on .bubble-row.ai .bubble,
 body.frost-on .chat-thinking-row .bubble.thinking {
   backdrop-filter: blur(var(--frost-blur));
   -webkit-backdrop-filter: blur(var(--frost-blur));
-  background-color: color-mix(in srgb, var(--st-cardbg-color, var(--bg-card)) calc(var(--frost-opacity) * 100%), transparent);
+}
+body.frost-on .bubble-row.ai .bubble {
+  background-color: var(--ai-bubble-bg, color-mix(in srgb, var(--st-cardbg-color, var(--bg-card)) calc(var(--frost-opacity) * 100%), transparent));
+}
+body.frost-on .chat-thinking-row .bubble.thinking {
+  background-color: var(--think-bg, color-mix(in srgb, var(--st-cardbg-color, var(--bg-card)) calc(var(--frost-opacity) * 100%), transparent));
 }
 body.frost-on .bubble-row.me .bubble {
   backdrop-filter: blur(var(--frost-blur));
@@ -686,13 +691,18 @@ body.glassmorphism-on #menu-sheet,
 body.glassmorphism-on .chat-input-bar,
 body.glassmorphism-on .bubble-row.ai .bubble,
 body.glassmorphism-on .chat-thinking-row .bubble.thinking {
-  background-color: transparent;
   box-shadow: none;
   backdrop-filter: none;
   -webkit-backdrop-filter: none;
   border: 1.5px solid rgba(255,255,255, calc(var(--gm-highlight) * .55));
   border-top-color: rgba(255,255,255, calc(var(--gm-highlight) * .95));
   border-left-color: rgba(255,255,255, calc(var(--gm-highlight) * .95));
+}
+body.glassmorphism-on .bubble-row.ai .bubble {
+  background-color: var(--ai-bubble-bg, transparent);
+}
+body.glassmorphism-on .chat-thinking-row .bubble.thinking {
+  background-color: var(--think-bg, transparent);
 }
 body.glassmorphism-on .bubble-row.me .bubble {
   background-color: transparent;
