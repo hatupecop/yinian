@@ -440,8 +440,19 @@ function pickImages(maxSize, cb, multi) {
   };
   inp.click();
 }
-
-/* 白底素材自动抠图：把接近白色(threshold)的像素变透明，返回 PNG dataURL */
+/* 从相册选视频（不压缩，存本地，不联网、不用图床） */
+function pickVideo(cb) {
+  const inp = document.createElement('input');
+  inp.type = 'file'; inp.accept = 'video/*';
+  inp.onchange = () => {
+    const file = inp.files && inp.files[0];
+    if (!file) return;
+    const reader = new FileReader();
+    reader.onload = () => cb(reader.result);
+    reader.readAsDataURL(file);
+  };
+  inp.click();
+}
 function removeWhiteBackground(dataUrl, threshold) {
   threshold = threshold || 240;
   return new Promise((resolve) => {
@@ -831,6 +842,9 @@ function momentCardHtml(m) {
   const bg = ava ? `style="background-image:url(${ava})"` : '';
   const avaAction = m.author === 'ai' ? 'open-ai-profile' : 'open-my-profile';
   const imgs = (m.images || []).map(u => `<img src="${u}" />`).join('');
+  const videoHtml = m.video
+    ? `<div class="moment-video"><video src="${esc(m.video)}"${m.videoCover ? ' poster="' + esc(m.videoCover) + '"' : ''} controls preload="metadata"></video></div>`
+    : '';
   const likes = m.likes || [];
   const comments = m.comments || [];
   const likeText = likes.length
@@ -852,7 +866,7 @@ function momentCardHtml(m) {
       <div class="moment-main">
         <div class="moment-name">${name}</div>
         <div class="moment-text">${esc(m.text)}</div>
-        ${imgs ? `<div class="moment-imgs">${imgs}</div>` : ''}
+        ${videoHtml}${imgs ? `<div class="moment-imgs">${imgs}</div>` : ''}
         <div class="moment-foot">
           <div class="moment-time">${fmtTime(m.time)}</div>
           <button class="moment-menu" data-action="moment-menu" data-mid="${m.id}">
@@ -1049,13 +1063,19 @@ function addMoment() {
     <div class="field"><label>图片（可选，可多选）</label>
       <div class="picker-row"><div class="picker-prev picker-prev-wide" id="mm-imgs-prev"></div><button class="btn btn-ghost" id="mm-imgs-btn">从相册选择</button></div>
     </div>
+    <div class="field"><label>视频（可选，与图片二选一）</label>
+      <div class="picker-row"><div class="picker-prev picker-prev-wide" id="mm-video-prev"></div><button class="btn btn-ghost" id="mm-video-btn">从相册选择视频</button></div>
+    </div>
+    <div class="field"><label>视频封面（可选，选了视频可设）</label>
+      <div class="picker-row"><div class="picker-prev picker-prev-wide" id="mm-cover-prev"></div><button class="btn btn-ghost" id="mm-cover-btn">选择封面</button></div>
+    </div>
     <div class="field switch-row"><span>去除白底（白底素材自动抠图）</span><div class="switch" id="mm-white"></div></div>
     <div class="modal-actions">
       <button class="btn btn-ghost" id="mm-cancel">取消</button>
       <button class="btn btn-primary" id="mm-save">发布</button>
     </div>
   `);
-  let imgs = [];
+  let imgs = [], video = '', videoCover = '';
   const mmWhite = () => $('#mm-white') && $('#mm-white').classList.contains('on');
   $('#mm-white').addEventListener('click', () => $('#mm-white').classList.toggle('on'));
   $('#mm-imgs-btn').addEventListener('click', () => pickImages(1024, async arr => {
@@ -1063,14 +1083,24 @@ function addMoment() {
     imgs = imgs.concat(out);
     $('#mm-imgs-prev').style.backgroundImage = imgs.length ? 'url(' + imgs[imgs.length - 1] + ')' : '';
   }, true));
+  $('#mm-video-btn').addEventListener('click', () => pickVideo(d => {
+    video = d;
+    $('#mm-video-prev').style.backgroundImage = videoCover ? 'url(' + videoCover + ')' : '';
+    $('#mm-video-prev').textContent = videoCover ? '' : '已选视频';
+  }));
+  $('#mm-cover-btn').addEventListener('click', () => pickImage(1024, d => {
+    videoCover = d;
+    $('#mm-cover-prev').style.backgroundImage = 'url(' + d + ')';
+    if (video) { $('#mm-video-prev').style.backgroundImage = 'url(' + d + ')'; $('#mm-video-prev').textContent = ''; }
+  }));
   $('#mm-cancel').addEventListener('click', closeModal);
   $('#mm-save').addEventListener('click', () => {
     const text = $('#mm-text').value.trim();
-    if (!text && !imgs.length) return toast('写点什么或加张图吧');
-    const mo = { id: uid(), author: 'me', text: text || '', images: imgs, time: Date.now(), likes: [], comments: [] };
+    if (!text && !imgs.length && !video) return toast('写点什么、加张图或视频吧');
+    const mo = { id: uid(), author: 'me', text: text || '', images: imgs, video: video || '', videoCover: videoCover || '', time: Date.now(), likes: [], comments: [] };
     data.moments.push(mo);
     save(); closeModal(); renderMoments(); renderMyMoments(); toast('已发布');
-    addPending({ type: 'moment', id: mo.id, text: text || '(图片)' });
+    addPending({ type: 'moment', id: mo.id, text: text || (video ? '(视频)' : '(图片)') });
   });
 }
 
@@ -2738,6 +2768,9 @@ $('#chat-input') && $('#chat-input').addEventListener('keydown', e => { if (e.ke
 (function () {
   const root = document.documentElement;
   let baseH = window.innerHeight;
+  // 聊天背景锁定为初始视口高度：键盘弹起期间不变 → 背景图不随键盘 resize 重裁切、不移动
+  function lockChatBg() { root.style.setProperty('--chat-bg-h', window.innerHeight + 'px'); }
+  lockChatBg();
   function update() {
     const vv = window.visualViewport;
     const vh = vv ? vv.height : window.innerHeight;
@@ -2749,7 +2782,7 @@ $('#chat-input') && $('#chat-input').addEventListener('keydown', e => { if (e.ke
     root.style.setProperty('--kb-input', (overlay ? kb : 0) + 'px');
     // 键盘弹起：给 body 加 kb-open（输入框贴键盘、导航栏沉到键盘后）
     if (kb > 4) document.body.classList.add('kb-open');
-    else document.body.classList.remove('kb-open');
+    else { document.body.classList.remove('kb-open'); lockChatBg(); } // 键盘收起后重新锁定（适应旋转/地址栏）
   }
   function recapBase() { if (window.innerHeight > baseH) baseH = window.innerHeight; }
   if (window.visualViewport) {
