@@ -265,7 +265,7 @@ body.kb-open .chat-body { padding-bottom: 66px; }
   border-radius: 12px; padding: 8px 10px; margin-bottom: 2px;
 }
 /* 收起时贴紧下方气泡：padding 收最小，并用负 margin 抵消气泡外层 6px 间距，使 thinking 字样与回复间距约为原来一半 */
-.think-block:not(.open) { padding-top: 2px; padding-bottom: 2px; margin-bottom: -4px; }
+.think-block:not(.open) { padding-top: 2px; padding-bottom: 2px; margin-bottom: -6px; }
 .think-toggle {
   display: flex; align-items: center; gap: 6px;
   background: none; border: none; padding: 0; margin: 0;
