@@ -715,6 +715,30 @@ body.glassmorphism-on .bubble-row.me .bubble {
   border-top-color: rgba(255,255,255, calc(var(--gm-highlight) * .95));
   border-left-color: rgba(255,255,255, calc(var(--gm-highlight) * .95));
 }
+/* AI 思考卡独立磨砂：镜像全局磨砂，仅作用于 .ai-msg-card，不受全局开关影响 */
+body.ai-frost-on .bubble-row.ai .ai-msg-card,
+body.ai-frost-on .bubble-row.ai .bubble {
+  backdrop-filter: blur(var(--frost-blur));
+  -webkit-backdrop-filter: blur(var(--frost-blur));
+  background-color: color-mix(in srgb, var(--st-cardbg-color, var(--bg-card)) calc(var(--frost-opacity) * 100%), transparent);
+}
+body.ai-frost-on .bubble-row.ai .bubble {
+  background-color: var(--ai-bubble-bg, color-mix(in srgb, var(--st-cardbg-color, var(--bg-card)) calc(var(--frost-opacity) * 100%), transparent));
+}
+/* AI 思考卡独立玻璃：镜像全局玻璃拟态 */
+body.ai-glass-on .bubble-row.ai .ai-msg-card,
+body.ai-glass-on .bubble-row.ai .bubble {
+  background-color: transparent;
+  box-shadow: none;
+  backdrop-filter: none;
+  -webkit-backdrop-filter: none;
+  border: 1.5px solid rgba(255,255,255, calc(var(--gm-highlight) * .55));
+  border-top-color: rgba(255,255,255, calc(var(--gm-highlight) * .95));
+  border-left-color: rgba(255,255,255, calc(var(--gm-highlight) * .95));
+}
+body.ai-glass-on .bubble-row.ai .bubble {
+  background-color: var(--ai-bubble-bg, transparent);
+}
 /* 玻璃拟态：按钮与悬浮操作栏也变透明 + 边缘玻璃高光（与卡片一致） */
 body.glassmorphism-on .btn {
   background: transparent;

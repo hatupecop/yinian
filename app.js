@@ -30,6 +30,8 @@ const DEFAULT_DATA = {
     },
     glass: { on: false, blur: 14, opacity: 65 },
     glassmorphism: { on: false, highlight: 70 },
+    aiFrost: false,
+    aiGlass: false,
     apiMode: 'backend', backendUrl: 'https://vlrqxguctptinozjuyds.supabase.co/functions/v1/chat', deepseekKey: '', chatModel: 'deepseek-v4-flash',
     sync: { on: false, url: '', anon: '' },
     lang: 'en',
@@ -1944,6 +1946,8 @@ function applyStyle() {
   const gm = data.settings.glassmorphism || {};
   r.setProperty('--gm-highlight', ((gm.highlight != null ? gm.highlight : 70)) / 100);
   document.body.classList.toggle('glassmorphism-on', !!gm.on);
+  document.body.classList.toggle('ai-frost-on', !!(data.settings.aiFrost));
+  document.body.classList.toggle('ai-glass-on', !!(data.settings.aiGlass));
   applyThink();
   applyAiBubble();
 }
@@ -2073,6 +2077,12 @@ function openStyle() {
         <div class="field"><label>气泡文字颜色</label><input type="color" id="st-aib-text" value="${a.textColor || '#333333'}" ${aFollow ? 'disabled' : ''} style="width:100%;height:38px;border:1px solid var(--border);border-radius:10px;background:var(--cardbg);padding:2px;" /></div>
       </div>
     </div>
+    <div class="style-group" style="border-top:1px solid var(--border);padding-top:12px;margin-top:14px;">
+      <div style="font-size:14px;font-weight:500;color:var(--text);margin-bottom:4px;">AI 思考卡磨砂 / 玻璃（独立）</div>
+      <p style="font-size:12px;color:var(--text-muted);line-height:1.6;margin:0 0 10px;">只控制「AI 思考卡」（思考区 + 回复连着的整张卡），跟上面的全局磨砂/玻璃互不影响，可单独开启。</p>
+      <div class="field switch-row"><span>开启磨砂（AI 卡半透明磨砂）</span><div class="switch ${data.settings.aiFrost ? 'on' : ''}" id="st-aifrost-on"></div></div>
+      <div class="field switch-row"><span>开启玻璃拟态（AI 卡透明 + 玻璃高光）</span><div class="switch ${data.settings.aiGlass ? 'on' : ''}" id="st-aiglass-on"></div></div>
+    </div>
     ${STYLE_GROUPS.map(rowHtml).join('')}
     <div class="modal-actions">
       <button class="btn btn-ghost" id="st-reset">恢复主题</button>
@@ -2095,6 +2105,10 @@ function openStyle() {
   if (gmo) gmo.addEventListener('click', () => { data.settings.glassmorphism.on = gmo.classList.toggle('on'); applyStyle(); });
   const gmh = $('#st-gm-highlight');
   if (gmh) gmh.addEventListener('input', () => { const v = $('#st-gm-highlightv'); if (v) v.textContent = gmh.value + '%'; data.settings.glassmorphism.highlight = Number(gmh.value); applyStyle(); });
+  const aifo = $('#st-aifrost-on');
+  if (aifo) aifo.addEventListener('click', () => { data.settings.aiFrost = aifo.classList.toggle('on'); applyStyle(); });
+  const aigo = $('#st-aiglass-on');
+  if (aigo) aigo.addEventListener('click', () => { data.settings.aiGlass = aigo.classList.toggle('on'); applyStyle(); });
   const tfh = $('#st-topfade-h');
   if (tfh) tfh.addEventListener('input', () => { const v = $('#st-topfade-h-v'); if (v) v.textContent = tfh.value + '%'; data.settings.topFadeH = Number(tfh.value); applyTheme(); });
   const tfa = $('#st-topfade-a');
@@ -2158,6 +2172,8 @@ function openStyle() {
     data.settings.style = out;
     data.settings.glass = { on: $('#st-glass-on').classList.contains('on'), blur: Number($('#st-glass-blur').value), opacity: Number($('#st-glass-opacity').value) };
     data.settings.glassmorphism = { on: $('#st-gm-on').classList.contains('on'), highlight: Number($('#st-gm-highlight').value) };
+    data.settings.aiFrost = $('#st-aifrost-on').classList.contains('on');
+    data.settings.aiGlass = $('#st-aiglass-on').classList.contains('on');
     data.settings.topFadeH = Number($('#st-topfade-h').value);
     data.settings.topFadeA = Number($('#st-topfade-a').value);
     data.settings.topBtnColor = $('#st-topbtn').value;
