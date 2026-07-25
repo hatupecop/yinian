@@ -166,8 +166,8 @@ if (!data.settings._colorFixV1) {
 if (!data.settings.lang) data.settings.lang = 'en';
 if (data.settings.chatInputOffset === undefined) data.settings.chatInputOffset = 0;
 if (data.settings.chatInputHeight === undefined) data.settings.chatInputHeight = 54;
-if (!data.settings.think) data.settings.think = { bgColor: '#FCE4EC', bgOpacity: 0, textColor: '#9b8e88', lineColor: '#F48FB1' };
-if (!data.settings.aiBubble) data.settings.aiBubble = { bgColor: '#FCE4EC', bgOpacity: 0, textColor: '' };
+if (!data.settings.think) data.settings.think = { follow: true, bgColor: '#FCE4EC', bgOpacity: 0.5, textColor: '#9b8e88', lineColor: '#F48FB1' };
+if (!data.settings.aiBubble) data.settings.aiBubble = { follow: true, bgColor: '#FCE4EC', bgOpacity: 0.6, textColor: '' };
 // 自动接入已部署的聊天函数（用户已配置好 Key）：曾选过「演示」的，默认升级为真实聊天
 const CHAT_FN = 'https://vlrqxguctptinozjuyds.supabase.co/functions/v1/chat';
 if (data.settings.apiMode === 'none') {
@@ -1947,11 +1947,13 @@ function applyThink() {
 }
 function applyThinkVars(t) {
   const r = document.documentElement.style;
-  if (t.bgColor && t.bgOpacity > 0) {
+  if (t.follow) {
+    r.removeProperty('--think-bg');
+  } else if (t.bgColor) {
     const c = hexToRgb(t.bgColor);
-    r.setProperty('--think-bg', 'rgba(' + c.r + ',' + c.g + ',' + c.b + ',' + t.bgOpacity + ')');
+    r.setProperty('--think-bg', 'rgba(' + c.r + ',' + c.g + ',' + c.b + ',' + (t.bgOpacity != null ? t.bgOpacity : 0) + ')');
   } else {
-    r.setProperty('--think-bg', 'transparent');
+    r.removeProperty('--think-bg');
   }
   r.setProperty('--think-text', t.textColor || 'var(--text-muted)');
   r.setProperty('--think-line', t.lineColor || 'var(--accent)');
@@ -1959,21 +1961,26 @@ function applyThinkVars(t) {
 function applyAiBubble(t) {
   const o = t || data.settings.aiBubble || {};
   const r = document.documentElement.style;
-  if (o.bgColor && o.bgOpacity > 0) {
-    const c = hexToRgb(o.bgColor);
-    r.setProperty('--ai-bubble-bg', 'rgba(' + c.r + ',' + c.g + ',' + c.b + ',' + o.bgOpacity + ')');
-  } else {
+  if (o.follow) {
     r.removeProperty('--ai-bubble-bg');
+    r.removeProperty('--ai-bubble-text');
+  } else {
+    if (o.bgColor) {
+      const c = hexToRgb(o.bgColor);
+      r.setProperty('--ai-bubble-bg', 'rgba(' + c.r + ',' + c.g + ',' + c.b + ',' + (o.bgOpacity != null ? o.bgOpacity : 0) + ')');
+    } else r.removeProperty('--ai-bubble-bg');
+    if (o.textColor) r.setProperty('--ai-bubble-text', o.textColor);
+    else r.removeProperty('--ai-bubble-text');
   }
-  if (o.textColor) r.setProperty('--ai-bubble-text', o.textColor);
-  else r.removeProperty('--ai-bubble-text');
 }
 function openStyle() {
   const st = data.settings.style || {};
   const grp = k => st[k] || { color: '', opacity: 1, font: 'default' };
   const t = data.settings.think || {};
+  const tFollow = t.follow !== false;
   const thinkOp = Math.round((t.bgOpacity != null ? t.bgOpacity : 0) * 100);
   const a = data.settings.aiBubble || {};
+  const aFollow = a.follow !== false;
   const aibOp = Math.round((a.bgOpacity != null ? a.bgOpacity : 0) * 100);
   const rowHtml = g => {
     const v = grp(g.key);
@@ -2036,18 +2043,30 @@ function openStyle() {
     </div>
     <div class="style-group" style="border-top:1px solid var(--border);padding-top:12px;margin-top:14px;">
       <div style="font-size:14px;font-weight:500;color:var(--text);margin-bottom:8px;">思考过程（聊天 AI 思考块）</div>
-      <div class="field"><label>思考框背景色</label><input type="color" id="st-think-bg" value="${t.bgColor || '#FCE4EC'}" style="width:100%;height:38px;border:1px solid var(--border);border-radius:10px;background:var(--cardbg);padding:2px;" /></div>
-      <div class="field"><label>思考框透明度（${thinkOp}%，0 = 完全透明；需大于 0 才显示背景色）</label>
-        <div class="range-row"><input type="range" min="0" max="100" id="st-think-op" value="${thinkOp}"/><span id="st-think-opv">${thinkOp}%</span></div></div>
-      <div class="field"><label>思考文字颜色</label><input type="color" id="st-think-text" value="${t.textColor || '#9b8e88'}" style="width:100%;height:38px;border:1px solid var(--border);border-radius:10px;background:var(--cardbg);padding:2px;" /></div>
-      <div class="field"><label>竖线颜色</label><input type="color" id="st-think-line" value="${t.lineColor || '#F48FB1'}" style="width:100%;height:38px;border:1px solid var(--border);border-radius:10px;background:var(--cardbg);padding:2px;" /></div>
+      <div class="switch-row" style="margin-bottom:8px;">
+        <label style="font-size:13px;color:var(--text-muted);">跟随主题外观</label>
+        <div class="switch ${tFollow ? 'on' : ''}" id="st-think-follow" role="switch" aria-checked="${tFollow}"><span></span></div>
+      </div>
+      <div id="think-custom" style="${tFollow ? 'opacity:.45;' : ''}">
+        <div class="field"><label>思考框背景色</label><input type="color" id="st-think-bg" value="${t.bgColor || '#FCE4EC'}" ${tFollow ? 'disabled' : ''} style="width:100%;height:38px;border:1px solid var(--border);border-radius:10px;background:var(--cardbg);padding:2px;" /></div>
+        <div class="field"><label>思考框透明度（${thinkOp}%，0 = 完全透明）</label>
+          <div class="range-row"><input type="range" min="0" max="100" id="st-think-op" value="${thinkOp}" ${tFollow ? 'disabled' : ''}/><span id="st-think-opv">${thinkOp}%</span></div></div>
+        <div class="field"><label>思考文字颜色</label><input type="color" id="st-think-text" value="${t.textColor || '#9b8e88'}" ${tFollow ? 'disabled' : ''} style="width:100%;height:38px;border:1px solid var(--border);border-radius:10px;background:var(--cardbg);padding:2px;" /></div>
+        <div class="field"><label>竖线颜色</label><input type="color" id="st-think-line" value="${t.lineColor || '#F48FB1'}" ${tFollow ? 'disabled' : ''} style="width:100%;height:38px;border:1px solid var(--border);border-radius:10px;background:var(--cardbg);padding:2px;" /></div>
+      </div>
     </div>
     <div class="style-group" style="border-top:1px solid var(--border);padding-top:12px;margin-top:14px;">
       <div style="font-size:14px;font-weight:500;color:var(--text);margin-bottom:8px;">AI 回复气泡</div>
-      <div class="field"><label>气泡背景色</label><input type="color" id="st-aib-bg" value="${a.bgColor || '#FCE4EC'}" style="width:100%;height:38px;border:1px solid var(--border);border-radius:10px;background:var(--cardbg);padding:2px;" /></div>
-      <div class="field"><label>气泡透明度（${aibOp}%，0 = 跟随主题气泡）</label>
-        <div class="range-row"><input type="range" min="0" max="100" id="st-aib-op" value="${aibOp}"/><span id="st-aib-opv">${aibOp}%</span></div></div>
-      <div class="field"><label>气泡文字颜色</label><input type="color" id="st-aib-text" value="${a.textColor || '#333333'}" style="width:100%;height:38px;border:1px solid var(--border);border-radius:10px;background:var(--cardbg);padding:2px;" /></div>
+      <div class="switch-row" style="margin-bottom:8px;">
+        <label style="font-size:13px;color:var(--text-muted);">跟随主题外观</label>
+        <div class="switch ${aFollow ? 'on' : ''}" id="st-aib-follow" role="switch" aria-checked="${aFollow}"><span></span></div>
+      </div>
+      <div id="aib-custom" style="${aFollow ? 'opacity:.45;' : ''}">
+        <div class="field"><label>气泡背景色</label><input type="color" id="st-aib-bg" value="${a.bgColor || '#FCE4EC'}" ${aFollow ? 'disabled' : ''} style="width:100%;height:38px;border:1px solid var(--border);border-radius:10px;background:var(--cardbg);padding:2px;" /></div>
+        <div class="field"><label>气泡透明度（${aibOp}%，0 = 完全透明）</label>
+          <div class="range-row"><input type="range" min="0" max="100" id="st-aib-op" value="${aibOp}" ${aFollow ? 'disabled' : ''}/><span id="st-aib-opv">${aibOp}%</span></div></div>
+        <div class="field"><label>气泡文字颜色</label><input type="color" id="st-aib-text" value="${a.textColor || '#333333'}" ${aFollow ? 'disabled' : ''} style="width:100%;height:38px;border:1px solid var(--border);border-radius:10px;background:var(--cardbg);padding:2px;" /></div>
+      </div>
     </div>
     ${STYLE_GROUPS.map(rowHtml).join('')}
     <div class="modal-actions">
@@ -2080,16 +2099,30 @@ function openStyle() {
   if (scb) scb.addEventListener('input', () => document.documentElement.style.setProperty('--chat-panel-bg', scb.value));
   if (sca) sca.addEventListener('input', () => { const v = $('#st-chatalphav'); if (v) v.textContent = sca.value + '%'; document.documentElement.style.setProperty('--chat-panel-alpha', sca.value); });
   const tbg = $('#st-think-bg'), top = $('#st-think-op'), ttxt = $('#st-think-text'), tln = $('#st-think-line');
-  const applyThinkPreview = () => { if (!tbg) return; applyThinkVars({ bgColor: tbg.value, bgOpacity: Number(top.value) / 100, textColor: ttxt.value, lineColor: tln.value }); };
+  const applyThinkPreview = () => { if (!tbg) return; const f = $('#st-think-follow'); applyThinkVars({ follow: f ? f.classList.contains('on') : true, bgColor: tbg.value, bgOpacity: Number(top.value) / 100, textColor: ttxt.value, lineColor: tln.value }); };
   if (tbg) tbg.addEventListener('input', applyThinkPreview);
   if (top) top.addEventListener('input', () => { const v = $('#st-think-opv'); if (v) v.textContent = top.value + '%'; applyThinkPreview(); });
   if (ttxt) ttxt.addEventListener('input', applyThinkPreview);
   if (tln) tln.addEventListener('input', applyThinkPreview);
   const aib = $('#st-aib-bg'), aop = $('#st-aib-op'), ait = $('#st-aib-text');
-  const applyAiPreview = () => { if (!aib) return; applyAiBubble({ bgColor: aib.value, bgOpacity: Number(aop.value) / 100, textColor: ait.value }); };
+  const applyAiPreview = () => { if (!aib) return; const f = $('#st-aib-follow'); applyAiBubble({ follow: f ? f.classList.contains('on') : true, bgColor: aib.value, bgOpacity: Number(aop.value) / 100, textColor: ait.value }); };
   if (aib) aib.addEventListener('input', applyAiPreview);
   if (aop) aop.addEventListener('input', () => { const v = $('#st-aib-opv'); if (v) v.textContent = aop.value + '%'; applyAiPreview(); });
   if (ait) ait.addEventListener('input', applyAiPreview);
+  const bindFollow = (swId, opId, opvId, ids) => {
+    const sw = $('#' + swId); if (!sw) return;
+    sw.addEventListener('click', () => {
+      const on = sw.classList.toggle('on');
+      sw.setAttribute('aria-checked', on ? 'true' : 'false');
+      ids.forEach(id => { const el = $('#' + id); if (el) el.disabled = on; });
+      const custom = $('#' + (swId === 'st-think-follow' ? 'think-custom' : 'aib-custom'));
+      if (custom) { custom.style.opacity = on ? '.45' : '1'; }
+      if (!on) { const opEl = $('#' + opId), opv = $('#' + opvId); if (opEl && Number(opEl.value) === 0) { opEl.value = 60; if (opv) opv.textContent = '60%'; } }
+      if (swId === 'st-think-follow') applyThinkPreview(); else applyAiPreview();
+    });
+  };
+  bindFollow('st-think-follow', 'st-think-op', 'st-think-opv', ['st-think-bg', 'st-think-op', 'st-think-text', 'st-think-line']);
+  bindFollow('st-aib-follow', 'st-aib-op', 'st-aib-opv', ['st-aib-bg', 'st-aib-op', 'st-aib-text']);
   $('#st-reset').addEventListener('click', () => {
     data.settings.style = {
       title: { color: '', opacity: 1, font: 'default' },
@@ -2104,8 +2137,8 @@ function openStyle() {
     data.settings.glassmorphism = { on: false, highlight: 70 };
     data.settings.topFadeA = 100; data.settings.topFadeH = 20;
     data.settings.topBtnColor = ''; data.settings.chatPanelBg = '#ffffff'; data.settings.chatPanelAlpha = 90;
-    data.settings.think = { bgColor: '#FCE4EC', bgOpacity: 0, textColor: '#9b8e88', lineColor: '#F48FB1' };
-    data.settings.aiBubble = { bgColor: '#FCE4EC', bgOpacity: 0, textColor: '' };
+    data.settings.think = { follow: true, bgColor: '#FCE4EC', bgOpacity: 0.5, textColor: '#9b8e88', lineColor: '#F48FB1' };
+    data.settings.aiBubble = { follow: true, bgColor: '#FCE4EC', bgOpacity: 0.6, textColor: '' };
     save(); applyTheme(); closeModal(); toast('已恢复主题');
   });
   $('#st-save').addEventListener('click', () => {
@@ -2126,12 +2159,14 @@ function openStyle() {
     data.settings.chatPanelBg = $('#st-chatbg').value;
     data.settings.chatPanelAlpha = Number($('#st-chatalpha').value);
     data.settings.think = {
+      follow: $('#st-think-follow').classList.contains('on'),
       bgColor: $('#st-think-bg').value,
       bgOpacity: Number($('#st-think-op').value) / 100,
       textColor: $('#st-think-text').value,
       lineColor: $('#st-think-line').value
     };
     data.settings.aiBubble = {
+      follow: $('#st-aib-follow').classList.contains('on'),
       bgColor: $('#st-aib-bg').value,
       bgOpacity: Number($('#st-aib-op').value) / 100,
       textColor: $('#st-aib-text').value
