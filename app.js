@@ -166,7 +166,8 @@ if (!data.settings._colorFixV1) {
 if (!data.settings.lang) data.settings.lang = 'en';
 if (data.settings.chatInputOffset === undefined) data.settings.chatInputOffset = 0;
 if (data.settings.chatInputHeight === undefined) data.settings.chatInputHeight = 54;
-if (!data.settings.think) data.settings.think = { bgColor: '#ffffff', bgOpacity: 0, textColor: '#9b8e88', lineColor: '#F48FB1' };
+if (!data.settings.think) data.settings.think = { bgColor: '#FCE4EC', bgOpacity: 0, textColor: '#9b8e88', lineColor: '#F48FB1' };
+if (!data.settings.aiBubble) data.settings.aiBubble = { bgColor: '#FCE4EC', bgOpacity: 0, textColor: '' };
 // 自动接入已部署的聊天函数（用户已配置好 Key）：曾选过「演示」的，默认升级为真实聊天
 const CHAT_FN = 'https://vlrqxguctptinozjuyds.supabase.co/functions/v1/chat';
 if (data.settings.apiMode === 'none') {
@@ -1939,6 +1940,7 @@ function applyStyle() {
   r.setProperty('--gm-highlight', ((gm.highlight != null ? gm.highlight : 70)) / 100);
   document.body.classList.toggle('glassmorphism-on', !!gm.on);
   applyThink();
+  applyAiBubble();
 }
 function applyThink() {
   applyThinkVars(data.settings.think || {});
@@ -1954,11 +1956,25 @@ function applyThinkVars(t) {
   r.setProperty('--think-text', t.textColor || 'var(--text-muted)');
   r.setProperty('--think-line', t.lineColor || 'var(--accent)');
 }
+function applyAiBubble(t) {
+  const o = t || data.settings.aiBubble || {};
+  const r = document.documentElement.style;
+  if (o.bgColor && o.bgOpacity > 0) {
+    const c = hexToRgb(o.bgColor);
+    r.setProperty('--ai-bubble-bg', 'rgba(' + c.r + ',' + c.g + ',' + c.b + ',' + o.bgOpacity + ')');
+  } else {
+    r.removeProperty('--ai-bubble-bg');
+  }
+  if (o.textColor) r.setProperty('--ai-bubble-text', o.textColor);
+  else r.removeProperty('--ai-bubble-text');
+}
 function openStyle() {
   const st = data.settings.style || {};
   const grp = k => st[k] || { color: '', opacity: 1, font: 'default' };
   const t = data.settings.think || {};
   const thinkOp = Math.round((t.bgOpacity != null ? t.bgOpacity : 0) * 100);
+  const a = data.settings.aiBubble || {};
+  const aibOp = Math.round((a.bgOpacity != null ? a.bgOpacity : 0) * 100);
   const rowHtml = g => {
     const v = grp(g.key);
     const follow = !v.color;
@@ -2020,11 +2036,18 @@ function openStyle() {
     </div>
     <div class="style-group" style="border-top:1px solid var(--border);padding-top:12px;margin-top:14px;">
       <div style="font-size:14px;font-weight:500;color:var(--text);margin-bottom:8px;">思考过程（聊天 AI 思考块）</div>
-      <div class="field"><label>思考框背景色</label><input type="color" id="st-think-bg" value="${t.bgColor || '#ffffff'}" style="width:100%;height:38px;border:1px solid var(--border);border-radius:10px;background:var(--cardbg);padding:2px;" /></div>
-      <div class="field"><label>思考框透明度（${thinkOp}%，0 = 完全透明）</label>
+      <div class="field"><label>思考框背景色</label><input type="color" id="st-think-bg" value="${t.bgColor || '#FCE4EC'}" style="width:100%;height:38px;border:1px solid var(--border);border-radius:10px;background:var(--cardbg);padding:2px;" /></div>
+      <div class="field"><label>思考框透明度（${thinkOp}%，0 = 完全透明；需大于 0 才显示背景色）</label>
         <div class="range-row"><input type="range" min="0" max="100" id="st-think-op" value="${thinkOp}"/><span id="st-think-opv">${thinkOp}%</span></div></div>
       <div class="field"><label>思考文字颜色</label><input type="color" id="st-think-text" value="${t.textColor || '#9b8e88'}" style="width:100%;height:38px;border:1px solid var(--border);border-radius:10px;background:var(--cardbg);padding:2px;" /></div>
       <div class="field"><label>竖线颜色</label><input type="color" id="st-think-line" value="${t.lineColor || '#F48FB1'}" style="width:100%;height:38px;border:1px solid var(--border);border-radius:10px;background:var(--cardbg);padding:2px;" /></div>
+    </div>
+    <div class="style-group" style="border-top:1px solid var(--border);padding-top:12px;margin-top:14px;">
+      <div style="font-size:14px;font-weight:500;color:var(--text);margin-bottom:8px;">AI 回复气泡</div>
+      <div class="field"><label>气泡背景色</label><input type="color" id="st-aib-bg" value="${a.bgColor || '#FCE4EC'}" style="width:100%;height:38px;border:1px solid var(--border);border-radius:10px;background:var(--cardbg);padding:2px;" /></div>
+      <div class="field"><label>气泡透明度（${aibOp}%，0 = 跟随主题气泡）</label>
+        <div class="range-row"><input type="range" min="0" max="100" id="st-aib-op" value="${aibOp}"/><span id="st-aib-opv">${aibOp}%</span></div></div>
+      <div class="field"><label>气泡文字颜色</label><input type="color" id="st-aib-text" value="${a.textColor || '#333333'}" style="width:100%;height:38px;border:1px solid var(--border);border-radius:10px;background:var(--cardbg);padding:2px;" /></div>
     </div>
     ${STYLE_GROUPS.map(rowHtml).join('')}
     <div class="modal-actions">
@@ -2062,6 +2085,11 @@ function openStyle() {
   if (top) top.addEventListener('input', () => { const v = $('#st-think-opv'); if (v) v.textContent = top.value + '%'; applyThinkPreview(); });
   if (ttxt) ttxt.addEventListener('input', applyThinkPreview);
   if (tln) tln.addEventListener('input', applyThinkPreview);
+  const aib = $('#st-aib-bg'), aop = $('#st-aib-op'), ait = $('#st-aib-text');
+  const applyAiPreview = () => { if (!aib) return; applyAiBubble({ bgColor: aib.value, bgOpacity: Number(aop.value) / 100, textColor: ait.value }); };
+  if (aib) aib.addEventListener('input', applyAiPreview);
+  if (aop) aop.addEventListener('input', () => { const v = $('#st-aib-opv'); if (v) v.textContent = aop.value + '%'; applyAiPreview(); });
+  if (ait) ait.addEventListener('input', applyAiPreview);
   $('#st-reset').addEventListener('click', () => {
     data.settings.style = {
       title: { color: '', opacity: 1, font: 'default' },
@@ -2076,7 +2104,8 @@ function openStyle() {
     data.settings.glassmorphism = { on: false, highlight: 70 };
     data.settings.topFadeA = 100; data.settings.topFadeH = 20;
     data.settings.topBtnColor = ''; data.settings.chatPanelBg = '#ffffff'; data.settings.chatPanelAlpha = 90;
-    data.settings.think = { bgColor: '#ffffff', bgOpacity: 0, textColor: '#9b8e88', lineColor: '#F48FB1' };
+    data.settings.think = { bgColor: '#FCE4EC', bgOpacity: 0, textColor: '#9b8e88', lineColor: '#F48FB1' };
+    data.settings.aiBubble = { bgColor: '#FCE4EC', bgOpacity: 0, textColor: '' };
     save(); applyTheme(); closeModal(); toast('已恢复主题');
   });
   $('#st-save').addEventListener('click', () => {
@@ -2102,8 +2131,13 @@ function openStyle() {
       textColor: $('#st-think-text').value,
       lineColor: $('#st-think-line').value
     };
+    data.settings.aiBubble = {
+      bgColor: $('#st-aib-bg').value,
+      bgOpacity: Number($('#st-aib-op').value) / 100,
+      textColor: $('#st-aib-text').value
+    };
     const langEl = $('#st-lang'); if (langEl) data.settings.lang = langEl.value;
-    save(); closeModal(); applyTheme(); applyLang(); toast('已保存');
+    save(); closeModal(); applyTheme(); applyStyle(); applyLang(); toast('已保存');
   });
 }
 /* ===================== 文案 / 元素样式自定义面板 ===================== */
@@ -2442,15 +2476,23 @@ async function sendChat() {
   const messages = data.chat.map(m => ({ role: (m.role === 'ai' || m.role === 'assistant') ? 'assistant' : (m.role === 'me' || m.role === 'user' ? 'user' : m.role), content: m.text }));
 
   let reasoning = '', reply = '', hasReasoning = false;
-  const scroll = () => { body.scrollTop = body.scrollHeight; };
+  // rAF 批量刷新：避免每片都重写整段文本 + 强制滚动导致卡顿
+  let bufR = '', bufC = '', raf = null, scrollPending = false;
+  const flush = () => {
+    raf = null;
+    if (bufR) { thinkEl.appendChild(document.createTextNode(bufR)); bufR = ''; }
+    if (bufC) { bubbleEl.appendChild(document.createTextNode(bufC)); bufC = ''; }
+    if (scrollPending) { body.scrollTop = body.scrollHeight; scrollPending = false; }
+  };
+  const schedule = () => { scrollPending = true; if (raf == null) raf = requestAnimationFrame(flush); };
+  const onReasoning = t => { hasReasoning = true; reasoning += t; bufR += t; schedule(); };
+  const onContent = t => { reply += t; bufC += t; schedule(); };
   try {
-    await streamChat(s, messages, {
-      onReasoning: t => { hasReasoning = true; reasoning += t; thinkEl.textContent = reasoning; scroll(); },
-      onContent: t => { reply += t; bubbleEl.textContent = reply; scroll(); }
-    });
+    await streamChat(s, messages, { onReasoning, onContent });
   } catch (e) {
     if (!reply) { reply = '（连接失败，请检查设置）'; bubbleEl.textContent = reply; }
   }
+  if (raf != null) { cancelAnimationFrame(raf); flush(); }
   if (!hasReasoning) thinkBlock.style.display = 'none';
   chatThinking = false;
   data.chat.push({ role: 'ai', text: reply, reasoning: reasoning || '', time: Date.now() });

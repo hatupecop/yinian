@@ -253,7 +253,7 @@ body.kb-open .chat-body { padding-bottom: 66px; }
   max-width: 74%; padding: 10px 14px; border-radius: 18px; font-size: 14px;
   line-height: 1.5; word-break: break-word;
 }
-.bubble-row.ai .bubble { background-color: color-mix(in srgb, var(--st-cardbg-color, var(--bg-card)) calc(var(--st-cardbg-opacity, 1)*100%), transparent); color: var(--text); border-bottom-left-radius: 6px; box-shadow: var(--shadow-card); }
+.bubble-row.ai .bubble { background-color: var(--ai-bubble-bg, color-mix(in srgb, var(--st-cardbg-color, var(--bg-card)) calc(var(--st-cardbg-opacity, 1)*100%), transparent)); color: var(--ai-bubble-text, var(--text)); border-bottom-left-radius: 6px; box-shadow: var(--shadow-card); }
 .bubble-row.me .bubble { background: var(--accent); color: #fff; border-bottom-right-radius: 6px; }
 /* 气泡外层：让思考块可以叠在气泡上方 */
 .bubble-wrap { display: flex; flex-direction: column; gap: 6px; max-width: 80%; min-width: 0; }
@@ -264,6 +264,8 @@ body.kb-open .chat-body { padding-bottom: 66px; }
   background: var(--think-bg, transparent);
   border-radius: 12px; padding: 8px 10px; margin-bottom: 2px;
 }
+/* 收起时贴紧下方气泡：padding/margin 收最小，间距约为展开时一半 */
+.think-block:not(.open) { padding-top: 2px; padding-bottom: 2px; margin-bottom: 0; }
 .think-toggle {
   display: flex; align-items: center; gap: 6px;
   background: none; border: none; padding: 0; margin: 0;
@@ -275,7 +277,7 @@ body.kb-open .chat-body { padding-bottom: 66px; }
 .think-label { font-size: 12px; font-weight: 600; letter-spacing: .3px; color: var(--think-line, var(--accent)); }
 .think-main {
   display: flex; flex-direction: column;
-  border-left: 2px solid var(--think-line, var(--accent));
+  border-left: 1px solid var(--think-line, var(--accent));
   margin-left: 6px; padding-left: 10px;
   max-height: 4000px; opacity: 1; overflow: hidden;
   transition: max-height .25s ease, opacity .2s ease, padding .2s ease;
