@@ -30,7 +30,7 @@ const DEFAULT_DATA = {
     },
     glass: { on: false, blur: 14, opacity: 65 },
     glassmorphism: { on: false, highlight: 70 },
-    apiMode: 'backend', backendUrl: 'https://vlrqxguctptinozjuyds.supabase.co/functions/v1/chat', deepseekKey: '',
+    apiMode: 'backend', backendUrl: 'https://vlrqxguctptinozjuyds.supabase.co/functions/v1/chat', deepseekKey: '', chatModel: 'deepseek-v4-flash',
     sync: { on: false, url: '', anon: '' },
     lang: 'en',
     chatInputOffset: 0
@@ -65,8 +65,20 @@ const DEFAULT_DATA = {
   chat: [
     { role: 'ai', text: '嗨，我在呢。有什么想和我说的吗？', time: Date.now() - 60000 }
   ],
-  deletedIds: []
+  deletedIds: [],
+  works: []
 };
+function defaultWorks() {
+  const now = Date.now();
+  return [
+    { id: 'w1', type: 'image', src: 'https://picsum.photos/seed/yinianW1/720/1280', caption: '周末野餐，小狗把三明治偷吃了 🐶', likes: 128, liked: false, faved: false, aiLiked: true, aiFaved: false, time: now - 86400000 * 2,
+      comments: [ { name: '我', text: '好可爱！云真的好慢☁️', likes: 3, replies: [ { name: 'TA', text: '下次带你去～', likes: 1 } ] }, { name: '阿白', text: '小狗表情绝了', likes: 8, replies: [] } ] },
+    { id: 'w2', type: 'image', src: 'https://picsum.photos/seed/yinianW2/720/1280', caption: '咖啡时光，今天也好好生活了', likes: 64, liked: false, faved: false, aiLiked: false, aiFaved: true, time: now - 86400000,
+      comments: [ { name: '丸子', text: '喝的什么呀', likes: 2, replies: [ { name: 'TA', text: '燕麦拿铁', likes: 0 } ] } ] },
+    { id: 'w3', type: 'image', src: 'https://picsum.photos/seed/yinianW3/720/1280', caption: '海边吹风，风很轻，烦恼很重', likes: 233, liked: false, faved: false, aiLiked: true, aiFaved: false, time: now - 3600000,
+      comments: [] }
+  ];
+}
 
 function load() {
   try {
@@ -125,8 +137,12 @@ if (data.settings.elementOverrides) {
     }
     if (o.text && !data.settings.text[key]) data.settings.text[key] = o.text;
   });
-  delete data.settings.elementOverrides;
 }
+// 作品（抖音风）数据：首次进入自动填充示例作品
+if (!data.works) data.works = defaultWorks();
+if (!Array.isArray(data.works)) data.works = [];
+data.works.forEach(w => { if (w.aiLiked === undefined) w.aiLiked = false; if (w.aiFaved === undefined) w.aiFaved = false; });
+delete data.settings.elementOverrides;
 if (!data.settings.sync) data.settings.sync = { on: false, url: '', anon: '' };
 if (data.settings.sync.on === undefined) data.settings.sync.on = false;
 if (data.settings.sync.url === undefined) data.settings.sync.url = '';
@@ -477,9 +493,11 @@ function openModal(html) {
   $('#modal').classList.add('show');
   $('#modal-mask').classList.add('show');
 }
+let pendingTextRevert = null;
 function closeModal() {
   $('#modal').classList.remove('show');
   $('#modal-mask').classList.remove('show');
+  if (pendingTextRevert) { const f = pendingTextRevert; pendingTextRevert = null; try { f(); } catch (e) {} }
 }
 $('#modal-mask').addEventListener('click', closeModal);
 
@@ -827,7 +845,7 @@ function momentCardHtml(m) {
   }).join('');
   const interact = (likes.length || comments.length)
     ? `<div class="moment-interact">${likeText}<div class="moment-comments-list">${commentsHtml}</div></div>` : '';
-  const canDelete = m.author === 'me';
+  const canDelete = m.author === 'me' || m.author === 'ai';
   return `<div class="moment-card" data-mid="${m.id}">
     <div class="moment-head">
       <div class="moment-ava" ${bg} ${m.author === 'ai' ? 'data-author="ai"' : ''} data-action="${avaAction}"></div>
@@ -1163,50 +1181,87 @@ function editWish(id) {
 /* ===================== Setting ===================== */
 function openProfile() {
   const s = data.settings;
+  const subj = { cur: 'ai' };
+  const profFields = (who) => {
+    const isAi = who === 'ai';
+    const ava = isAi ? s.aiAvatar : s.myAvatar;
+    const cover = isAi ? s.aiCover : s.cover;
+    const momentSign = isAi ? (s.aiMomentSign || '') : (s.meMomentSign || '');
+    const bio = isAi ? (s.aiSign || '') : (s.sign || '');
+    const tags = (isAi ? (s.aiTags || []) : (s.meTags || [])).join(', ');
+    const region = isAi ? (s.aiRegion || '') : (s.region || '');
+    const name = isAi ? (s.aiName || '') : (s.myName || '');
+    return `
+      <div class="field"><label>${isAi ? 'TA 的名字' : '我的昵称'}</label><input id="p-name" value="${esc(name)}" /></div>
+      <div class="field"><label>头像</label>
+        <div class="picker-row"><div class="picker-prev" id="p-ava-prev" style="${ava ? 'background-image:url(' + ava + ')' : ''}"></div><button class="btn btn-ghost" id="p-ava-btn">从相册选择</button></div></div>
+      <div class="field"><label>封面图</label>
+        <div class="picker-row"><div class="picker-prev picker-prev-wide" id="p-cover-prev" style="${cover ? 'background-image:url(' + cover + ')' : ''}"></div><button class="btn btn-ghost" id="p-cover-btn">从相册选择</button></div></div>
+      <div class="field"><label>朋友圈个签</label><input id="p-momentsign" value="${esc(momentSign)}" placeholder="例如：今天也要开心" /></div>
+      <div class="field"><label>主页简介</label><input id="p-bio" value="${esc(bio)}" placeholder="例如：陪你去看世界" /></div>
+      <div class="field"><label>主页标签（逗号分隔）</label><input id="p-tags" value="${esc(tags)}" placeholder="例如：BG, 单机入, 狗狗" /></div>
+      <div class="field"><label>地区</label><input id="p-region" value="${esc(region)}" placeholder="例如：上海" /></div>
+    `;
+  };
   openModal(`
     <h3>个人资料</h3>
-    <div class="field"><label>关系名</label><input id="p-rel" value="${esc(s.relName)}" /></div>
-    <div class="field"><label>我的昵称</label><input id="p-me" value="${esc(s.myName)}" /></div>
-    <div class="field"><label>AI 昵称</label><input id="p-ai" value="${esc(s.aiName)}" /></div>
-    <div class="field"><label>在一起起始日 (YYYY.MM.DD)</label><input id="p-start" value="${s.startDate}" /></div>
-    <div class="field"><label>我的头像</label>
-      <div class="picker-row"><div class="picker-prev" id="p-meava-prev" style="${s.myAvatar ? 'background-image:url(' + s.myAvatar + ')' : ''}"></div><button class="btn btn-ghost" id="p-meava-btn">从相册选择</button></div>
+    <div class="seg" id="p-seg">
+      <div class="seg-opt active" data-who="ai">TA 的资料</div>
+      <div class="seg-opt" data-who="me">我的资料</div>
     </div>
-    <div class="field"><label>AI 头像</label>
-      <div class="picker-row"><div class="picker-prev" id="p-aiava-prev" style="${s.aiAvatar ? 'background-image:url(' + s.aiAvatar + ')' : ''}"></div><button class="btn btn-ghost" id="p-aiava-btn">从相册选择</button></div>
+    <div id="p-basics">
+      <div class="field"><label>关系名</label><input id="p-rel" value="${esc(s.relName)}" /></div>
+      <div class="field"><label>在一起起始日 (YYYY.MM.DD)</label><input id="p-start" value="${s.startDate}" /></div>
     </div>
-    <div class="field"><label>AI 封面图</label>
-      <div class="picker-row"><div class="picker-prev picker-prev-wide" id="p-aicover-prev" style="${s.aiCover ? 'background-image:url(' + s.aiCover + ')' : ''}"></div><button class="btn btn-ghost" id="p-aicover-btn">从相册选择</button></div>
-    </div>
-    <div class="field"><label>AI 签名</label><input id="p-aisign" value="${esc(s.aiSign || '')}" placeholder="例如：陪你去看世界" /></div>
-    <div class="field"><label>AI 地区</label><input id="p-airegion" value="${esc(s.aiRegion || '')}" placeholder="例如：纽约" /></div>
-    <div class="field"><label>封面图</label>
-      <div class="picker-row"><div class="picker-prev picker-prev-wide" id="p-cover-prev" style="${s.cover ? 'background-image:url(' + s.cover + ')' : ''}"></div><button class="btn btn-ghost" id="p-cover-btn">从相册选择</button></div>
-    </div>
-    <div class="field"><label>签名</label><input id="p-sign" value="${esc(s.sign || '')}" /></div>
-    <div class="field"><label>地区</label><input id="p-region" value="${esc(s.region || '')}" placeholder="例如：上海" /></div>
+    <div id="p-fields">${profFields('ai')}</div>
     <div class="field switch-row"><span>去除白底（白底素材图自动抠图）</span><div class="switch" id="p-white"></div></div>
     <div class="modal-actions"><button class="btn btn-ghost" id="p-cancel">取消</button><button class="btn btn-primary" id="p-save">保存</button></div>
   `);
   const tmp = {};
   const pWhite = () => $('#p-white') && $('#p-white').classList.contains('on');
   $('#p-white').addEventListener('click', () => $('#p-white').classList.toggle('on'));
-  $('#p-meava-btn').addEventListener('click', () => pickImage(256, async d => { const o = pWhite() ? await removeWhiteBackground(d) : d; tmp.myAvatar = o; $('#p-meava-prev').style.backgroundImage = 'url(' + o + ')'; }));
-  $('#p-aiava-btn').addEventListener('click', () => pickImage(256, async d => { const o = pWhite() ? await removeWhiteBackground(d) : d; tmp.aiAvatar = o; $('#p-aiava-prev').style.backgroundImage = 'url(' + o + ')'; }));
-  $('#p-aicover-btn').addEventListener('click', () => pickImage(1024, async d => { const o = pWhite() ? await removeWhiteBackground(d) : d; tmp.aiCover = o; $('#p-aicover-prev').style.backgroundImage = 'url(' + o + ')'; }));
-  $('#p-cover-btn').addEventListener('click', () => pickImage(1024, async d => { const o = pWhite() ? await removeWhiteBackground(d) : d; tmp.cover = o; $('#p-cover-prev').style.backgroundImage = 'url(' + o + ')'; }));
+  function commitPicks(who) {
+    const avaKey = who === 'ai' ? 'aiAvatar' : 'myAvatar';
+    const coverKey = who === 'ai' ? 'aiCover' : 'cover';
+    s[avaKey] = tmp[avaKey] || s[avaKey];
+    s[coverKey] = tmp[coverKey] || s[coverKey];
+  }
+  function cacheCurrent() {
+    const who = subj.cur;
+    const name = $('#p-name').value.trim();
+    const ms = $('#p-momentsign').value.trim();
+    const bio = $('#p-bio').value.trim();
+    const tags = ($('#p-tags').value || '').split(',').map(x => x.trim()).filter(Boolean);
+    const region = $('#p-region').value.trim();
+    commitPicks(who);
+    if (who === 'ai') { s.aiName = name || s.aiName; s.aiMomentSign = ms; s.aiSign = bio; s.aiTags = tags; s.aiRegion = region; }
+    else { s.myName = name || s.myName; s.meMomentSign = ms; s.sign = bio; s.meTags = tags; s.region = region; }
+  }
+  function bindPickers() {
+    const who = subj.cur;
+    const avaKey = who === 'ai' ? 'aiAvatar' : 'myAvatar';
+    const coverKey = who === 'ai' ? 'aiCover' : 'cover';
+    $('#p-ava-btn').addEventListener('click', () => pickImage(256, async d => { const o = pWhite() ? await removeWhiteBackground(d) : d; tmp[avaKey] = o; $('#p-ava-prev').style.backgroundImage = 'url(' + o + ')'; }));
+    $('#p-cover-btn').addEventListener('click', () => pickImage(1024, async d => { const o = pWhite() ? await removeWhiteBackground(d) : d; tmp[coverKey] = o; $('#p-cover-prev').style.backgroundImage = 'url(' + o + ')'; }));
+  }
+  $('#p-seg').querySelectorAll('.seg-opt').forEach(opt => opt.addEventListener('click', () => {
+    if (opt.dataset.who === subj.cur) return;
+    $('#p-seg').querySelectorAll('.seg-opt').forEach(o => o.classList.remove('active'));
+    opt.classList.add('active');
+    cacheCurrent();
+    subj.cur = opt.dataset.who;
+    $('#p-fields').innerHTML = profFields(subj.cur);
+    bindPickers();
+  }));
+  bindPickers();
   $('#p-cancel').addEventListener('click', closeModal);
   $('#p-save').addEventListener('click', () => {
+    cacheCurrent();
     Object.assign(s, {
       relName: $('#p-rel').value.trim() || s.relName,
-      myName: $('#p-me').value.trim() || s.myName,
-      aiName: $('#p-ai').value.trim() || s.aiName,
-      startDate: $('#p-start').value.trim() || s.startDate,
-      myAvatar: tmp.myAvatar || s.myAvatar, aiAvatar: tmp.aiAvatar || s.aiAvatar,
-      cover: tmp.cover || s.cover, sign: $('#p-sign').value.trim(), region: $('#p-region').value.trim(),
-      aiCover: tmp.aiCover || s.aiCover, aiSign: $('#p-aisign').value.trim(), aiRegion: $('#p-airegion').value.trim()
+      startDate: $('#p-start').value.trim() || s.startDate
     });
-    save(); closeModal(); renderAnniversary(); renderMoments(); toast('已保存');
+    save(); closeModal(); renderAnniversary(); renderMoments(); renderAiProfile(); toast('已保存');
   });
 }
 function openPersonalize() {
@@ -1342,6 +1397,10 @@ function applyTheme() {
   applyMoments();
   applyCalendar();
   applyStyle();
+  // 外观可调节变量（主页顶部按钮色 / 聊天面板底色与透明度）
+  root.setProperty('--top-btn-color', data.settings.topBtnColor || '');
+  root.setProperty('--chat-panel-bg', data.settings.chatPanelBg || '#ffffff');
+  root.setProperty('--chat-panel-alpha', (data.settings.chatPanelAlpha != null ? data.settings.chatPanelAlpha : 90));
 }
 function applyNav() {
   const n = data.settings.nav || { iconSize: 48, gap: 1, inset: 16, bottom: 10 };
@@ -1594,8 +1653,6 @@ const EL_CFG = {
   'anni.pinned': { group: '纪念日', label: '置顶标签', default: '置顶' },
   'anni.dayNum': { group: '纪念日', label: '卡片右侧数字', selector: '.day-num' },
   'anni.dayUnit': { group: '纪念日', label: '卡片右侧单位', selector: '.day-unit' },
-  'anni.type.intimate': { group: '纪念日类型', label: '亲密（旧数据兼容）', default: '亲密' },
-  'anni.type.anniversary': { group: '纪念日类型', label: '纪念日（旧数据兼容）', default: '纪念日' },
   'anni.type.normal': { group: '纪念日类型', label: '普通', default: '普通' },
   // 日历
   'cal.month': { group: '日历', label: '月份英文', selector: '#cal-month-en', dynamic: true },
@@ -1896,6 +1953,18 @@ function openStyle() {
         </select>
       </div>
     </div>
+    <div class="style-group" style="border-top:1px solid var(--border);padding-top:12px;margin-top:14px;">
+      <div style="font-size:14px;font-weight:500;color:var(--text);margin-bottom:8px;">主页顶部按钮颜色</div>
+      <div class="field"><label>按钮颜色（留空则跟随主题文字色）</label>
+        <input type="color" id="st-topbtn" value="${data.settings.topBtnColor || '#2b2230'}" style="width:100%;height:38px;border:1px solid var(--border);border-radius:10px;background:var(--cardbg);padding:2px;" /></div>
+    </div>
+    <div class="style-group" style="border-top:1px solid var(--border);padding-top:12px;margin-top:14px;">
+      <div style="font-size:14px;font-weight:500;color:var(--text);margin-bottom:8px;">聊天菜单面板（磨砂玻璃）</div>
+      <div class="field"><label>面板底色</label>
+        <input type="color" id="st-chatbg" value="${data.settings.chatPanelBg || '#ffffff'}" style="width:100%;height:38px;border:1px solid var(--border);border-radius:10px;background:var(--cardbg);padding:2px;" /></div>
+      <div class="field"><label>面板透明度（${data.settings.chatPanelAlpha != null ? data.settings.chatPanelAlpha : 90}%，越低越透）</label>
+        <div class="range-row"><input type="range" min="0" max="100" id="st-chatalpha" value="${data.settings.chatPanelAlpha != null ? data.settings.chatPanelAlpha : 90}"/><span id="st-chatalphav">${data.settings.chatPanelAlpha != null ? data.settings.chatPanelAlpha : 90}%</span></div></div>
+    </div>
     ${STYLE_GROUPS.map(rowHtml).join('')}
     <div class="modal-actions">
       <button class="btn btn-ghost" id="st-reset">恢复主题</button>
@@ -1922,6 +1991,10 @@ function openStyle() {
   if (tfh) tfh.addEventListener('input', () => { const v = $('#st-topfade-h-v'); if (v) v.textContent = tfh.value + '%'; data.settings.topFadeH = Number(tfh.value); applyTheme(); });
   const tfa = $('#st-topfade-a');
   if (tfa) tfa.addEventListener('input', () => { const v = $('#st-topfade-a-v'); if (v) v.textContent = tfa.value + '%'; data.settings.topFadeA = Number(tfa.value); applyTheme(); });
+  const stb = $('#st-topbtn'); if (stb) stb.addEventListener('input', () => document.documentElement.style.setProperty('--top-btn-color', stb.value));
+  const scb = $('#st-chatbg'); const sca = $('#st-chatalpha');
+  if (scb) scb.addEventListener('input', () => document.documentElement.style.setProperty('--chat-panel-bg', scb.value));
+  if (sca) sca.addEventListener('input', () => { const v = $('#st-chatalphav'); if (v) v.textContent = sca.value + '%'; document.documentElement.style.setProperty('--chat-panel-alpha', sca.value); });
   $('#st-reset').addEventListener('click', () => {
     data.settings.style = {
       title: { color: '', opacity: 1, font: 'default' },
@@ -1935,6 +2008,7 @@ function openStyle() {
     data.settings.glass = { on: false, blur: 14, opacity: 65 };
     data.settings.glassmorphism = { on: false, highlight: 70 };
     data.settings.topFadeA = 100; data.settings.topFadeH = 20;
+    data.settings.topBtnColor = ''; data.settings.chatPanelBg = '#ffffff'; data.settings.chatPanelAlpha = 90;
     save(); applyTheme(); closeModal(); toast('已恢复主题');
   });
   $('#st-save').addEventListener('click', () => {
@@ -1951,6 +2025,9 @@ function openStyle() {
     data.settings.glassmorphism = { on: $('#st-gm-on').classList.contains('on'), highlight: Number($('#st-gm-highlight').value) };
     data.settings.topFadeH = Number($('#st-topfade-h').value);
     data.settings.topFadeA = Number($('#st-topfade-a').value);
+    data.settings.topBtnColor = $('#st-topbtn').value;
+    data.settings.chatPanelBg = $('#st-chatbg').value;
+    data.settings.chatPanelAlpha = Number($('#st-chatalpha').value);
     const langEl = $('#st-lang'); if (langEl) data.settings.lang = langEl.value;
     save(); closeModal(); applyTheme(); applyLang(); toast('已保存');
   });
@@ -1982,6 +2059,7 @@ function openText() {
   // 草稿：只在「保存」时写回 data，避免误触即时生效
   const draftText = Object.assign({}, data.settings.text || {});
   const draftStyle = JSON.parse(JSON.stringify(data.settings.elStyle || {}));
+  pendingTextRevert = () => { applyText(); applyElStyle(); };
   const canText = cfg => cfg.default != null || cfg.dynamic;
   function applyDraftText(key) {
     const cfg = EL_CFG[key]; if (!cfg || !cfg.selector) return;
@@ -2182,6 +2260,45 @@ function openFonts() {
 }
 
 
+const CHAT_MODELS = [
+  { id: 'deepseek-v4-flash', name: 'Flash' },
+  { id: 'deepseek-v4-pro', name: 'PRO' }
+];
+function closeChatMenu() { const p = $('#chatMorePanel'); if (p) p.classList.remove('show'); }
+function openChatMenu() {
+  const panel = $('#chatMorePanel');
+  if (panel.classList.contains('show')) { closeChatMenu(); return; }
+  const cur = data.settings.chatModel || 'deepseek-v4-flash';
+  const modelRows = CHAT_MODELS.map(m => `
+    <div class="cmp-row ${m.id === cur ? 'sel' : ''}" data-action="mm-model" data-model="${m.id}">
+      <div class="cm-info"><div class="cm-name">${m.name}</div></div>
+      ${m.id === cur ? '<div class="cm-check">✓</div>' : ''}
+    </div>`).join('');
+  const convs = data.conversations || [];
+  const histRows = convs.length
+    ? convs.map(c => `<div class="cmp-row" data-action="mm-load" data-cid="${c.id}"><div class="cm-info"><div class="cm-name">${esc(c.title || '对话')}</div><div class="cm-desc">${c.messages.length} 条消息</div></div></div>`).join('')
+    : '<div class="cmp-empty">还没有历史对话</div>';
+  panel.innerHTML = `
+    <div class="cmp-section"><div class="cmp-model-head" data-action="mm-model-toggle">DeepSeek <span class="chev">▾</span></div>
+      <div class="cmp-model-list" id="cmpModelList" style="display:none">${modelRows}</div></div>
+    <div class="cmp-section"><div class="cmp-title">对话</div>
+      <div class="cmp-row" data-action="mm-newchat"><div class="cm-info"><div class="cm-name">＋ 新建对话</div></div></div>
+      <div class="cmp-row" data-action="mm-history"><div class="cm-info"><div class="cm-name">历史对话（${convs.length}）</div></div></div>
+      <div class="cmp-hist" id="cmpHist" style="display:none">${histRows}</div>
+    </div>`;
+  panel.classList.add('show');
+}
+function newChat() {
+  if ((data.chat || []).length) {
+    (data.conversations = data.conversations || []).push({ id: uid(), title: (data.chat[0].text || '新对话').slice(0, 12), messages: data.chat.slice() });
+  }
+  data.chat = []; save(); closeChatMenu(); renderChat(); toast('已新建对话');
+}
+function loadConversation(cid) {
+  const c = (data.conversations || []).find(x => x.id === cid); if (!c) return;
+  data.chat = c.messages.slice(); save(); closeChatMenu(); renderChat(); toast('已打开历史对话');
+}
+
 function renderChat() {
   const s = data.settings;
   $('#chat-user-name').textContent = s.aiName;
@@ -2223,14 +2340,14 @@ async function sendChat() {
       const url = base.endsWith('/chat') ? base : base + '/chat';
       const r = await fetch(url, {
         method: 'POST', headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ messages: data.chat.map(m => ({ role: m.role === 'ai' ? 'assistant' : m.role, content: m.text })) })
+        body: JSON.stringify({ model: s.chatModel, messages: data.chat.map(m => ({ role: m.role === 'ai' ? 'assistant' : m.role, content: m.text })) })
       });
       const j = await r.json().catch(() => ({}));
       reply = (r.ok && j.reply) ? j.reply : (j.error ? '（TA 回话出错：' + j.error + '）' : '（TA 暂时没回话）');
     } else if (s.apiMode === 'direct' && s.deepseekKey) {
       const r = await fetch('https://api.deepseek.com/v1/chat/completions', {
         method: 'POST', headers: { 'Content-Type': 'application/json', 'Authorization': 'Bearer ' + s.deepseekKey },
-        body: JSON.stringify({ model: 'deepseek-v4-flash', messages: [{ role: 'user', content: text }] })
+        body: JSON.stringify({ model: s.chatModel, messages: [{ role: 'user', content: text }] })
       });
       const j = await r.json(); reply = j.choices[0].message.content;
     } else {
@@ -2245,6 +2362,279 @@ async function sendChat() {
   save(); renderChat();
 }
 
+/* ===================== AI 主页 / 朋友圈入口 ===================== */
+function openChatUserMenu() {
+  openModal(`
+    <div style="text-align:center;padding:8px 0 16px;font-size:17px;font-weight:700;color:var(--text);">${esc(data.settings.aiName)}</div>
+    <div class="cu-menu">
+      <div class="cu-row" data-action="goto-aiprofile"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/></svg><span>主页</span></div>
+      <div class="cu-row" data-action="goto-aimoments"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><rect x="3" y="3" width="18" height="18" rx="2"/><circle cx="8.5" cy="8.5" r="1.5"/><path d="M21 15l-5-5L5 21"/></svg><span>朋友圈</span></div>
+    </div>
+    <div class="modal-actions"><button class="btn btn-ghost" id="cu-cancel">取消</button></div>
+  `);
+  $('#cu-cancel').addEventListener('click', closeModal);
+}
+function openAiProfilePage() {
+  closeModal();
+  $('#tabbar').style.display = 'none';
+  $all('.screen').forEach(s => s.classList.toggle('active', s.id === 'screen-aiprofile'));
+  renderAiProfile();
+}
+function backAiProfile() {
+  $('#tabbar').style.display = '';
+  $all('.screen').forEach(s => s.classList.toggle('active', s.id === 'screen-chat'));
+  renderChat();
+}
+function renderAiProfile() {
+  const s = data.settings;
+  const tn = $('#aiprofile-top-name'); if (tn) tn.textContent = s.aiName;
+  $('#aiprofile-name').textContent = s.aiName;
+  $('#aiprofile-bio').textContent = s.aiSign || '这里可以写一段简介。去「设置 → 个人资料」里修改吧。';
+  const ava = $('#aiprofile-avatar');
+  if (s.aiAvatar) ava.style.backgroundImage = 'url(' + s.aiAvatar + ')';
+  else { ava.style.backgroundImage = ''; ava.style.backgroundColor = 'var(--cardbg)'; }
+  // 标签
+  const tags = (s.aiTags && s.aiTags.length) ? s.aiTags : ['BG', 'AI', '陪伴'];
+  $('#aiprofile-tags').innerHTML = tags.map(t => `<span class="aiprofile-tag">${esc(t)}</span>`).join('');
+  // 网格：作品（抖音风）
+  const all = data.works.map((w, i) => ({ w, i }));
+  let items = all;
+  if (aiprofileTab === 'likes') items = all.filter(o => o.w.aiLiked);
+  else if (aiprofileTab === 'favs') items = all.filter(o => o.w.aiFaved);
+  const grid = $('#aiprofile-grid');
+  if (items.length) {
+    grid.innerHTML = items.map(o => {
+      const play = o.w.type === 'video' ? '<span class="play-badge">▶</span>' : '';
+      return `<div class="aiprofile-grid-item" data-action="work-grid-item" data-i="${o.i}" style="background-image:url(${esc(o.w.src)})">${play}</div>`;
+    }).join('');
+  } else {
+    const emptyText = aiprofileTab === 'likes' ? '他还没有点赞的作品' : aiprofileTab === 'favs' ? '他还没有收藏的作品' : '还没有作品，点右上角 + 发布第一个吧';
+    grid.innerHTML = `<div class="aiprofile-grid-item placeholder" style="grid-column:1/4;aspect-ratio:auto;height:80px;">${emptyText}</div>`;
+  }
+}
+let aiprofileTab = 'grid';
+function switchAiProfileTab(tab) {
+  aiprofileTab = tab;
+  $all('.aiprofile-tab').forEach(t => t.classList.toggle('active', t.dataset.tab === tab));
+  renderAiProfile();
+}
+
+/* ===================== 作品（抖音风）feed / 评论 / 发帖 ===================== */
+let workFeedIndex = 0, workPicks = [], _workFileBound = false;
+function openWorkFeed(i) {
+  const feed = $('#workFeed'), items = $('#workFeedItems');
+  const aiName = data.settings.aiName || 'TA';
+  items.innerHTML = data.works.map((w, idx) => {
+    const media = w.type === 'video'
+      ? `<video src="${esc(w.src)}" poster="${esc(w.poster || w.src)}" controls></video>`
+      : `<img src="${esc(w.src)}" alt="">`;
+    const cmtN = (w.comments || []).reduce((n, c) => n + 1 + (c.replies ? c.replies.length : 0), 0);
+    return `
+      <div class="wf-item" data-idx="${idx}">
+        ${media}
+        <div class="wf-side">
+          <div class="act ${w.liked ? 'liked' : ''}" data-action="work-like" data-i="${idx}">
+            <svg viewBox="0 0 24 24" fill="${w.liked ? '#fe2c55' : 'none'}" stroke="${w.liked ? '#fe2c55' : '#fff'}" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M20.8 4.6a5.5 5.5 0 0 0-7.8 0L12 5.6l-1-1a5.5 5.5 0 0 0-7.8 7.8l1 1L12 21l7.8-7.6 1-1a5.5 5.5 0 0 0 0-7.8z"/></svg>
+            <span>${w.likes}</span>
+          </div>
+          <div class="act" data-action="work-comment-open" data-i="${idx}">
+            <svg viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 11.5a8.4 8.4 0 0 1-8.5 8.5 8.6 8.6 0 0 1-3.8-.9L3 21l1.9-5.7A8.4 8.4 0 0 1 12.5 3 8.4 8.4 0 0 1 21 11.5z"/></svg>
+            <span>${cmtN}</span>
+          </div>
+          <div class="act ${w.faved ? 'faved' : ''}" data-action="work-fav" data-i="${idx}">
+            <svg viewBox="0 0 24 24" fill="${w.faved ? '#F7C948' : 'none'}" stroke="${w.faved ? '#F7C948' : '#fff'}" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 17.27L18.18 21l-1.64-7.03L22 9.24l-7.19-.61L12 2 9.19 8.63 2 9.24l5.46 4.73L5.82 21z"/></svg>
+          </div>
+        </div>
+        <div class="wf-bottom">
+          <div class="wf-name"><b>${esc(aiName)}</b></div>
+          <div class="wf-caption">${esc(w.caption || '')}</div>
+        </div>
+      </div>`;
+  }).join('');
+  feed.classList.add('show');
+  items.scrollTop = 0;
+  workFeedIndex = i || 0;
+  if (items.children[workFeedIndex]) items.children[workFeedIndex].scrollIntoView();
+}
+function closeWorkFeed() { $('#workFeed').classList.remove('show'); closeWorkComment(); }
+function spawnWorkBurst(act, ch, color) {
+  for (let i = 0; i < 6; i++) {
+    const s = document.createElement('span');
+    s.className = (ch === '★') ? 'burst-star' : 'burst-heart';
+    s.textContent = ch; s.style.color = color;
+    const ang = Math.PI * (0.18 + i * 0.13);
+    const bx = Math.cos(ang) * 30 * (i % 2 ? 1 : -1);
+    s.style.setProperty('--bx', bx + 'px');
+    s.style.top = '2px';
+    s.style.animationDelay = (i * 0.03) + 's';
+    act.appendChild(s);
+    setTimeout(() => s.remove(), 760);
+  }
+}
+function workLike(i, a) {
+  const w = data.works[i]; if (!w) return;
+  if (!w.liked) { w.liked = true; w.likes++; } else { w.liked = false; w.likes--; }
+  const svg = a.querySelector('svg');
+  svg.setAttribute('fill', w.liked ? '#fe2c55' : 'none');
+  svg.style.stroke = w.liked ? '#fe2c55' : '#fff';
+  a.classList.toggle('liked', w.liked);
+  a.querySelector('span').textContent = w.likes;
+  if (w.liked) spawnWorkBurst(a, '♥', '#fe2c55');
+  save();
+}
+function workFav(i, a) {
+  const w = data.works[i]; if (!w) return;
+  w.faved = !w.faved;
+  const svg = a.querySelector('svg');
+  svg.setAttribute('fill', w.faved ? '#F7C948' : 'none');
+  svg.style.stroke = w.faved ? '#F7C948' : '#fff';
+  a.classList.toggle('faved', w.faved);
+  save();
+}
+function openWorkComment(i) { workFeedIndex = i; renderWorkComments(); $('#workComment').classList.add('show'); }
+function closeWorkComment() { $('#workComment').classList.remove('show'); }
+function renderWorkComments() {
+  const w = data.works[workFeedIndex]; if (!w) return;
+  const cs = w.comments || [];
+  $('#workCmtCount').textContent = cs.reduce((n, c) => n + 1 + (c.replies ? c.replies.length : 0), 0);
+  $('#workCmtList').innerHTML = cs.map((c, ci) => `
+    <div class="cmt" onclick="workCmtClick(${ci},event)">
+      <div class="cava"></div>
+      <div class="cbody">
+        <div class="cname">${esc(c.name)}</div>
+        <div class="ctext">${esc(c.text)}</div>
+        <div class="cmeta"><span>刚刚</span>
+          <span class="clike ${c.liked ? 'clike-on' : ''}" onclick="workLikeComment(${ci},event)">♥ <span id="wcl${ci}">${c.likes || 0}</span></span>
+          <span class="reply" onclick="workReplyTo('${esc(c.name)}')">回复</span></div>
+        <div class="replies">${(c.replies || []).map((r, ri) => `
+          <div class="cmt" onclick="workCmtClickReply('${esc(r.name)}',event)"><div class="cava" style="width:28px;height:28px"></div>
+            <div class="cbody"><div class="cname">${esc(r.name)}</div><div class="ctext">${esc(r.text)}</div>
+            <div class="cmeta"><span class="clike ${r.liked ? 'clike-on' : ''}" onclick="workLikeReply(${ci},${ri},event)">♥ ${r.likes || 0}</span></div></div></div>`).join('')}</div>
+      </div>
+    </div>`).join('');
+}
+function workCmtClick(ci, e) {
+  if (e.target.closest('.cava') || e.target.closest('.cname') || e.target.closest('.clike')) return;
+  const w = data.works[workFeedIndex]; if (w && w.comments[ci]) workReplyTo(w.comments[ci].name);
+}
+function workCmtClickReply(name, e) {
+  if (e.target.closest('.cava') || e.target.closest('.cname') || e.target.closest('.clike')) return;
+  workReplyTo(name);
+}
+function workReplyTo(name) { const inp = $('#workCmtInput'); inp.value = '回复 ' + name + '：'; inp.focus(); }
+function workSendComment() {
+  const w = data.works[workFeedIndex]; if (!w) return;
+  const v = $('#workCmtInput').value.trim(); if (!v) return;
+  if (!w.comments) w.comments = [];
+  w.comments.unshift({ name: '我', text: v, likes: 0, liked: false, replies: [] });
+  $('#workCmtInput').value = '';
+  renderWorkComments(); save(); toast('已发布评论');
+}
+function workLikeComment(ci, e) {
+  e.stopPropagation();
+  const w = data.works[workFeedIndex]; if (!w || !w.comments[ci]) return;
+  const c = w.comments[ci];
+  if (c.liked) { c.liked = false; c.likes = Math.max(0, (c.likes || 0) - 1); }
+  else { c.liked = true; c.likes = (c.likes || 0) + 1; }
+  const el = document.getElementById('wcl' + ci); if (el) el.textContent = c.likes;
+  const sp = e.target.closest('.clike'); if (sp) sp.classList.toggle('clike-on', !!c.liked);
+  save();
+}
+function workLikeReply(ci, ri, e) {
+  e.stopPropagation();
+  const w = data.works[workFeedIndex]; if (!w || !w.comments[ci] || !w.comments[ci].replies[ri]) return;
+  const r = w.comments[ci].replies[ri];
+  if (r.liked) { r.liked = false; r.likes = Math.max(0, (r.likes || 0) - 1); }
+  else { r.liked = true; r.likes = (r.likes || 0) + 1; }
+  e.target.textContent = '♥ ' + r.likes;
+  e.target.classList.toggle('clike-on', !!r.liked);
+  save();
+}
+/* 发作品 */
+function openWorkComposer() {
+  workPicks = []; renderWorkPicks(); $('#workCaption').value = '';
+  $('#workComposer').classList.add('show');
+  if (!_workFileBound) {
+    const f = document.getElementById('workFile');
+    if (f) { f.addEventListener('change', workFileChange); _workFileBound = true; }
+  }
+}
+function closeWorkComposer() { $('#workComposer').classList.remove('show'); $('#workSheet').classList.remove('show'); }
+function renderWorkPicks() {
+  const g = $('#workPickGrid');
+  let html = workPicks.map((p, idx) => `
+    <div class="pick-cell">
+      ${p.type === 'video' ? `<video src="${esc(p.src)}"></video>` : `<img src="${esc(p.src)}" alt="">`}
+      <div class="rm" data-action="work-rm-media" data-idx="${idx}">✕</div>
+    </div>`).join('');
+  html += `<div class="pick-cell" data-action="work-pick">+ 添加</div>`;
+  g.innerHTML = html;
+}
+function workPick() { $('#workSheet').classList.add('show'); }
+function workSheetRow() { $('#workSheet').classList.remove('show'); const f = document.getElementById('workFile'); if (f) { f.value = ''; f.click(); } }
+function workRmMedia(idx) { workPicks.splice(idx, 1); renderWorkPicks(); }
+function workFileChange(e) {
+  const files = Array.from(e.target.files || []);
+  files.forEach(file => {
+    const reader = new FileReader();
+    reader.onload = ev => {
+      workPicks.push({ type: file.type.indexOf('video') === 0 ? 'video' : 'image', src: ev.target.result });
+      renderWorkPicks();
+    };
+    reader.readAsDataURL(file);
+  });
+}
+function publishWork() {
+  if (!workPicks.length) { toast('先添加一张图片或视频吧'); return; }
+  const caption = $('#workCaption').value.trim();
+  workPicks.forEach((p, k) => {
+    data.works.unshift({
+      id: 'w' + Date.now() + '_' + k, type: p.type, src: p.src, caption: caption,
+      likes: 0, liked: false, faved: false, time: Date.now(), comments: []
+    });
+  });
+  save(); closeWorkComposer(); renderAiProfile();
+  toast('已发布 ' + workPicks.length + ' 个作品');
+}
+
+/* ===================== 通话页面 ===================== */
+let _callTimer = null, _callSec = 0, _callMuted = false, _callSpeaker = false;
+function openCallPage() {
+  const s = data.settings;
+  $('#tabbar').style.display = 'none';
+  $all('.screen').forEach(sc => sc.classList.toggle('active', sc.id === 'screen-call'));
+  $('#call-name').textContent = s.aiName;
+  const ava = $('#call-avatar');
+  if (s.aiAvatar) { ava.style.backgroundImage = 'url(' + s.aiAvatar + ')'; $('#call-bg').style.backgroundImage = 'url(' + s.aiAvatar + ')'; }
+  else { ava.style.backgroundImage = ''; $('#call-bg').style.backgroundImage = ''; }
+  $('#call-status').textContent = '正在呼叫…';
+  $('#call-timer').textContent = '00:00';
+  $('#call-mute').classList.toggle('on', _callMuted);
+  $('#call-speaker').classList.toggle('on', _callSpeaker);
+  clearInterval(_callTimer); _callSec = 0;
+  // 模拟对方接通
+  setTimeout(() => {
+    if (!$('#screen-call') || !$('#screen-call').classList.contains('active')) return;
+    $('#call-status').textContent = '通话中';
+    const scC = document.getElementById('screen-call'); if (scC) scC.classList.add('call-connected');
+    _callTimer = setInterval(() => {
+      _callSec++;
+      const m = String(Math.floor(_callSec / 60)).padStart(2, '0');
+      const sec = String(_callSec % 60).padStart(2, '0');
+      const t = $('#call-timer'); if (t) t.textContent = m + ':' + sec;
+    }, 1000);
+  }, 1800);
+}
+function backCall() {
+  clearInterval(_callTimer); _callTimer = null;
+  const scC = document.getElementById('screen-call'); if (scC) scC.classList.remove('call-connected');
+  $('#tabbar').style.display = '';
+  $all('.screen').forEach(s => s.classList.toggle('active', s.id === 'screen-chat'));
+  renderChat();
+}
+function toggleCallMute() { _callMuted = !_callMuted; $('#call-mute').classList.toggle('on', _callMuted); toast(_callMuted ? '已静音' : '已取消静音'); }
+function toggleCallSpeaker() { _callSpeaker = !_callSpeaker; $('#call-speaker').classList.toggle('on', _callSpeaker); toast(_callSpeaker ? '已开启免提' : '已关闭免提'); }
+
 /* ===================== 事件绑定 ===================== */
 document.addEventListener('click', e => {
   // 点内联选择器外部时收起已展开的选择列表
@@ -2252,6 +2642,11 @@ document.addEventListener('click', e => {
   if (openPickers.length && !e.target.closest('.inline-picker')) {
     openPickers.forEach(p => p.classList.remove('open'));
   }
+  const panel = $('#chatMorePanel');
+  if (panel && panel.classList.contains('show') && !e.target.closest('#chatMorePanel') && !e.target.closest('[data-action="chat-more"]')) closeChatMenu();
+  // 作品评论：点评论面板以外（含作品画面/侧栏/返回）即收起
+  const wc = document.getElementById('workComment');
+  if (wc && wc.classList.contains('show') && !e.target.closest('#workComment') && !e.target.closest('[data-action="work-comment-open"]')) closeWorkComment();
   // 点朋友圈图片 → 全屏查看；点查看层任意处 → 关闭
   if (e.target.tagName === 'IMG' && e.target.closest('.moment-imgs')) {
     openImageLightbox(e.target.currentSrc || e.target.src); return;
@@ -2282,9 +2677,44 @@ document.addEventListener('click', e => {
   else if (act === 'send-chat') sendChat();
   else if (act === 'chat-extra') toast('更多功能后续扩展');
   else if (act === 'chat-mic') toast('语音输入后续扩展');
-  else if (act === 'chat-call') toast('通话功能后续扩展');
+  else if (act === 'chat-call') openCallPage();
   else if (act === 'chat-search') toast('搜索聊天记录后续扩展');
-  else if (act === 'chat-more') toast('更多聊天设置后续扩展');
+  else if (act === 'chat-more') openChatMenu();
+  else if (act === 'chat-user-menu') openChatUserMenu();
+  else if (act === 'mm-model') { data.settings.chatModel = a.dataset.model; save(); openChatMenu(); toast('已切换：' + ((CHAT_MODELS.find(m => m.id === a.dataset.model)) || {}).name); }
+  else if (act === 'mm-model-toggle') { const l = $('#cmpModelList'); if (l) { const open = l.style.display === 'none'; l.style.display = open ? 'block' : 'none'; a.classList.toggle('open', open); } }
+  else if (act === 'mm-newchat') newChat();
+  else if (act === 'mm-history') { const h = $('#cmpHist'); if (h) h.style.display = (h.style.display === 'none' ? 'block' : 'none'); }
+  else if (act === 'mm-load') loadConversation(a.dataset.cid);
+  else if (act === 'goto-aiprofile') openAiProfilePage();
+  else if (act === 'goto-aimoments') { closeModal(); openPersonMoments('ai'); }
+  else if (act === 'back-aiprofile') {
+    if ($('#workComposer').classList.contains('show')) { closeWorkComposer(); return; }
+    if ($('#workFeed').classList.contains('show')) { closeWorkFeed(); return; }
+    backAiProfile();
+  }
+  else if (act === 'aiprofile-tab') switchAiProfileTab(a.dataset.tab);
+  else if (act === 'aiprofile-add') openWorkComposer();
+  else if (act === 'aiprofile-menu') toast('主页菜单后续扩展');
+  else if (act === 'work-grid-item') openWorkFeed(+a.dataset.i);
+  else if (act === 'work-feed-close') closeWorkFeed();
+  else if (act === 'work-like') workLike(+a.dataset.i, a);
+  else if (act === 'work-fav') workFav(+a.dataset.i, a);
+  else if (act === 'work-comment-open') openWorkComment(+a.dataset.i);
+  else if (act === 'work-comment-close') closeWorkComment();
+  else if (act === 'work-comment-send') workSendComment();
+  else if (act === 'work-forward') { toast('已转发到聊天'); }
+  else if (act === 'work-composer-cancel') closeWorkComposer();
+  else if (act === 'work-composer-pub') publishWork();
+  else if (act === 'work-pick') workPick();
+  else if (act === 'work-sheet-row') workSheetRow(a.dataset.src);
+  else if (act === 'work-sheet-cancel') $('#workSheet').classList.remove('show');
+  else if (act === 'work-rm-media') workRmMedia(+a.dataset.idx);
+  else if (act === 'aiprofile-menu') toast('主页菜单后续扩展');
+  else if (act === 'back-call') backCall();
+  else if (act === 'call-end') backCall();
+  else if (act === 'call-mute') toggleCallMute();
+  else if (act === 'call-speaker') toggleCallSpeaker();
   else if (act === 'moment-menu') { e.stopPropagation(); toggleMomentMenu(a.dataset.mid, a); }
   else if (act === 'moment-like') { likeMoment(a.dataset.mid); }
   else if (act === 'moment-comment') { commentMoment(a.dataset.mid); }

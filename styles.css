@@ -745,3 +745,168 @@ body.glassmorphism-on .modal-actions {
 .font-name { font-size: 14px; color: var(--text); }
 .font-actions { display: flex; gap: 8px; }
 .font-actions .btn { padding: 5px 10px; font-size: 12px; }
+
+/* ===================== 聊天模型选择面板 ===================== */
+.cm-list { margin: 12px 0; display: flex; flex-direction: column; gap: 8px; }
+.cm-row { display: flex; align-items: center; gap: 12px; padding: 12px 14px; border-radius: 14px; border: 1px solid var(--border); background: var(--cardbg); cursor: pointer; transition: background .15s ease, transform .12s ease; }
+.cm-row:active { transform: scale(.99); }
+.cm-row.sel { border-color: var(--accent); background: color-mix(in srgb, var(--accent) 12%, var(--cardbg)); }
+.cm-dot { width: 10px; height: 10px; border-radius: 50%; background: var(--text-muted); flex-shrink: 0; }
+.cm-row.sel .cm-dot { background: var(--accent); box-shadow: 0 0 0 3px color-mix(in srgb, var(--accent) 25%, transparent); }
+.cm-info { flex: 1; min-width: 0; }
+.cm-name { font-size: 15px; font-weight: 600; color: var(--text); }
+.cm-desc { font-size: 12px; color: var(--text-muted); margin-top: 2px; }
+.cm-check { font-size: 16px; color: var(--accent); font-weight: 700; }
+
+/* ===================== AI 个人主页（仿 IG/抖音主页卡） ===================== */
+.chat-user { cursor: pointer; }
+.aiprofile-top { display: flex; justify-content: space-between; align-items: center; padding: 0 10px; }
+.aiprofile-top-name { display: flex; align-items: center; gap: 4px; font-size: 17px; font-weight: 700; color: var(--text); }
+.aiprofile-top-name svg { width: 16px; height: 16px; color: var(--text-muted); }
+.aiprofile-top-actions { display: flex; align-items: center; gap: 4px; }
+.aiprofile-scroll { padding: 0 16px 24px; }
+.aiprofile-header { display: flex; align-items: center; gap: 16px; margin-top: 14px; }
+.aiprofile-avatar { width: 80px; height: 80px; border-radius: 50%; background: var(--cardbg) center/cover; border: 2px solid var(--border); flex-shrink: 0; }
+.aiprofile-name { font-size: 20px; font-weight: 700; color: var(--text); }
+.aiprofile-handle { font-size: 13px; color: var(--text-muted); margin-top: 4px; }
+.aiprofile-bio { font-size: 13px; color: var(--text-soft); line-height: 1.7; margin-top: 16px; }
+.aiprofile-tags { display: flex; flex-wrap: wrap; gap: 8px; margin-top: 12px; }
+.aiprofile-tag { font-size: 12px; color: var(--text-muted); background: var(--cardbg); border: 1px solid var(--border); border-radius: 16px; padding: 4px 10px; }
+.aiprofile-actions { display: flex; gap: 10px; margin-top: 18px; }
+.aiprofile-btn { flex: 1; height: 36px; border-radius: 10px; border: 1px solid var(--border); background: var(--cardbg); color: var(--text); font-size: 14px; font-weight: 600; display: flex; align-items: center; justify-content: center; }
+.aiprofile-btn.follow { background: var(--accent); color: #fff; border-color: var(--accent); }
+.aiprofile-btn.add { flex: 0 0 40px; }
+.aiprofile-btn.add svg { width: 16px; height: 16px; }
+.aiprofile-tabs { display: flex; justify-content: space-around; align-items: center; margin-top: 20px; border-top: 1px solid var(--border); border-bottom: 1px solid var(--border); }
+.aiprofile-tab { flex: 1; display: flex; justify-content: center; align-items: center; padding: 12px 0; color: var(--text-muted); cursor: pointer; }
+.aiprofile-tab svg { width: 22px; height: 22px; }
+.aiprofile-tab.active { color: var(--text); }
+.aiprofile-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 2px; margin-top: 2px; }
+.aiprofile-grid-item { aspect-ratio: 1; background: var(--cardbg) center/cover; border-radius: 0; }
+.aiprofile-grid-item.placeholder { background: color-mix(in srgb, var(--cardbg) 80%, var(--border)); display: flex; align-items: center; justify-content: center; color: var(--text-muted); font-size: 12px; }
+/* 个人资料：TA / 我 分段切换 */
+.seg { display: flex; gap: 6px; background: var(--bg-soft); padding: 4px; border-radius: 12px; margin: 4px 0 14px; }
+.seg-opt { flex: 1; text-align: center; padding: 9px 0; border-radius: 9px; font-size: 14px; color: var(--text-muted); cursor: pointer; transition: .15s; }
+.seg-opt.active { background: var(--cardbg); color: var(--accent-deep); font-weight: 600; box-shadow: 0 1px 4px rgba(120,80,100,.15); }
+/* 主页顶部按钮：去圆形底色；加号方形描边 */
+.aiprofile-top .icon-btn { background: transparent; color: var(--top-btn-color, var(--text)); }
+.aiprofile-top .icon-btn.plus-square { width: 30px; height: 30px; border: 1.5px solid var(--top-btn-color, var(--text)); border-radius: 7px; margin-right: 0; }
+.aiprofile-top .icon-btn.plus-square svg { width: 20px; height: 20px; }
+.aiprofile-top-actions .icon-btn:last-child { width: 36px; height: 36px; }
+/* 聊天页内菜单面板（不弹新页） */
+.chat-more-panel { position: absolute; top: 56px; right: 12px; left: auto; width: 200px; z-index: 9;
+  background: color-mix(in srgb, var(--chat-panel-bg, #ffffff) calc((var(--chat-panel-alpha, 90)) * 1%), transparent);
+  -webkit-backdrop-filter: blur(18px) saturate(160%); backdrop-filter: blur(18px) saturate(160%);
+  border: 1px solid rgba(255,255,255,.28); border-radius: 16px; box-shadow: 0 12px 34px rgba(120,80,100,.22);
+  padding: 8px; display: none; max-height: 70%; overflow-y: auto; }
+.chat-more-panel.show { display: block; animation: cmpIn .2s ease; }
+@keyframes cmpIn { from { opacity: 0; transform: translateY(-8px); } to { opacity: 1; transform: none; } }
+.cmp-section { padding: 6px 0; }
+.cmp-section + .cmp-section { border-top: 1px solid var(--border); }
+.cmp-title { font-size: 12px; color: var(--text-muted); padding: 4px 10px; }
+.cmp-model-head { display: flex; align-items: center; justify-content: space-between; padding: 11px 10px; border-radius: 10px; cursor: pointer; font-size: 14px; font-weight: 600; color: var(--text); }
+.cmp-model-head .chev { transition: transform .2s ease; color: var(--text-muted); }
+.cmp-model-head.open .chev { transform: rotate(180deg); }
+.cmp-model-list { margin-top: 2px; }
+.cmp-row { display: flex; align-items: center; justify-content: space-between; padding: 11px 10px; border-radius: 10px; cursor: pointer; }
+.cmp-row:active { background: var(--bg); }
+.cmp-row.sel { background: color-mix(in srgb, var(--accent) 12%, transparent); }
+.cmp-row .cm-check { color: var(--accent); font-weight: 700; }
+
+/* ===================== 作品（抖音风）feed + 发帖 · 接入真实 app ===================== */
+.work-feed{position:absolute;inset:0;background:#000;display:none;z-index:20}
+.work-feed.show{display:block}
+.work-feed-items{position:absolute;inset:0;height:100%;overflow-y:auto;scroll-snap-type:y mandatory;-webkit-overflow-scrolling:touch;scrollbar-width:none}
+.work-feed-items::-webkit-scrollbar{display:none}
+.wf-item{height:100%;scroll-snap-align:start;position:relative;display:flex;align-items:center;justify-content:center;background:#000}
+.wf-item img,.wf-item video{max-width:100%;max-height:100%;object-fit:contain}
+.wf-side{position:absolute;right:12px;bottom:120px;display:flex;flex-direction:column;gap:22px;align-items:center;color:#fff;z-index:4}
+.wf-side .act{display:flex;flex-direction:column;align-items:center;gap:4px;font-size:12px;cursor:pointer;position:relative}
+.wf-side .act svg{width:30px;height:30px;filter:drop-shadow(0 1px 3px rgba(0,0,0,.5))}
+.wf-side .act.liked svg{animation:likePop .45s cubic-bezier(.2,1.4,.4,1)}
+.wf-side .act.liked svg path{fill:#fe2c55;stroke:#fe2c55}
+.wf-side .act.faved svg{animation:favPop .45s cubic-bezier(.2,1.4,.4,1)}
+.wf-side .act.faved svg path{fill:#F7C948;stroke:#F7C948}
+.wf-bottom{position:absolute;left:0;right:80px;bottom:92px;padding:14px 16px;color:#fff;background:linear-gradient(transparent,rgba(0,0,0,.72));z-index:3}
+.wf-bottom .wf-name{font-size:15px;font-weight:600;margin-bottom:5px;text-shadow:0 1px 4px rgba(0,0,0,.5)}
+.wf-bottom .wf-caption{font-size:14px;line-height:1.5;text-shadow:0 1px 4px rgba(0,0,0,.5)}
+@keyframes likePop{0%{transform:scale(1)}35%{transform:scale(1.4)}70%{transform:scale(.9)}100%{transform:scale(1)}}
+@keyframes favPop{0%{transform:scale(1)}35%{transform:scale(1.45)}70%{transform:scale(.9)}100%{transform:scale(1)}}
+.burst-heart{position:absolute;left:50%;color:#fe2c55;font-size:13px;pointer-events:none;animation:burstUp .65s ease-out forwards}
+@keyframes burstUp{0%{opacity:1;transform:translate(-50%,0) scale(1)}100%{opacity:0;transform:translate(calc(-50% + var(--bx,0px)),-34px) scale(.5)}}
+.burst-star{position:absolute;left:50%;top:2px;color:#F7C948;font-size:13px;pointer-events:none;animation:burstStar .7s ease-out forwards}
+@keyframes burstStar{0%{opacity:1;transform:translate(-50%,0) scale(1) rotate(0)}100%{opacity:0;transform:translate(calc(-50% + var(--bx,0px)),-30px) scale(.4) rotate(140deg)}}
+/* 作品评论面板 */
+.work-comment{position:absolute;left:0;right:0;bottom:0;height:62%;background:#fff;border-radius:18px 18px 0 0;transform:translateY(100%);transition:.28s;display:flex;flex-direction:column;z-index:30;pointer-events:none}
+.work-comment.show{transform:translateY(0);pointer-events:auto}
+.work-comment .cp-head{padding:14px;text-align:center;font-weight:600;border-bottom:1px solid #eee;position:relative;color:var(--text)}
+.work-comment .cp-head .x{position:absolute;right:14px;top:12px;color:#999;cursor:pointer}
+.work-comment .cp-list{flex:1;overflow-y:auto;padding:8px 12px;scrollbar-width:none}
+.work-comment .cp-list::-webkit-scrollbar{display:none}
+.work-comment .cmt{display:flex;gap:9px;padding:10px 0;border-bottom:1px solid #f5f0f2;align-items:flex-start;cursor:pointer;text-align:left}
+.work-comment .cmt .cava{width:34px;height:34px;border-radius:50%;background:linear-gradient(135deg,#ffd1dc,#ff9bbb);flex-shrink:0}
+.work-comment .cmt .cbody{flex:1;min-width:0}
+.work-comment .cmt .cname{font-size:13px;color:#9a8c93;font-weight:600}
+.work-comment .cmt .ctext{font-size:14px;margin:3px 0;color:var(--text);word-break:break-word}
+.work-comment .cmt .cmeta{font-size:12px;color:#bba;display:flex;gap:14px;align-items:center}
+.work-comment .cmt .clike{cursor:pointer;display:flex;align-items:center;gap:3px}
+.work-comment .cmt .reply{color:var(--accent);cursor:pointer;font-size:12px}
+.work-comment .replies{margin-left:0;margin-top:6px}
+.work-comment .clike-on{color:#fe2c55}
+.work-comment .replies .cmt{border-bottom:none;padding:6px 0}
+.work-comment .cp-input{display:flex;gap:8px;padding:10px 14px;border-top:1px solid #eee}
+.work-comment .cp-input input{flex:1;border:1px solid #eee;border-radius:20px;padding:9px 14px;font-size:14px;outline:none;color:var(--text)}
+.work-comment .cp-input button{background:var(--accent);color:#fff;border:none;border-radius:20px;padding:0 18px;font-size:14px;cursor:pointer}
+/* 发作品 */
+.work-composer{position:absolute;inset:0;background:var(--bg-page);display:none;flex-direction:column;z-index:25}
+.work-composer.show{display:flex}
+.work-composer .comp-top{display:flex;align-items:center;justify-content:space-between;padding:14px}
+.work-composer .comp-top .t{font-weight:600;color:var(--text)}
+.work-composer .comp-top .pub{background:var(--accent);color:#fff;border:none;border-radius:18px;padding:7px 18px;font-size:14px;cursor:pointer}
+.work-composer .comp-top .cancel{background:none;border:none;color:#9a8c93;font-size:15px;cursor:pointer}
+.work-composer .comp-body{flex:1;overflow-y:auto;padding:0 16px}
+.work-composer .pick-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:8px;margin-top:10px}
+.work-composer .pick-cell{aspect-ratio:1;border:1px dashed var(--border);border-radius:10px;display:flex;align-items:center;justify-content:center;color:#bba;font-size:13px;cursor:pointer;background:#fff;position:relative;overflow:hidden}
+.work-composer .pick-cell img,.work-composer .pick-cell video{width:100%;height:100%;object-fit:cover}
+.work-composer .pick-cell .rm{position:absolute;top:4px;right:4px;background:rgba(0,0,0,.5);color:#fff;border-radius:50%;width:20px;height:20px;display:flex;align-items:center;justify-content:center;font-size:13px}
+.work-composer .caption-box{width:100%;border:1px solid var(--border);border-radius:12px;padding:12px;margin-top:16px;min-height:90px;font-size:14px;outline:none;resize:none;font-family:inherit;background:#fff;color:var(--text)}
+.work-composer .sheet{position:absolute;left:0;right:0;bottom:0;background:#fff;border-radius:18px 18px 0 0;padding:10px 0 24px;transform:translateY(100%);transition:.25s;z-index:40;display:none}
+.work-composer .sheet.show{transform:translateY(0);display:block}
+.work-composer .sheet .row{padding:15px 20px;font-size:16px;display:flex;align-items:center;gap:12px;cursor:pointer;color:var(--text)}
+.work-composer .sheet .row svg{width:22px;height:22px;color:var(--accent)}
+.work-composer .sheet .cancel{padding:14px 20px;text-align:center;color:#999;border-top:1px solid #eee;margin-top:6px;cursor:pointer}
+/* 网格视频角标 */
+.aiprofile-grid-item{position:relative}
+.aiprofile-grid-item.has-play .play{position:absolute;right:6px;bottom:6px;color:#fff;filter:drop-shadow(0 1px 2px rgba(0,0,0,.5))}
+.aiprofile-grid-item.has-play .play svg{width:18px;height:18px}
+.aiprofile-grid-item .play-badge{position:absolute;inset:0;display:flex;align-items:center;justify-content:center;color:#fff;font-size:26px;text-shadow:0 1px 4px rgba(0,0,0,.6);pointer-events:none}
+.cmp-row .cm-name { font-size: 14px; color: var(--text); }
+.cmp-row .cm-desc { font-size: 12px; color: var(--text-muted); margin-top: 2px; }
+.cmp-empty { font-size: 12px; color: var(--text-muted); padding: 8px 10px; }
+.cmp-hist { margin-top: 4px; }
+/* 通话：头像容器 */
+.call-avatar-wrap { position: relative; width: 132px; height: 132px; display: flex; align-items: center; justify-content: center; margin-top: 10px; }
+
+/* 聊天头像菜单 */
+.cu-menu { display: flex; flex-direction: column; gap: 6px; }
+.cu-row { display: flex; align-items: center; gap: 14px; padding: 14px; border-radius: 14px; background: var(--cardbg); border: 1px solid var(--border); cursor: pointer; color: var(--text); font-size: 15px; font-weight: 500; }
+.cu-row svg { width: 22px; height: 22px; color: var(--accent); }
+
+/* ===================== 通话页面（仿微信简约版） ===================== */
+#screen-call { background: #000; color: #fff; }
+#screen-call .topbar { color: #fff; background: transparent; }
+#screen-call .icon-btn { color: #fff; }
+.call-bg { position: absolute; inset: 0; background: var(--accent) center/cover; opacity: .25; filter: blur(30px); z-index: 0; }
+.call-body { position: relative; z-index: 1; display: flex; flex-direction: column; align-items: center; justify-content: center; padding-top: 18vh; text-align: center; }
+.call-avatar { width: 116px; height: 116px; border-radius: 50%; background: rgba(255,255,255,.2) center/cover; border: 3px solid rgba(255,255,255,.45); position: relative; z-index: 3; box-shadow: 0 6px 22px rgba(0,0,0,.28); }
+.call-name { font-size: 26px; font-weight: 600; margin-top: 22px; color: #fff; }
+.call-status { font-size: 14px; color: rgba(255,255,255,.7); margin-top: 8px; }
+.call-timer { font-size: 14px; color: rgba(255,255,255,.7); margin-top: 6px; min-height: 20px; }
+.call-controls { position: absolute; left: 0; right: 0; bottom: 8vh; z-index: 1; display: flex; justify-content: space-around; align-items: center; padding: 0 24px; }
+.call-btn { display: flex; flex-direction: column; align-items: center; gap: 8px; background: rgba(255,255,255,.15); border: none; color: #fff; width: 64px; height: 64px; border-radius: 50%; justify-content: center; backdrop-filter: blur(8px); transition: background .15s ease; }
+.call-btn svg { width: 24px; height: 24px; }
+.call-btn span { font-size: 11px; }
+.call-btn:active { background: rgba(255,255,255,.3); }
+.call-btn.end { background: #ff4d4f; }
+.call-btn.end:active { background: #ff7875; }
+.call-btn.on { background: rgba(255,255,255,.35); }
