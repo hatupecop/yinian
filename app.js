@@ -119,10 +119,12 @@ if (!data.settings.glass) data.settings.glass = { on: false, blur: 14, opacity: 
 if (!data.settings.glassmorphism) data.settings.glassmorphism = { on: false, highlight: 70 };
 if (data.settings.topFadeA === undefined) {
   // 兼容旧版单值 topFade：作为“透明度”，高度用默认 20%
-  data.settings.topFadeA = (data.settings.topFade !== undefined ? data.settings.topFade : 100);
+  data.settings.topFadeA = (data.settings.topFade !== undefined ? data.settings.topFade : 0);
   data.settings.topFadeH = 20;
 }
 if (data.settings.topFadeH === undefined) data.settings.topFadeH = 20;
+// 迁移：旧版默认 100 会在背景图上糊一层主题色；现已改为中性蒙版且默认关闭，若仍是旧默认则归零
+if (data.settings.topFadeA === 100) data.settings.topFadeA = 0;
 // 文字自定义 v2：text=文案覆盖，elStyle=各元素字体/颜色/字号，fonts=导入字体
 if (!data.settings.text) data.settings.text = {};
 if (!data.settings.elStyle) data.settings.elStyle = {};
@@ -1400,19 +1402,24 @@ function applyTheme() {
       const chatBg = s.querySelector('.chat-bg');
       if (chatBg) {
         if (bg) {
-          const coverAlpha = Math.min(ta, 0.5);
-          chatBg.style.backgroundImage = `linear-gradient(to bottom, rgba(${r},${g},${b},${coverAlpha}) 0%, rgba(${r},${g},${b},${coverAlpha}) ${th * 0.5}%, rgba(${r},${g},${b},${1 - op}) ${th}%, rgba(${r},${g},${b},${1 - op}) 100%), url(${bg})`;
+          const scrim = Math.min(ta, 0.45);
+          chatBg.style.backgroundImage = scrim > 0
+            ? `linear-gradient(to bottom, rgba(0,0,0,${scrim}) 0%, rgba(0,0,0,${scrim}) ${th * 0.5}%, rgba(0,0,0,0) ${th}%, rgba(0,0,0,0) 100%), url(${bg})`
+            : `url(${bg})`;
         } else { chatBg.style.backgroundImage = ''; }
       }
       s.style.backgroundImage = '';
       return;
     }
     if (bg) {
-      const coverAlpha = Math.min(ta, 0.5);
-      s.style.backgroundImage = `linear-gradient(to bottom, rgba(${r},${g},${b},${coverAlpha}) 0%, rgba(${r},${g},${b},${coverAlpha}) ${th * 0.5}%, rgba(${r},${g},${b},${1 - op}) ${th}%, rgba(${r},${g},${b},${1 - op}) 100%), url(${bg})`;
+      // 顶部渐隐改为中性深色蒙版，不再用主题色，避免粉白/蓝白底色糊在背景图上；topFadeA=0 时干净显示图片
+      const scrim = Math.min(ta, 0.45);
+      s.style.backgroundImage = scrim > 0
+        ? `linear-gradient(to bottom, rgba(0,0,0,${scrim}) 0%, rgba(0,0,0,${scrim}) ${th * 0.5}%, rgba(0,0,0,0) ${th}%, rgba(0,0,0,0) 100%), url(${bg})`
+        : `url(${bg})`;
       s.style.backgroundSize = 'cover'; s.style.backgroundPosition = 'center';
       s.style.backgroundColor = 'transparent';
-    } else { s.style.backgroundImage = ''; }
+    } else { s.style.backgroundImage = ''; s.style.backgroundColor = ''; }
   });
   // 朋友圈页：若设了页面背景且无个人封面，封面区也显示该背景（否则被默认渐变盖住看不到）
   const mbg = hasGlobal ? data.settings.pageBg.global : data.settings.pageBg.moments;
@@ -1423,7 +1430,7 @@ function applyTheme() {
     const el = $('#' + id); if (!el) return;
     const hasProfile = (id === 'moments-cover' && data.settings.cover) || (id === 'mymoments-cover' && data.settings.aiCover);
     if (mbg && !hasProfile) {
-      el.style.backgroundImage = `linear-gradient(rgba(${r},${g},${b},${1 - mop / 100}), rgba(${r},${g},${b},${1 - mop / 100})), url(${mbg})`;
+      el.style.backgroundImage = `linear-gradient(rgba(0,0,0,${1 - mop / 100}), rgba(0,0,0,${1 - mop / 100})), url(${mbg})`;
       el.style.backgroundSize = 'cover'; el.style.backgroundPosition = 'center';
     } else if (!hasProfile) {
       el.style.backgroundImage = '';
@@ -1434,7 +1441,7 @@ function applyTheme() {
   const menuOp = (data.settings.pageOpacity.menu != null ? data.settings.pageOpacity.menu : 100) / 100;
   const ms = $('#menu-sheet');
   if (menuBg) {
-    ms.style.backgroundImage = `linear-gradient(rgba(${r},${g},${b},${1 - menuOp}), rgba(${r},${g},${b},${1 - menuOp})), url(${menuBg})`;
+    ms.style.backgroundImage = `linear-gradient(rgba(0,0,0,${1 - menuOp}), rgba(0,0,0,${1 - menuOp})), url(${menuBg})`;
     ms.style.backgroundSize = 'cover'; ms.style.backgroundPosition = 'center';
   } else { ms.style.backgroundImage = ''; }
   applyNav();
@@ -2154,7 +2161,7 @@ function openStyle() {
     };
     data.settings.glass = { on: false, blur: 14, opacity: 65 };
     data.settings.glassmorphism = { on: false, highlight: 70 };
-    data.settings.topFadeA = 100; data.settings.topFadeH = 20;
+    data.settings.topFadeA = 0; data.settings.topFadeH = 20;
     data.settings.topBtnColor = ''; data.settings.chatPanelBg = '#ffffff'; data.settings.chatPanelAlpha = 90;
     data.settings.think = { follow: true, bgColor: '#FCE4EC', bgOpacity: 0.5, textColor: '#9b8e88', lineColor: '#F48FB1' };
     data.settings.aiBubble = { follow: true, bgColor: '#FCE4EC', bgOpacity: 0.6, textColor: '' };
