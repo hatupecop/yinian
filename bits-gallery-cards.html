@@ -1,0 +1,165 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+<title>Bits 多图 · 卡片方案</title>
+<style>
+  :root{
+    --bg:#fbeef2;--bg-soft:#f7e3ea;--card:#fffdfe;
+    --ink:#5a4a4f;--ink-soft:#a08e94;
+    --rose:#e7a6bd;--rose-deep:#d684a3;
+    --shadow:0 14px 36px -16px rgba(196,120,150,.42);
+    --shadow-soft:0 8px 22px -12px rgba(196,120,150,.32);
+    --ease:cubic-bezier(0.16,1,0.3,1);
+  }
+  *{box-sizing:border-box;-webkit-tap-highlight-color:transparent}
+  body{margin:0;background:var(--bg);color:var(--ink);
+    font-family:-apple-system,"PingFang SC","Hiragino Sans GB","Microsoft YaHei",system-ui,sans-serif;
+    display:flex;justify-content:center;padding:22px 14px 70px}
+  .phone{width:100%;max-width:392px}
+  .kicker{font-size:11px;letter-spacing:.22em;text-transform:uppercase;color:var(--ink-soft);
+    font-weight:600;margin:32px 2px 4px}
+  .kicker:first-child{margin-top:0}
+  .tag{display:inline-block;font-size:10.5px;letter-spacing:.1em;color:var(--rose-deep);
+    background:rgba(231,166,189,.16);padding:3px 9px;border-radius:999px;margin:6px 4px 14px 2px}
+  .tile{position:relative;overflow:hidden;border-radius:18px;background:var(--bg-soft);
+    box-shadow:var(--shadow-soft)}
+  .tile::after{content:"";position:absolute;inset:0;border-radius:inherit;
+    box-shadow:inset 0 0 0 1px rgba(255,255,255,.5)}
+
+  /* G — 独立卡片流 */
+  .flow{display:flex;flex-direction:column;gap:15px}
+  .flow .card{border-radius:20px;overflow:hidden;box-shadow:var(--shadow);
+    opacity:0;transform:translateY(16px) scale(.98);
+    animation:rise .6s var(--ease) forwards;animation-delay:calc(var(--i)*90ms)}
+  .flow .card .ph{aspect-ratio:4/3}
+  .flow .cap{font-size:12px;color:var(--ink-soft);padding:9px 4px 2px;letter-spacing:.02em}
+  @keyframes rise{to{opacity:1;transform:none}}
+  @media (prefers-reduced-motion:reduce){.flow .card{animation:none;opacity:1;transform:none}}
+
+  /* H — 横滑卡组 coverflow */
+  .deck{display:flex;gap:16px;overflow-x:auto;scroll-snap-type:x mandatory;
+    padding:18px 0 8px;scrollbar-width:none}
+  .deck::-webkit-scrollbar{display:none}
+  .deck .card{flex:0 0 74%;scroll-snap-align:center;border-radius:22px;overflow:hidden;
+    aspect-ratio:3/4;box-shadow:var(--shadow-soft);transform:scale(.84);opacity:.5;
+    transition:transform .4s var(--ease),opacity .4s var(--ease)}
+  .deck .card.on{transform:scale(1);opacity:1;box-shadow:var(--shadow)}
+  .dots{display:flex;gap:7px;justify-content:center;margin-top:10px}
+  .dots i{width:7px;height:7px;border-radius:50%;background:var(--line);transition:.3s var(--ease)}
+  .dots i.on{background:var(--rose-deep);width:18px;border-radius:4px}
+
+  /* I — 翻页全屏卡 */
+  .flip{position:relative;height:500px;margin-top:6px}
+  .flip .slide{position:absolute;inset:0;border-radius:24px;overflow:hidden;box-shadow:var(--shadow);
+    opacity:0;transform:scale(.94);transition:opacity .45s var(--ease),transform .45s var(--ease);
+    display:flex;flex-direction:column;justify-content:flex-end}
+  .flip .slide.on{opacity:1;transform:none}
+  .flip .slide .ph{flex:1}
+  .flip .slide .cap{position:absolute;left:14px;bottom:14px;color:#fff;font-size:13px;
+    text-shadow:0 1px 6px rgba(120,60,80,.5);letter-spacing:.02em}
+  .flip .arrow{position:absolute;top:0;bottom:0;width:34%;display:flex;align-items:center;
+    color:rgba(255,255,255,.0);font-size:22px;z-index:3}
+  .flip .arrow.prev{left:0;justify-content:flex-start;padding-left:10px}
+  .flip .arrow.next{right:0;justify-content:flex-end;padding-right:10px}
+  .flip .arrow:active{color:rgba(255,255,255,.85)}
+  .dots.flip-dots{margin-top:14px}
+</style>
+</head>
+<body>
+<div class="phone">
+
+  <!-- G -->
+  <div class="kicker">方案 G · 独立卡片流</div>
+  <span class="tag">留白手账感</span><span class="tag">逐张错落淡入</span>
+  <div class="flow" id="flowG"></div>
+
+  <!-- H -->
+  <div class="kicker">方案 H · 横滑卡组</div>
+  <span class="tag">居中放大抬起</span><span class="tag">snap 吸附 + 圆点</span>
+  <div class="deck" id="deckH"></div>
+  <div class="dots" id="dotsH"></div>
+
+  <!-- I -->
+  <div class="kicker">方案 I · 翻页全屏卡</div>
+  <span class="tag">一次一张</span><span class="tag">点左右切换</span>
+  <div class="flip" id="flipI">
+    <div class="arrow prev" id="fpPrev"></div>
+    <div class="arrow next" id="fpNext"></div>
+  </div>
+  <div class="dots flip-dots" id="dotsI"></div>
+
+</div>
+
+<script>
+  const grads = [
+    "linear-gradient(135deg,#f9d5e1,#e7a6bd)",
+    "linear-gradient(135deg,#fce4d6,#f3b6a0)",
+    "linear-gradient(135deg,#eadff7,#c9b3e6)",
+    "linear-gradient(135deg,#d9eef0,#a9cdd6)",
+    "linear-gradient(135deg,#fbe6c9,#ecc98a)"
+  ];
+  const caps = ["午后 · 街角咖啡","窗边的光","雨后的颜色","山下的小镇","旅店的清晨"];
+  const N = grads.length;
+
+  // G
+  const flowG = document.getElementById('flowG');
+  grads.forEach((g,i)=>{
+    const c = document.createElement('div');
+    c.className='card'; c.style.setProperty('--i',i);
+    c.innerHTML = `<div class="ph tile" style="background:${g}"></div>
+                   <div class="cap">${caps[i]}</div>`;
+    flowG.appendChild(c);
+  });
+
+  // H
+  const deckH = document.getElementById('deckH');
+  const dotsH = document.getElementById('dotsH');
+  const cardsH = [];
+  grads.forEach((g,i)=>{
+    const c=document.createElement('div');
+    c.className='card'+(i===0?' on':'');
+    c.innerHTML=`<div class="ph tile" style="background:${g}"></div>`;
+    deckH.appendChild(c); cardsH.push(c);
+    const d=document.createElement('i'); if(i===0)d.className='on'; dotsH.appendChild(d);
+  });
+  function setCenter(){
+    const mid = deckH.scrollLeft + deckH.clientWidth/2;
+    let best=0,bestD=1e9;
+    cardsH.forEach((c,i)=>{
+      const cm = c.offsetLeft + c.offsetWidth/2;
+      const dd = Math.abs(cm-mid);
+      if(dd<bestD){bestD=dd;best=i;}
+    });
+    cardsH.forEach((c,i)=>c.classList.toggle('on',i===best));
+    [...dotsH.children].forEach((d,i)=>d.classList.toggle('on',i===best));
+  }
+  deckH.addEventListener('scroll',()=>requestAnimationFrame(setCenter));
+  // 初始对齐到第一张中心
+  deckH.scrollLeft = cardsH[0].offsetLeft - (deckH.clientWidth-cardsH[0].offsetWidth)/2;
+
+  // I
+  const flipI = document.getElementById('flipI');
+  const dotsI = document.getElementById('dotsI');
+  const slides=[];
+  grads.forEach((g,i)=>{
+    const s=document.createElement('div');
+    s.className='slide'+(i===0?' on':'');
+    s.innerHTML=`<div class="ph tile" style="background:${g}"></div>
+                 <div class="cap">${caps[i]}</div>`;
+    flipI.insertBefore(s, document.getElementById('fpPrev'));
+    slides.push(s);
+    const d=document.createElement('i'); if(i===0)d.className='on'; dotsI.appendChild(d);
+  });
+  let idx=0;
+  function go(n){
+    idx=(n+N)%N;
+    slides.forEach((s,i)=>s.classList.toggle('on',i===idx));
+    [...dotsI.children].forEach((d,i)=>d.classList.toggle('on',i===idx));
+  }
+  document.getElementById('fpPrev').addEventListener('click',()=>go(idx-1));
+  document.getElementById('fpNext').addEventListener('click',()=>go(idx+1));
+</script>
+</body>
+</html>

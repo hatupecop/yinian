@@ -1,0 +1,186 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+<title>Bits 多图 · 精致方案</title>
+<style>
+  :root{
+    --bg:#fbeef2;          /* 粉白页面底 */
+    --bg-soft:#f7e3ea;
+    --card:#fffdfe;
+    --ink:#5a4a4f;
+    --ink-soft:#a08e94;
+    --rose:#e7a6bd;        /* 主点缀，低饱和 */
+    --rose-deep:#d684a3;
+    --line:rgba(214,132,163,.18);
+    --shadow:0 10px 30px -14px rgba(196,120,150,.40);
+    --shadow-soft:0 6px 18px -10px rgba(196,120,150,.30);
+    --ease:cubic-bezier(0.16,1,0.3,1);
+  }
+  *{box-sizing:border-box;-webkit-tap-highlight-color:transparent}
+  body{
+    margin:0;background:var(--bg);color:var(--ink);
+    font-family:-apple-system,"PingFang SC","Hiragino Sans GB","Microsoft YaHei",system-ui,sans-serif;
+    display:flex;justify-content:center;padding:22px 14px 60px;
+  }
+  .phone{width:100%;max-width:392px}
+  .kicker{
+    font-size:11px;letter-spacing:.22em;text-transform:uppercase;color:var(--ink-soft);
+    font-weight:600;margin:30px 2px 12px;
+  }
+  .kicker:first-child{margin-top:0}
+  .note{font-size:12.5px;line-height:1.7;color:var(--ink-soft);margin:0 2px 16px}
+
+  /* ---------- 通用图片块 ---------- */
+  .ph{object-fit:cover;display:block;width:100%;height:100%}
+  .tile{position:relative;overflow:hidden;border-radius:16px;background:var(--bg-soft);
+        box-shadow:var(--shadow-soft)}
+  .tile::after{content:"";position:absolute;inset:0;border-radius:inherit;
+        box-shadow:inset 0 0 0 1px rgba(255,255,255,.5)} /* 内高光，质感 */
+
+  /* ---------- 方案E：主图 + 胶片条 ---------- */
+  .hero{aspect-ratio:4/3;border-radius:20px;overflow:hidden;box-shadow:var(--shadow);
+        position:relative;transition:opacity .45s var(--ease)}
+  .hero .ph{transition:transform .6s var(--ease)}
+  .strip{display:flex;gap:10px;margin-top:12px;overflow-x:auto;padding-bottom:4px;
+         scrollbar-width:none}
+  .strip::-webkit-scrollbar{display:none}
+  .strip .tile{width:74px;height:74px;flex:0 0 auto;border-radius:13px;cursor:pointer;
+        opacity:.55;transition:opacity .3s var(--ease),transform .3s var(--ease)}
+  .strip .tile.on{opacity:1;box-shadow:0 0 0 2px var(--rose-deep),var(--shadow-soft)}
+  .strip .tile:active{transform:scale(.94)}
+
+  /* ---------- 方案F：精致网格 + 灯箱 ---------- */
+  .grid{display:grid;grid-template-columns:repeat(2,1fr);gap:11px}
+  .grid .tile{aspect-ratio:1;cursor:pointer;
+        opacity:0;transform:translateY(14px) scale(.97);
+        animation:rise .6s var(--ease) forwards;animation-delay:calc(var(--i)*70ms)}
+  .grid .tile:active{transform:scale(.97)}
+  @keyframes rise{to{opacity:1;transform:none}}
+  @media (prefers-reduced-motion:reduce){
+    .grid .tile{animation:none;opacity:1;transform:none}
+  }
+
+  /* ---------- 灯箱 ---------- */
+  .lb{position:fixed;inset:0;z-index:50;display:none;align-items:center;justify-content:center;
+      background:rgba(250,244,247,.92);backdrop-filter:blur(22px);-webkit-backdrop-filter:blur(22px);
+      opacity:0;transition:opacity .35s var(--ease)}
+  .lb.show{display:flex;opacity:1}
+  .lb img{max-width:90%;max-height:82%;border-radius:18px;box-shadow:0 24px 60px -20px rgba(150,80,110,.55);
+      transform:scale(.92);transition:transform .4s var(--ease)}
+  .lb.show img{transform:scale(1)}
+  .lb .x{position:absolute;top:18px;right:18px;width:38px;height:38px;border-radius:50%;
+      background:rgba(255,255,255,.7);box-shadow:var(--shadow-soft);display:flex;
+      align-items:center;justify-content:center;color:var(--ink);font-size:18px}
+  .lb .nav{position:absolute;top:50%;transform:translateY(-50%);width:42px;height:42px;
+      border-radius:50%;background:rgba(255,255,255,.7);box-shadow:var(--shadow-soft);
+      display:flex;align-items:center;justify-content:center;color:var(--ink);font-size:16px}
+  .lb .prev{left:14px}.lb .next{right:14px}
+
+  /* 顶部小标 */
+  .tag{display:inline-block;font-size:10.5px;letter-spacing:.12em;color:var(--rose-deep);
+       background:rgba(231,166,189,.16);padding:3px 9px;border-radius:999px;margin:0 2px 4px}
+</style>
+</head>
+<body>
+<div class="phone">
+
+  <p class="note" style="margin-top:6px">
+    下方两个是比 A/B/C/D 更考究的方向：都做了<strong>层级意图</strong>（谁是主角）、
+    <strong>算过的圆角与柔影</strong>、<strong>错落入场</strong>，以及<strong>真实灯箱交互</strong>。
+    演示用渐变占位，真实环境会是你的照片。
+  </p>
+
+  <!-- 方案 E -->
+  <div class="kicker">方案 E · 主图 + 胶片条</div>
+  <span class="tag">编辑式层级</span><span class="tag">点胶片条切换主图</span>
+  <div class="hero" id="heroE">
+    <img class="ph" id="heroImgE" alt="">
+  </div>
+  <div class="strip" id="stripE"></div>
+
+  <!-- 方案 F -->
+  <div class="kicker">方案 F · 精致网格 + 灯箱</div>
+  <span class="tag">错落淡入</span><span class="tag">点开全屏灯箱</span>
+  <div class="grid" id="gridF"></div>
+
+</div>
+
+<!-- 灯箱 -->
+<div class="lb" id="lb">
+  <div class="x" id="lbX">✕</div>
+  <div class="nav prev" id="lbPrev">‹</div>
+  <img id="lbImg" alt="">
+  <div class="nav next" id="lbNext">›</div>
+</div>
+
+<script>
+  // 柔和的渐变占位（离线可用，模拟照片）
+  const grads = [
+    "linear-gradient(135deg,#f9d5e1,#e7a6bd)",
+    "linear-gradient(135deg,#fce4d6,#f3b6a0)",
+    "linear-gradient(135deg,#eadff7,#c9b3e6)",
+    "linear-gradient(135deg,#d9eef0,#a9cdd6)",
+    "linear-gradient(135deg,#fbe6c9,#ecc98a)",
+    "linear-gradient(135deg,#f3d4dd,#d9a7bd)"
+  ];
+  const N = 6;
+  const srcs = grads.slice(0,N);
+
+  // ---- 方案 E ----
+  const heroImgE = document.getElementById('heroImgE');
+  const stripE = document.getElementById('stripE');
+  let activeE = 0;
+  function setHero(i){
+    if(i===activeE) return;
+    const h = document.getElementById('heroE');
+    h.style.opacity = 0;
+    setTimeout(()=>{
+      heroImgE.style.background = srcs[i];
+      h.style.opacity = 1;
+      activeE = i;
+      [...stripE.children].forEach((c,idx)=>c.classList.toggle('on',idx===i));
+    },220);
+  }
+  heroImgE.style.background = srcs[0];
+  srcs.forEach((g,i)=>{
+    const t = document.createElement('div');
+    t.className = 'tile' + (i===0?' on':'');
+    t.style.background = g;
+    t.addEventListener('click',()=>setHero(i));
+    stripE.appendChild(t);
+  });
+
+  // ---- 方案 F ----
+  const gridF = document.getElementById('gridF');
+  srcs.forEach((g,i)=>{
+    const t = document.createElement('div');
+    t.className = 'tile';
+    t.style.setProperty('--i', i);
+    t.style.background = g;
+    t.addEventListener('click',()=>openLb(i));
+    gridF.appendChild(t);
+  });
+
+  // ---- 灯箱（通用，可套在任意方案上）----
+  const lb = document.getElementById('lb');
+  const lbImg = document.getElementById('lbImg');
+  let lbIdx = 0;
+  function openLb(i){
+    lbIdx = i;
+    lbImg.style.background = srcs[i];
+    lb.classList.add('show');
+  }
+  function closeLb(){ lb.classList.remove('show'); }
+  function step(d){
+    lbIdx = (lbIdx + d + N) % N;
+    lbImg.style.background = srcs[lbIdx];
+  }
+  document.getElementById('lbX').addEventListener('click',closeLb);
+  document.getElementById('lbPrev').addEventListener('click',e=>{e.stopPropagation();step(-1)});
+  document.getElementById('lbNext').addEventListener('click',e=>{e.stopPropagation();step(1)});
+  lb.addEventListener('click',e=>{ if(e.target===lb) closeLb(); });
+</script>
+</body>
+</html>

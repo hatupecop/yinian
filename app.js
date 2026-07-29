@@ -827,9 +827,38 @@ function showBitDetail(id) {
   $('#bitDBody').textContent = b.content || '（没有具体内容）';
   const imgs = (b.images && b.images.length) ? b.images : (b.img ? [b.img] : []);
   const wrap = $('#bitDImgs'); wrap.innerHTML = '';
-  wrap.classList.toggle('split', imgs.length > 1);
-  imgs.forEach(s => { const im = document.createElement('img'); im.src = s; wrap.appendChild(im); });
+  if (imgs.length === 1) {
+    wrap.innerHTML = `<div class="bit-deck-card on"><img src="${imgs[0]}" alt=""></div>`;
+  } else if (imgs.length > 1) {
+    const cards = imgs.map((s, i) => `<div class="bit-deck-card${i === 0 ? ' on' : ''}"><img src="${s}" alt=""></div>`).join('');
+    const dots = imgs.map((_, i) => `<i class="${i === 0 ? 'on' : ''}"></i>`).join('');
+    wrap.innerHTML = `<div class="bit-deck">${cards}</div><div class="bit-deck-dots">${dots}</div>`;
+    initBitDeck();
+  }
   $all('.screen').forEach(s => s.classList.toggle('active', s.id === 'screen-bit'));
+}
+function initBitDeck() {
+  const wrap = document.getElementById('bitDImgs');
+  const deck = wrap.querySelector('.bit-deck');
+  if (!deck) return;
+  const cards = [...deck.querySelectorAll('.bit-deck-card')];
+  const dots = [...wrap.querySelectorAll('.bit-deck-dots i')];
+  function setCenter() {
+    const mid = deck.scrollLeft + deck.clientWidth / 2;
+    let best = 0, bd = 1e9;
+    cards.forEach((c, i) => {
+      const cm = c.offsetLeft + c.offsetWidth / 2;
+      const dd = Math.abs(cm - mid);
+      if (dd < bd) { bd = dd; best = i; }
+    });
+    cards.forEach((c, i) => c.classList.toggle('on', i === best));
+    dots.forEach((d, i) => d.classList.toggle('on', i === best));
+  }
+  deck.addEventListener('scroll', () => requestAnimationFrame(setCenter));
+  requestAnimationFrame(() => {
+    deck.scrollLeft = cards[0].offsetLeft - (deck.clientWidth - cards[0].offsetWidth) / 2;
+    setCenter();
+  });
 }
 function editBit(id) {
   const b = (data.bitsOfBliss || []).find(x => x.id === id);
