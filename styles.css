@@ -71,7 +71,7 @@ body {
   min-height: 100dvh;
   font-family: var(--font);
   color: var(--text);
-  background: var(--bg-page);
+  background: color-mix(in srgb, var(--st-pagebg-color, var(--bg-page)) calc((var(--st-pagebg-opacity, 1))*100%), transparent);
   display: flex;
   justify-content: center;
   align-items: stretch;
@@ -361,7 +361,7 @@ body.kb-open .chat-input-bar {
 .moments-top .icon-btn { background: transparent; color: color-mix(in srgb, var(--st-accent-color) calc(var(--st-accent-opacity)*100%), transparent); box-shadow: none; }
 .moments-top .topbar-title { display: none; }
 .moments-cover {
-  aspect-ratio: 3 / 2; width: 100%;
+  aspect-ratio: 4 / 3; width: 100%;
   background: linear-gradient(135deg, var(--bg-soft), var(--bg-page)); position: relative; flex-shrink: 0;
   background-size: cover; background-position: center;
 }
@@ -369,6 +369,16 @@ body.kb-open .chat-input-bar {
   content: ''; position: absolute; inset: 0; pointer-events: none; z-index: 1;
   background: linear-gradient(to top, rgba(0,0,0,.28), rgba(0,0,0,0) 55%);
 }
+/* 封面右上角悬浮发帖键（去掉原顶部栏后移到封面内） */
+.moments-fab {
+  position: absolute; top: calc(env(safe-area-inset-top) + 10px); right: 14px; z-index: 6;
+  width: 36px; height: 36px; border-radius: 50%;
+  display: flex; align-items: center; justify-content: center;
+  color: #fff; background: rgba(0,0,0,.30); box-shadow: 0 2px 8px rgba(0,0,0,.28);
+  border: none; cursor: pointer; padding: 0;
+}
+.moments-fab svg { width: 20px; height: 20px; }
+.moments-fab-left { left: 14px; right: auto; }
 .moments-profile {
   position: absolute; left: 18px; right: 18px; bottom: 0;
   transform: translateY(38%);
@@ -376,7 +386,7 @@ body.kb-open .chat-input-bar {
   z-index: 3;
 }
 .moments-info { display: flex; flex-direction: column; gap: 4px; min-width: 0; text-align: right; margin-right: 10px; transform: translateY(var(--mp-text-y, 4px)); }
-.moments-profile .avatar-xl { width: 64px; height: 64px; border-radius: 10px; box-shadow: 0 2px 8px rgba(0,0,0,.12); flex-shrink: 0; transform: translate(var(--mp-ava-x, 0px), var(--mp-ava-y, 0px)); }
+.moments-profile .avatar-xl { width: 64px; height: 64px; border-radius: 10px; background: transparent; box-shadow: 0 2px 8px rgba(0,0,0,.12); flex-shrink: 0; transform: translate(var(--mp-ava-x, 0px), var(--mp-ava-y, 0px)); }
 .moments-profile-name { font-size: 17px; font-weight: 600; color: var(--mp-name-color, #FFFFFF); letter-spacing: .2px; }
 .moments-sign { font-size: 12px; color: var(--mp-sign-color, #FFFFFF); margin-top: 2px; }
 .moments-scroll { padding: 0 0 calc(96px + env(safe-area-inset-bottom)); position: relative; }
@@ -395,7 +405,7 @@ body.kb-open .chat-input-bar {
 }
 .moment-card + .moment-card { border-top: 1px solid var(--border); }
 .moment-head { display: flex; align-items: flex-start; gap: 10px; }
-.moment-ava { width: 40px; height: 40px; border-radius: 6px; background: var(--bg-soft); background-size: cover; flex-shrink: 0; cursor: pointer; }
+.moment-ava { width: 40px; height: 40px; border-radius: 6px; background: transparent; background-size: cover; flex-shrink: 0; cursor: pointer; }
 .liker, .commenter { cursor: pointer; color: var(--accent-deep); }
 .liker:active, .commenter:active { opacity: .6; }
 .moment-main { flex: 1; min-width: 0; }
@@ -1235,7 +1245,7 @@ body.bg-frost-on .screen.bg-frost > * { position: relative; z-index: 1; }
   display: flex; align-items: center; justify-content: center; color: var(--text-muted); background: transparent; border: none; cursor: pointer; padding: 0;
 }
 .bit-exp-close svg { width: 16px; height: 16px; }
-.bit-exp-img { width: 100%; max-height: 38%; object-fit: cover; border-radius: 14px; margin-bottom: 12px; display: none; }
+.bit-exp-img { width: 100%; max-height: 38%; object-fit: cover; border-radius: 14px; margin-top: 12px; margin-bottom: 0; display: none; }
 .bit-exp-img.has-img { display: block; }
 .bit-exp-title { font-size: 16px; color: var(--text); font-weight: 400; line-height: 1.3; padding-right: 32px; }
 .bit-exp-date { font-family: 'Cinzel', serif; font-size: 11px; color: var(--text-muted); margin-top: 4px; }
