@@ -1,0 +1,220 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>玻璃拟态气泡 · 黑底全 6 种 × 两种处理</title>
+<style>
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+  body {
+    font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", "PingFang SC", "Microsoft YaHei", sans-serif;
+    background: #060509; color: #f0d9e4; padding: 30px 16px 80px;
+    -webkit-font-smoothing: antialiased;
+  }
+  header { text-align: center; margin-bottom: 8px; }
+  h1 { font-size: 22px; font-weight: 600; letter-spacing: .02em; }
+  .lead { font-size: 13px; color: rgba(240,217,228,.55); margin: 10px auto 30px; line-height: 1.7; max-width: 760px; }
+
+  .variant { max-width: 980px; margin: 0 auto 30px; }
+  .vhead { display: flex; align-items: center; gap: 10px; margin-bottom: 14px; }
+  .vhead .no {
+    width: 24px; height: 24px; border-radius: 8px; background: #c1a0ac; color: #1a1420;
+    font-size: 13px; font-weight: 700; display: inline-flex; align-items: center; justify-content: center;
+  }
+  .vhead .name { font-size: 15px; font-weight: 600; }
+  .vhead .star { color: #c1a0ac; font-size: 13px; }
+  .vhead .desc { font-size: 12px; color: rgba(240,217,228,.5); margin-left: auto; text-align: right; max-width: 50%; line-height: 1.5; }
+
+  .pair { display: grid; grid-template-columns: 1fr 1fr; gap: 16px; }
+  .col-h {
+    font-size: 12px; letter-spacing: .04em; margin-bottom: 8px; display: flex; align-items: center; gap: 7px;
+    color: rgba(240,217,228,.7);
+  }
+  .col-h .dot { width: 8px; height: 8px; border-radius: 50%; }
+  .col-h.a .dot { background: rgba(255,255,255,.7); }
+  .col-h.b .dot { background: #c1a0ac; }
+
+  /* 黑底舞台 + 彩色光斑（玻璃的"透"才显得出） */
+  .stage {
+    position: relative; overflow: hidden; border-radius: 20px;
+    min-height: 150px; padding: 40px 18px;
+    display: flex; align-items: center; justify-content: center; gap: 14px; flex-wrap: wrap;
+    background: #08060d; border: 1px solid rgba(255,255,255,.06);
+  }
+  .blob { position: absolute; border-radius: 50%; filter: blur(42px); opacity: .85; pointer-events: none; }
+  .blob.a { width: 240px; height: 240px; left: 6%; top: 10%; background: radial-gradient(circle, #c1a0ac, transparent 70%); }
+  .blob.b { width: 280px; height: 280px; right: 4%; top: 28%; background: radial-gradient(circle, #6f6fe0, transparent 70%); }
+  .blob.c { width: 200px; height: 200px; left: 38%; bottom: 4%; background: radial-gradient(circle, #e08fb1, transparent 70%); }
+
+  /* —— 气泡基础 —— */
+  .bub {
+    position: relative; border-radius: 20px; padding: 14px 18px; font-size: 14px; line-height: 1.5;
+    color: #f0d9e4; z-index: 2;
+    -webkit-backdrop-filter: blur(18px) saturate(180%); backdrop-filter: blur(18px) saturate(180%);
+  }
+  .bub.sm { padding: 11px 15px; font-size: 13px; }
+
+  /* ===== A 列：完全透明（无填充，只靠 blur + 高光边） ===== */
+  .A-clear { background: transparent; border: 1px solid rgba(255,255,255,.22);
+    box-shadow: 0 8px 30px rgba(0,0,0,.4), inset 0 1px 0 rgba(255,255,255,.3); }
+  .A-night { background: transparent; border: 1px solid rgba(255,255,255,.12);
+    box-shadow: 0 8px 28px rgba(0,0,0,.45), inset 0 1px 0 rgba(255,255,255,.12); }
+  .A-glow { background: transparent; border: 1px solid rgba(255,255,255,.28);
+    box-shadow: 0 10px 34px rgba(150,90,130,.3), 0 0 22px rgba(240,217,228,.45), inset 0 1px 0 rgba(255,255,255,.4); }
+  .A-thick { background: transparent; border: 1px solid rgba(255,255,255,.42);
+    -webkit-backdrop-filter: blur(28px) saturate(160%); backdrop-filter: blur(28px) saturate(160%);
+    box-shadow: 0 12px 40px rgba(0,0,0,.5), inset 0 2px 0 rgba(255,255,255,.5); }
+  .A-flow { background: transparent; border: 1px solid transparent; background-clip: padding-box; }
+  .A-flow::before { content: ""; position: absolute; inset: -1px; border-radius: 21px; padding: 1px;
+    background: linear-gradient(120deg, #f0d9e4, #c1a0ac, #806c79, #f0d9e4); background-size: 300% 300%;
+    -webkit-mask: linear-gradient(#000 0 0) content-box, linear-gradient(#000 0 0); -webkit-mask-composite: xor; mask-composite: exclude;
+    animation: flow 6s linear infinite; pointer-events: none; }
+  @keyframes flow { 0% { background-position: 0% 50%; } 100% { background-position: 300% 50%; } }
+
+  /* ===== B 列：50% 磨砂（暗色填充，不填白） ===== */
+  /* 暗色磨砂底：rgba(20,16,28,.5) + 模糊，雾面、不反光刺眼 */
+  .B-clear { background: rgba(20,16,28,.5); border: 1px solid rgba(255,255,255,.2);
+    box-shadow: 0 8px 30px rgba(0,0,0,.5), inset 0 1px 0 rgba(255,255,255,.22); }
+  .B-night { background: rgba(18,14,26,.5); border: 1px solid rgba(255,255,255,.12);
+    box-shadow: 0 8px 28px rgba(0,0,0,.55), inset 0 1px 0 rgba(255,255,255,.12); }
+  .B-glow { background: rgba(24,18,30,.5); border: 1px solid rgba(255,255,255,.26);
+    box-shadow: 0 10px 34px rgba(120,70,100,.35), 0 0 20px rgba(240,217,228,.3), inset 0 1px 0 rgba(255,255,255,.32); }
+  .B-thick { background: rgba(20,16,28,.5); border: 1px solid rgba(255,255,255,.38);
+    -webkit-backdrop-filter: blur(28px) saturate(160%); backdrop-filter: blur(28px) saturate(160%);
+    box-shadow: 0 12px 40px rgba(0,0,0,.55), inset 0 2px 0 rgba(255,255,255,.42); }
+  .B-flow { background: rgba(22,17,28,.5); border: 1px solid transparent; background-clip: padding-box; }
+  .B-flow::before { content: ""; position: absolute; inset: -1px; border-radius: 21px; padding: 1px;
+    background: linear-gradient(120deg, #f0d9e4, #c1a0ac, #806c79, #f0d9e4); background-size: 300% 300%;
+    -webkit-mask: linear-gradient(#000 0 0) content-box, linear-gradient(#000 0 0); -webkit-mask-composite: xor; mask-composite: exclude;
+    animation: flow 6s linear infinite; pointer-events: none; }
+
+  /* ===== ⑥ 聊天实装：两版手机框 ===== */
+  .chatpair { display: grid; grid-template-columns: 1fr 1fr; gap: 16px; max-width: 980px; margin: 0 auto; }
+  .phone { width: 100%; border-radius: 34px; background: #0a0810; padding: 16px 12px 18px;
+    border: 1px solid rgba(255,255,255,.08); box-shadow: 0 24px 60px rgba(0,0,0,.6); position: relative; overflow: hidden; }
+  .phone::before { content: ""; position: absolute; inset: 0;
+    background: radial-gradient(circle at 25% 20%, rgba(240,217,228,.16), transparent 45%),
+                radial-gradient(circle at 75% 80%, rgba(128,108,121,.28), transparent 50%); pointer-events: none; }
+  .chat { position: relative; display: flex; flex-direction: column; gap: 12px; padding: 6px 2px; }
+  .row { display: flex; } .row.ai { justify-content: flex-start; } .row.me { justify-content: flex-end; }
+  .cb { max-width: 78%; border-radius: 18px; padding: 11px 14px; font-size: 13px; line-height: 1.5; z-index: 2;
+    -webkit-backdrop-filter: blur(16px) saturate(180%); backdrop-filter: blur(16px) saturate(180%); }
+  .cb.ai { color: #f0d9e4; border-bottom-left-radius: 6px; }
+  .cb.me { color: #fff; border-bottom-right-radius: 6px; }
+
+  /* A 透明聊天 */
+  .A-ai { background: transparent; border: 1px solid rgba(255,255,255,.16); box-shadow: inset 0 1px 0 rgba(255,255,255,.14), 0 6px 18px rgba(0,0,0,.3); }
+  .A-me { background: rgba(240,217,228,.1); border: 1px solid rgba(255,255,255,.22); box-shadow: inset 0 1px 0 rgba(255,255,255,.2), 0 6px 20px rgba(0,0,0,.3); }
+  /* B 暗磨砂聊天（不填白） */
+  .B-ai { background: rgba(20,16,28,.5); border: 1px solid rgba(255,255,255,.16); box-shadow: inset 0 1px 0 rgba(255,255,255,.14), 0 6px 18px rgba(0,0,0,.45); }
+  .B-me { background: rgba(40,28,44,.5); border: 1px solid rgba(255,255,255,.22); box-shadow: inset 0 1px 0 rgba(255,255,255,.22), 0 6px 20px rgba(0,0,0,.45); }
+  .inputbar { margin-top: 14px; border-radius: 16px; padding: 10px 14px; font-size: 12px; color: #f0d9e4;
+    z-index: 2; position: relative; -webkit-backdrop-filter: blur(16px); backdrop-filter: blur(16px); }
+  .A-input { background: transparent; border: 1px solid rgba(255,255,255,.14); box-shadow: inset 0 1px 0 rgba(255,255,255,.12); }
+  .B-input { background: rgba(20,16,28,.5); border: 1px solid rgba(255,255,255,.16); box-shadow: inset 0 1px 0 rgba(255,255,255,.14); }
+
+  .note { max-width: 980px; margin: 36px auto 0; font-size: 12.5px; color: rgba(240,217,228,.55); line-height: 1.85; }
+  .note b { color: #c1a0ac; }
+  @media (max-width: 620px) { .pair, .chatpair { grid-template-columns: 1fr; } .vhead .desc { display: none; } }
+</style>
+</head>
+<body>
+  <header>
+    <h1>玻璃拟态气泡 · 黑底全 6 种 × 两种处理</h1>
+    <p class="lead">6 种质感全部浮在近黑底 + 彩色光斑上。每种类左右对照：<b>左 = 内部完全透明</b>（只靠模糊+高光边），<b>右 = 50% 磨砂（暗色填充，不填白）</b>。背景有彩色光斑，玻璃的"透"才看得出。</p>
+  </header>
+
+  <!-- ① 清透 -->
+  <div class="variant">
+    <div class="vhead"><span class="no">1</span><span class="name">清透玻璃</span><span class="desc">经典 glassmorphism，半透明白感</span></div>
+    <div class="pair">
+      <div><div class="col-h a"><span class="dot"></span>完全透明</div>
+        <div class="stage"><span class="blob a"></span><span class="blob b"></span><span class="blob c"></span>
+          <div class="bub A-clear">今天也辛苦啦 🌿</div><div class="bub A-clear sm">记得喝水哦～</div></div></div>
+      <div><div class="col-h b"><span class="dot"></span>50% 磨砂（暗色）</div>
+        <div class="stage"><span class="blob a"></span><span class="blob b"></span><span class="blob c"></span>
+          <div class="bub B-clear">今天也辛苦啦 🌿</div><div class="bub B-clear sm">记得喝水哦～</div></div></div>
+    </div>
+  </div>
+
+  <!-- ② 暗夜 -->
+  <div class="variant">
+    <div class="vhead"><span class="no">2</span><span class="name">暗夜玻璃</span><span class="desc">深底更明显，靠内高光浮出</span></div>
+    <div class="pair">
+      <div><div class="col-h a"><span class="dot"></span>完全透明</div>
+        <div class="stage"><span class="blob a"></span><span class="blob b"></span><span class="blob c"></span>
+          <div class="bub A-night">在一起 59 天</div><div class="bub A-night sm">晚安，做个好梦</div></div></div>
+      <div><div class="col-h b"><span class="dot"></span>50% 磨砂（暗色）</div>
+        <div class="stage"><span class="blob a"></span><span class="blob b"></span><span class="blob c"></span>
+          <div class="bub B-night">在一起 59 天</div><div class="bub B-night sm">晚安，做个好梦</div></div></div>
+    </div>
+  </div>
+
+  <!-- ③ 玫瑰光晕 -->
+  <div class="variant">
+    <div class="vhead"><span class="no">3</span><span class="name">玫瑰光晕玻璃</span><span class="star">★ 最贴合余年粉调</span></div>
+    <div class="pair">
+      <div><div class="col-h a"><span class="dot"></span>完全透明</div>
+        <div class="stage"><span class="blob a"></span><span class="blob b"></span><span class="blob c"></span>
+          <div class="bub A-glow">一起去海边看日出</div><div class="bub A-glow sm">想把今天收藏起来</div></div></div>
+      <div><div class="col-h b"><span class="dot"></span>50% 磨砂（暗色）</div>
+        <div class="stage"><span class="blob a"></span><span class="blob b"></span><span class="blob c"></span>
+          <div class="bub B-glow">一起去海边看日出</div><div class="bub B-glow sm">想把今天收藏起来</div></div></div>
+    </div>
+  </div>
+
+  <!-- ④ 厚磨砂 -->
+  <div class="variant">
+    <div class="vhead"><span class="no">4</span><span class="name">厚磨砂玻璃</span><span class="desc">模糊更强、高光边更厚，更"实"</span></div>
+    <div class="pair">
+      <div><div class="col-h a"><span class="dot"></span>完全透明</div>
+        <div class="stage"><span class="blob a"></span><span class="blob b"></span><span class="blob c"></span>
+          <div class="bub A-thick">重要的日子</div></div></div>
+      <div><div class="col-h b"><span class="dot"></span>50% 磨砂（暗色）</div>
+        <div class="stage"><span class="blob a"></span><span class="blob b"></span><span class="blob c"></span>
+          <div class="bub B-thick">重要的日子</div></div></div>
+    </div>
+  </div>
+
+  <!-- ⑤ 流光描边 -->
+  <div class="variant">
+    <div class="vhead"><span class="no">5</span><span class="name">流光描边玻璃</span><span class="desc">渐变描边流动，带"活"的动效</span></div>
+    <div class="pair">
+      <div><div class="col-h a"><span class="dot"></span>完全透明</div>
+        <div class="stage"><span class="blob a"></span><span class="blob b"></span><span class="blob c"></span>
+          <div class="bub A-flow">我们的故事</div></div></div>
+      <div><div class="col-h b"><span class="dot"></span>50% 磨砂（暗色）</div>
+        <div class="stage"><span class="blob a"></span><span class="blob b"></span><span class="blob c"></span>
+          <div class="bub B-flow">我们的故事</div></div></div>
+    </div>
+  </div>
+
+  <!-- ⑥ 聊天实装 -->
+  <div class="variant">
+    <div class="vhead"><span class="no">6</span><span class="name">聊天实装</span><span class="desc">手机框 me/ai 双向气泡 + 输入栏</span></div>
+    <div class="chatpair">
+      <div><div class="col-h a"><span class="dot"></span>完全透明</div>
+        <div class="phone"><div class="chat">
+          <div class="row ai"><div class="cb ai A-ai">今天过得怎么样呀？</div></div>
+          <div class="row me"><div class="cb me A-me">还不错，就是有点想你</div></div>
+          <div class="row ai"><div class="cb ai A-ai">我也想你 💗 早点休息好不好</div></div>
+          <div class="inputbar A-input">说点什么…</div>
+        </div></div></div>
+      <div><div class="col-h b"><span class="dot"></span>50% 磨砂（暗色）</div>
+        <div class="phone"><div class="chat">
+          <div class="row ai"><div class="cb ai B-ai">今天过得怎么样呀？</div></div>
+          <div class="row me"><div class="cb me B-me">还不错，就是有点想你</div></div>
+          <div class="row ai"><div class="cb ai B-ai">我也想你 💗 早点休息好不好</div></div>
+          <div class="inputbar B-input">说点什么…</div>
+        </div></div></div>
+    </div>
+  </div>
+
+  <p class="note">
+    <b>两种处理的区别（都已不含白色填充）：</b><br>
+    · <b>左 · 完全透明</b>：<code>background: transparent</code>，玻璃感全靠 <code>backdrop-filter: blur</code> 把背后彩色光斑揉碎 + 1px 高光描边。颜色更冷、更轻盈，黑底下像浮着一层空气膜。<br>
+    · <b>右 · 50% 磨砂（暗色）</b>：<code>background: rgba(20,16,28,.5)</code> + 模糊，雾面、更"实"、文字压上去更清楚，黑底下像磨砂玻璃灯罩。按你的要求<b>没有填白</b>，用的是暗色半透明填充。<br>
+    <b>挑法：</b>先定每种类你要 A 还是 B（或分场景：列表卡用 A、聊天文字用 B），再告诉我哪几种要落到余年 app。
+  </p>
+</body>
+</html>

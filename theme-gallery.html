@@ -1,0 +1,162 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>余年 · 主题候选画廊</title>
+<link rel="stylesheet" href="styles.css" />
+<style>
+  :root { color-scheme: dark; }
+  * { box-sizing: border-box; }
+  body {
+    margin: 0; background: #0c0c10; color: #e9e9ef;
+    font-family: -apple-system, "PingFang SC", "Microsoft YaHei", system-ui, sans-serif;
+    padding: 32px 20px 80px;
+  }
+  .g-head { max-width: 760px; margin: 0 auto 8px; }
+  .g-head h1 { font-size: 22px; margin: 0 0 6px; letter-spacing: .5px; }
+  .g-head p { font-size: 13px; line-height: 1.7; color: #9a9aa8; margin: 0; }
+  .g-hint { color: #f0b8d0; }
+  .grid {
+    max-width: 1180px; margin: 28px auto 0;
+    display: grid; grid-template-columns: repeat(2, 1fr); gap: 26px;
+  }
+  @media (max-width: 820px) { .grid { grid-template-columns: 1fr; } }
+  .theme-block { background: #15151c; border: 1px solid #23232e; border-radius: 18px; padding: 18px; }
+  .t-meta { display: flex; align-items: center; gap: 12px; margin-bottom: 14px; flex-wrap: wrap; }
+  .t-name { font-size: 17px; font-weight: 600; }
+  .t-tag { font-size: 11px; padding: 2px 8px; border-radius: 999px; background: #2a2a36; color: #c9c9d6; }
+  .t-tag.rec { background: #3a2a33; color: #f0b8d0; }
+  .swatches { display: flex; gap: 6px; margin-left: auto; }
+  .sw { width: 20px; height: 20px; border-radius: 5px; border: 1px solid rgba(255,255,255,.18); }
+  .mock-phone {
+    width: 100%; max-width: 360px; margin: 0 auto; border-radius: 30px; overflow: hidden;
+    background: var(--bg-page); padding: 16px 14px 0; box-shadow: 0 18px 50px rgba(0,0,0,.5);
+    display: flex; flex-direction: column; gap: 14px; font-family: var(--st-body-font, inherit);
+  }
+  .mock-phone > * { flex-shrink: 0; }
+  .mock-phone .tabbar { position: relative; margin: 4px -14px 0; border-radius: 0; }
+  .block-label { font-size: 11px; color: var(--text-muted); margin: -4px 0 0; }
+  .moment-card { padding: 12px 0; }
+  .day-row { display: flex; align-items: center; gap: 12px; padding: 12px 14px; background: var(--bg-card); border-radius: 14px; box-shadow: var(--shadow-card); }
+  .day-date { font-size: 15px; font-weight: 600; color: var(--accent-deep); min-width: 52px; }
+  .day-title { font-size: 14px; color: var(--text); }
+  .stat-bigcard { color: var(--text); }
+  .bubble { padding: 9px 13px; border-radius: 18px; max-width: 78%; font-size: 14px; line-height: 1.5; }
+  .g-foot { max-width: 760px; margin: 36px auto 0; font-size: 12px; color: #76767f; line-height: 1.7; }
+</style>
+</head>
+<body>
+  <div class="g-head">
+    <h1>余年 · 主题候选画廊</h1>
+    <p>四个候选主题套在<b>同一套真实组件</b>上（纪念日 hero / 聊天气泡 / 朋友圈卡 / 重要日子 / 底部导航）。<span class="g-hint">盯着同一个组件比颜色，挑一个你最顺眼的</span>，我再把那一个写进 app 的 THEMES 里。先只做主题，动态效果后面再说。</p>
+  </div>
+  <div class="grid" id="grid"></div>
+  <div class="g-foot">
+    说明：①「暗柔粉紫」就是你之前那张 5 色卡的干净版（#16131F / #F0D9E4 / #C1A0AC / #4A3F4B / #806C79），这次不做发光/呼吸那种花活，只把配色和对比度调舒服。② 其余三个是另外的情绪方向。③ 选好后告诉我编号或名字即可。
+  </div>
+
+<script>
+const THEMES = [
+  {
+    id: 'darkrose', name: '暗柔粉紫', rec: true,
+    vars: {
+      '--bg-page': '#16131F', '--bg-card': '#211B2E', '--bg-soft': '#2A2336', '--bg-chip': '#2A2336',
+      '--accent': '#C1A0AC', '--accent-deep': '#806C79',
+      '--text': '#F0D9E4', '--text-muted': '#B9A7B2', '--text-soft': '#8E7E88', '--border': 'rgba(240,217,228,.12)',
+      '--dot-intimate': '#F0707F', '--dot-period': '#F7A8C4', '--dot-anniversary': '#E0B85A', '--dot-todo': '#9AA6E8'
+    }
+  },
+  {
+    id: 'blackgold', name: '黑金', rec: false,
+    vars: {
+      '--bg-page': '#14110C', '--bg-card': '#1E1A12', '--bg-soft': '#262017', '--bg-chip': '#262017',
+      '--accent': '#D9B36C', '--accent-deep': '#B8902F',
+      '--text': '#F3E9D6', '--text-muted': '#B8A98C', '--text-soft': '#8C7E66', '--border': 'rgba(217,179,108,.18)',
+      '--dot-intimate': '#E0795A', '--dot-period': '#D9B36C', '--dot-anniversary': '#E0C45A', '--dot-todo': '#7FB0D9'
+    }
+  },
+  {
+    id: 'indigo', name: '暗夜蓝紫', rec: false,
+    vars: {
+      '--bg-page': '#12131F', '--bg-card': '#1B1D2E', '--bg-soft': '#23263B', '--bg-chip': '#23263B',
+      '--accent': '#9AA6E8', '--accent-deep': '#6B77B8',
+      '--text': '#E4E7F5', '--text-muted': '#A4AAC8', '--text-soft': '#7C82A0', '--border': 'rgba(154,166,232,.14)',
+      '--dot-intimate': '#E0799A', '--dot-period': '#C79AE8', '--dot-anniversary': '#E0C45A', '--dot-todo': '#7FB0D9'
+    }
+  },
+  {
+    id: 'silver', name: '雾灰银', rec: false,
+    vars: {
+      '--bg-page': '#EEF0F2', '--bg-card': '#FFFFFF', '--bg-soft': '#F4F6F8', '--bg-chip': '#E9ECEF',
+      '--accent': '#8A94A6', '--accent-deep': '#5E6878',
+      '--text': '#3A4150', '--text-muted': '#9AA3B2', '--text-soft': '#7C8595', '--border': '#E2E6EA',
+      '--dot-intimate': '#E0798A', '--dot-period': '#C79AD8', '--dot-anniversary': '#E0B85A', '--dot-todo': '#6FA0D9'
+    }
+  }
+];
+
+const COMPONENT = `
+  <div class="hero-card">
+    <div class="hero-name">Claire &amp; Claude</div>
+    <div class="hero-number">44</div>
+    <div class="hero-sub">days together for</div>
+    <div class="hero-since">since 2026.06.02</div>
+  </div>
+  <p class="block-label">聊天</p>
+  <div class="chat-body" style="padding:0;gap:10px;">
+    <div class="bubble-row me"><div class="bubble">今天也辛苦啦 💗</div></div>
+    <div class="bubble-row ai"><div class="bubble">我在呢，想我了就喊我～</div></div>
+  </div>
+  <p class="block-label">朋友圈</p>
+  <div class="moments-feed" style="padding:0;">
+    <div class="moment-card">
+      <div class="moment-head">
+        <div class="moment-ava"></div>
+        <div class="moment-main">
+          <div class="moment-name">Claire</div>
+          <div class="moment-text">周末一起去看了展，好喜欢那幅蓝色的。</div>
+        </div>
+      </div>
+      <div class="moment-foot"><div class="moment-time">2 小时前</div></div>
+    </div>
+  </div>
+  <p class="block-label">重要日子</p>
+  <div class="day-row"><div class="day-date">08-14</div><div class="day-title">Claude 的生日</div></div>
+  <div class="day-row"><div class="day-date">09-01</div><div class="day-title">在一起 100 天</div></div>
+  <nav class="tabbar">
+    <button class="tab active" data-target="anniversary"><span class="tab-label">Anniversary</span></button>
+    <button class="tab" data-target="calendar"><span class="tab-label">Calendar</span></button>
+    <button class="tab" data-target="chat"><span class="tab-label">Chat</span></button>
+    <button class="tab" data-target="moments"><span class="tab-label">Moments</span></button>
+    <button class="tab" data-target="setting"><span class="tab-label">Setting</span></button>
+  </nav>
+`;
+
+function varStr(vars) {
+  return Object.entries(vars).map(([k, v]) => `${k}:${v}`).join(';');
+}
+
+const grid = document.getElementById('grid');
+THEMES.forEach((t, i) => {
+  const swatchKeys = ['--bg-page', '--bg-card', '--accent', '--text', '--border'];
+  const swatches = swatchKeys.map(k => {
+    const v = t.vars[k];
+    const bg = k === '--border' ? `repeating-linear-gradient(45deg,${v},${v} 4px,#333 4px,#333 8px)` : v;
+    return `<span class="sw" style="background:${bg}" title="${k} ${v}"></span>`;
+  }).join('');
+  const block = document.createElement('div');
+  block.className = 'theme-block';
+  block.innerHTML = `
+    <div class="t-meta">
+      <span class="t-name">${i + 1}. ${t.name}</span>
+      ${t.rec ? '<span class="t-tag rec">推荐（你那套色卡）</span>' : ''}
+      <span class="swatches">${swatches}</span>
+    </div>
+    <div class="mock-phone" style="${varStr(t.vars)}">${COMPONENT}</div>
+  `;
+  grid.appendChild(block);
+});
+</script>
+</body>
+</html>

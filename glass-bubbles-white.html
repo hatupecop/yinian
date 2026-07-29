@@ -1,0 +1,270 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>玻璃拟态气泡 · 白底预览</title>
+<style>
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+  :root {
+    --ink: #2b2730;
+    --muted: #88808f;
+    --page: #ffffff;
+  }
+  body {
+    font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", "PingFang SC", "Microsoft YaHei", sans-serif;
+    background: var(--page);
+    color: var(--ink);
+    padding: 32px 22px 90px;
+    -webkit-font-smoothing: antialiased;
+  }
+  h1 { font-size: 22px; font-weight: 600; margin-bottom: 6px; }
+  .lead { font-size: 13px; color: var(--muted); line-height: 1.7; margin-bottom: 26px; max-width: 720px; }
+  .lead b { color: var(--ink); font-weight: 600; }
+
+  .section { margin-bottom: 38px; }
+  .sec-title {
+    font-size: 14px; font-weight: 600; margin-bottom: 4px;
+    display: flex; align-items: center; gap: 8px;
+  }
+  .sec-title .no {
+    width: 22px; height: 22px; border-radius: 7px;
+    background: #6c5ce7; color: #fff; font-size: 12px;
+    display: inline-flex; align-items: center; justify-content: center;
+  }
+  .sec-title .star { color: #e84393; }
+  .sec-desc { font-size: 12px; color: var(--muted); margin-bottom: 16px; line-height: 1.7; max-width: 720px; }
+
+  .stage {
+    border-radius: 18px;
+    padding: 28px 22px;
+    background: #ffffff;
+    border: 1px solid rgba(0,0,0,0.05);
+    display: flex;
+    flex-wrap: wrap;
+    gap: 14px;
+    align-items: center;
+    justify-content: center;
+    min-height: 140px;
+    box-shadow: 0 1px 0 rgba(0,0,0,0.02);
+  }
+
+  /* —— 上一版 6 种玻璃气泡（白底版：增浅边 + 微投影让气泡可见） —— */
+  .glass {
+    border-radius: 20px;
+    padding: 14px 18px;
+    font-size: 14px;
+    line-height: 1.5;
+    position: relative;
+    -webkit-backdrop-filter: blur(18px) saturate(180%);
+    backdrop-filter: blur(18px) saturate(180%);
+  }
+  .g-clear {
+    background: rgba(255,255,255,0.45);
+    border: 1px solid rgba(0,0,0,0.06);
+    box-shadow: 0 6px 22px rgba(120,80,110,0.10), inset 0 1px 0 rgba(255,255,255,0.85);
+    color: #4a3f4b;
+  }
+  .g-night {
+    background: rgba(255,255,255,0.30);
+    border: 1px solid rgba(0,0,0,0.07);
+    box-shadow: 0 6px 22px rgba(0,0,0,0.10), inset 0 1px 0 rgba(255,255,255,0.6);
+    color: #2b2730;
+  }
+  .g-glow {
+    background: rgba(255,255,255,0.40);
+    border: 1px solid rgba(190,94,229,0.18);
+    box-shadow: 0 10px 28px rgba(190,94,229,0.18), 0 0 18px rgba(190,94,229,0.10), inset 0 1px 0 rgba(255,255,255,0.8);
+    color: #4a3f4b;
+  }
+  .g-thick {
+    background: rgba(255,255,255,0.55);
+    border: 1px solid rgba(0,0,0,0.05);
+    -webkit-backdrop-filter: blur(28px) saturate(160%);
+    backdrop-filter: blur(28px) saturate(160%);
+    box-shadow: 0 12px 36px rgba(120,80,110,0.14), inset 0 2px 0 rgba(255,255,255,0.9);
+    color: #2b2730;
+  }
+  .g-flow {
+    background: rgba(255,255,255,0.40);
+    color: #4a3f4b;
+    border: 1px solid transparent;
+    background-clip: padding-box;
+    position: relative;
+    box-shadow: 0 6px 22px rgba(120,80,110,0.10);
+  }
+  .g-flow::before {
+    content: ""; position: absolute; inset: -1px; border-radius: 21px;
+    padding: 1px;
+    background: linear-gradient(120deg, #f0d9e4, #c1a0ac, #806c79, #f0d9e4);
+    background-size: 300% 300%;
+    -webkit-mask: linear-gradient(#000 0 0) content-box, linear-gradient(#000 0 0);
+    -webkit-mask-composite: xor; mask-composite: exclude;
+    animation: flow 6s linear infinite;
+    pointer-events: none;
+  }
+  @keyframes flow { 0% { background-position: 0% 50%; } 100% { background-position: 300% 50%; } }
+
+  /* —— 设计稿复刻气泡：径向渐变 + 高斯模糊 26 —— */
+  .figma-pill {
+    width: 360px; height: 86px;
+    border-radius: 999px;
+    background: #ffffff;
+    border: 1px solid rgba(0,0,0,0.06);
+    box-shadow: 0 10px 28px rgba(190,94,229,0.10);
+    position: relative; overflow: hidden;
+  }
+  .figma-pill .blur-bg {
+    position: absolute; inset: 0;
+    background:
+      radial-gradient(circle at 16% 50%, #f0dbf7, transparent 38%),
+      radial-gradient(circle at 33% 50%, #be5ee5 0%, transparent 12%),
+      radial-gradient(circle at 47% 48%, #f1f1f1 0%, transparent 18%),
+      radial-gradient(circle at 50% 50%, rgba(159,154,255,0.09) 0%, transparent 10%),
+      radial-gradient(circle at 50% 50%, rgba(211,213,226,0.54) 0%, transparent 12%),
+      radial-gradient(circle at 85% 50%, rgba(225,194,236,0.30) 0%, transparent 22%),
+      linear-gradient(to right, rgba(244,244,247,0.55) 0%, transparent 18%, transparent 82%, rgba(244,244,247,0.55) 100%);
+    filter: blur(26px);
+      opacity: 0.95;
+  }
+  .figma-pill .label {
+    position: absolute; left: 20px; top: 50%; transform: translateY(-50%);
+    color: #2b2730; font-size: 14px; font-weight: 500;
+  }
+
+  /* 设计稿 #2 小灰胶囊 */
+  .figma-pill-2 {
+    width: 320px; height: 72px;
+    border-radius: 999px;
+    background: linear-gradient(90deg, #bcc0c8 0%, #b0b5be 50%, #bcc0c8 100%);
+    border: 1px solid rgba(0,0,0,0.05);
+    box-shadow: 0 8px 22px rgba(120,130,150,0.18);
+  }
+
+  /* —— 聊天实装（白底） —— */
+  .phone {
+    width: 300px; margin: 0 auto; border-radius: 34px;
+    background: #f7f4f8;
+    padding: 16px 12px 20px;
+    box-shadow: 0 16px 40px rgba(50,30,60,0.12);
+    border: 1px solid rgba(0,0,0,0.06);
+    position: relative;
+  }
+  .chat { display: flex; flex-direction: column; gap: 12px; padding: 6px 2px; }
+  .row { display: flex; }
+  .row.ai { justify-content: flex-start; }
+  .row.me { justify-content: flex-end; }
+  .bubble {
+    max-width: 78%; border-radius: 18px; padding: 11px 14px; font-size: 13px; line-height: 1.5;
+  }
+  .bubble.ai {
+    background: rgba(255,255,255,0.70);
+    border: 1px solid rgba(0,0,0,0.05);
+    color: #4a3f4b;
+    box-shadow: 0 4px 14px rgba(120,80,110,0.08), inset 0 1px 0 rgba(255,255,255,0.9);
+    -webkit-backdrop-filter: blur(16px); backdrop-filter: blur(16px);
+    border-bottom-left-radius: 6px;
+  }
+  .bubble.me {
+    background: linear-gradient(135deg, #f0d9e4, #c1a0ac);
+    border: 1px solid rgba(255,255,255,0.6);
+    color: #fff;
+    box-shadow: 0 6px 18px rgba(190,94,229,0.20), inset 0 1px 0 rgba(255,255,255,0.5);
+    border-bottom-right-radius: 6px;
+  }
+  .inputbar {
+    margin-top: 14px; border-radius: 16px; padding: 10px 14px; font-size: 12px; color: #88808f;
+    background: rgba(255,255,255,0.7);
+    border: 1px solid rgba(0,0,0,0.05);
+    -webkit-backdrop-filter: blur(16px); backdrop-filter: blur(16px);
+    box-shadow: 0 4px 14px rgba(120,80,110,0.08);
+  }
+
+  /* 设计稿色谱 */
+  .palette { display: flex; flex-wrap: wrap; gap: 8px; margin-top: 14px; font-size: 11px; color: #88808f; }
+  .palette span {
+    display: inline-flex; align-items: center; gap: 6px;
+    padding: 4px 10px; border-radius: 999px;
+    border: 1px solid rgba(0,0,0,0.08);
+    background: #fff;
+  }
+  .palette i {
+    width: 12px; height: 12px; border-radius: 999px; border: 1px solid rgba(0,0,0,0.1);
+    display: inline-block;
+  }
+
+  .tag { font-size: 11px; color: var(--muted); margin-top: 14px; line-height: 1.6; max-width: 720px; }
+
+  .grid2 { display: grid; grid-template-columns: 1fr 1fr; gap: 16px; }
+  @media (max-width: 720px) { .grid2 { grid-template-columns: 1fr; } .figma-pill { width: 100%; max-width: 360px; } }
+</style>
+</head>
+<body>
+  <h1>玻璃拟态气泡 · 白底预览</h1>
+  <p class="lead">之前那 6 种换到白底上一眼看清差异：<b>①③④</b> 在白底上要靠<b>细边 + 微投影</b>才有"形"，且透明感会被白底削弱。<b>★ 设计稿风格</b>不走 backdrop-filter 透明路线，而是用<b>径向渐变 + 高斯模糊 26</b>做柔色团——这种在白底/任何底上都稳定可读，是 Figma 风的"真·柔光气泡"。</p>
+
+  <div class="section">
+    <div class="sec-title"><span class="no">★</span><span class="star">按设计稿做的"边框+底色"（主推）</span></div>
+    <div class="sec-desc">pill 形白底 + 内部多个 radial-gradient 色点（粉紫 #be5ee5 / 淡紫 #f0dbf7 / 淡蓝紫 #9f9aff 9% / 灰 #d3d5e2 54% / 淡紫 #e1c2ec 10% / 边缘 #f4f4f7 30%）+ 整体 <b>filter: blur(26px)</b> 柔化交融。白底上视觉最稳。</div>
+    <div class="stage" style="flex-direction:column; gap: 18px; padding: 36px 22px;">
+      <div class="figma-pill"><div class="blur-bg"></div><div class="label">送给你一颗小心心 💗</div></div>
+      <div class="figma-pill-2"></div>
+    </div>
+    <div class="palette">
+      <span><i style="background:#f0dbf7"></i>#f0dbf7 左侧淡紫</span>
+      <span><i style="background:#daa1f1"></i>#daa1f1 中心淡紫</span>
+      <span><i style="background:#be5ee5"></i>#be5ee5 中心粉紫 ★</span>
+      <span><i style="background:#9f9aff"></i>#9f9aff 9% 中心蓝紫</span>
+      <span><i style="background:#d3d5e2"></i>#d3d5e2 54% 灰</span>
+      <span><i style="background:#e1c2ec"></i>#e1c2ec 10% 右上淡紫</span>
+      <span><i style="background:#f4f4f7"></i>#f4f4f7 30% 边缘</span>
+      <span><i style="background:#bcc0c8"></i>#bcc0c8 #2 小灰左</span>
+      <span><i style="background:#b0b5be"></i>#b0b5be #2 小灰中</span>
+    </div>
+  </div>
+
+  <div class="section">
+    <div class="sec-title"><span class="no">·</span>之前 6 种玻璃气泡 · 白底版</div>
+    <div class="sec-desc">同一组文字（"今天也辛苦啦 / 记得喝水哦"）换成白底后，玻璃透明感会变弱 — 我给每个加了<b>浅 1px 边 + 微投影</b>保证有形。</div>
+    <div class="grid2">
+      <div>
+        <div class="sec-desc" style="margin-bottom:10px;"><b>① 清透</b> · 经典</div>
+        <div class="stage" style="min-height:120px;"><div class="glass g-clear">今天也辛苦啦 🌿</div><div class="glass g-clear">记得喝水哦～</div></div>
+      </div>
+      <div>
+        <div class="sec-desc" style="margin-bottom:10px;"><b>② 暗夜</b> · 适配深底</div>
+        <div class="stage" style="min-height:120px;"><div class="glass g-night">在一起 59 天</div><div class="glass g-night">晚安，做个好梦</div></div>
+      </div>
+      <div>
+        <div class="sec-desc" style="margin-bottom:10px;"><b>③ 玫瑰光晕</b> · 余年粉调</div>
+        <div class="stage" style="min-height:120px;"><div class="glass g-glow">想去海边看日出</div></div>
+      </div>
+      <div>
+        <div class="sec-desc" style="margin-bottom:10px;"><b>④ 厚磨砂</b> · 更实</div>
+        <div class="stage" style="min-height:120px;"><div class="glass g-thick">重要的日子</div></div>
+      </div>
+      <div style="grid-column: 1 / -1;">
+        <div class="sec-desc" style="margin-bottom:10px;"><b>⑤ 流光描边</b> · 描边渐变流动（动效）</div>
+        <div class="stage" style="min-height:120px;"><div class="glass g-flow">我们的故事</div></div>
+      </div>
+    </div>
+  </div>
+
+  <div class="section">
+    <div class="sec-title"><span class="no">·</span>聊天实装（白底）</div>
+    <div class="sec-desc">在余年的实际界面（白底浅紫调）里：AI 玻璃气泡（磨砂白）+ 我的气泡（粉紫渐变）+ 玻璃输入栏。这是最像 app 真容的样子。</div>
+    <div class="stage" style="min-height:auto;">
+      <div class="phone">
+        <div class="chat">
+          <div class="row ai"><div class="bubble ai">今天过得怎么样呀？</div></div>
+          <div class="row me"><div class="bubble me">还不错，就是有点想你</div></div>
+          <div class="row ai"><div class="bubble ai">我也想你 💗 早点休息好不好</div></div>
+          <div class="inputbar">说点什么…</div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <p class="tag">★ 设计稿风格气泡 vs 之前 6 种的关键区别：前者是<b>完全不透明 + 内部柔色</b>（白底稳、深底也稳，是 Figma 主流的"真柔光"），后者是<b>半透明 + backdrop 模糊</b>（彩色/深底更出彩，白底存在感弱）。你想让气泡"无论背景色都长一样"就用前者，否则用后者。</p>
+</body>
+</html>
