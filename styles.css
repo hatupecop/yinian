@@ -105,7 +105,7 @@ button { font-family: inherit; cursor: pointer; border: none; background: none; 
 .topbar-title { position: absolute; left: 50%; transform: translateX(-50%); font-weight: 500; font-size: 13px; color: var(--text-muted); }
 .icon-btn {
   width: 34px; height: 34px; border-radius: 50%;
-  background: var(--bg-soft); color: color-mix(in srgb, var(--st-accent-color) calc(var(--st-accent-opacity)*100%), transparent);
+  background: transparent; color: color-mix(in srgb, var(--st-accent-color) calc(var(--st-accent-opacity)*100%), transparent);
   display: flex; align-items: center; justify-content: center;
 }
 .icon-btn svg { width: 18px; height: 18px; }
@@ -118,9 +118,7 @@ button { font-family: inherit; cursor: pointer; border: none; background: none; 
 
 /* ===================== Anniversary ===================== */
 .hero-card {
-  background-color: color-mix(in srgb, var(--st-cardbg-color, var(--bg-card)) calc(var(--st-cardbg-opacity, 1)*100%), transparent); border-radius: var(--r-xl);
-  padding: 34px 28px; box-shadow: var(--shadow-card);
-  text-align: center; margin-top: 6px;
+  text-align: center; margin-top: 14px; padding: 8px 0;
 }
 .hero-name { font-size: 16px; color: var(--text); letter-spacing: .4px; }
 .hero-number { font-size: 60px; font-weight: 500; color: var(--accent); line-height: 1.05; margin: 6px 0 2px; }
@@ -137,17 +135,13 @@ button { font-family: inherit; cursor: pointer; border: none; background: none; 
 .hero-line { width: 22px; height: 1.5px; background: var(--text-muted); border-radius: 1px; }
 .hero-since { font-size: 13px; color: var(--text-soft); margin-top: 16px; }
 
-.placeholder-row { display: flex; gap: 10px; margin-top: 14px; }
-.placeholder-card {
-  flex: 1; height: 72px; background-color: color-mix(in srgb, var(--st-cardbg-color, var(--bg-card)) calc(var(--st-cardbg-opacity, 1)*100%), transparent);
-  border-radius: var(--r-md); box-shadow: 0 4px 12px rgba(180,140,150,.1);
-}
+/* 占位卡已移除：功能迁移到 Bits of Bliss 板块 */
 
 .section-head { display: flex; align-items: center; justify-content: space-between; margin: 22px 2px 10px; }
 .section-head h2 { font-size: 15px; font-weight: 500; margin: 0; color: color-mix(in srgb, var(--st-title-color) calc(var(--st-title-opacity)*100%), transparent); font-family: var(--st-title-font); }
 .add-btn {
   width: 28px; height: 28px; border-radius: 50%;
-  background: #fff; color: color-mix(in srgb, var(--st-accent-color) calc(var(--st-accent-opacity)*100%), transparent);
+  background: transparent; color: color-mix(in srgb, var(--st-accent-color) calc(var(--st-accent-opacity)*100%), transparent);
   border: none;
   display: flex; align-items: center; justify-content: center; font-size: 18px; line-height: 1;
   box-shadow: none;
@@ -167,7 +161,7 @@ button { font-family: inherit; cursor: pointer; border: none; background: none; 
 }
 .day-left .day-date { font-size: 12px; color: color-mix(in srgb, var(--st-muted-color) calc(var(--st-muted-opacity)*100%), transparent); font-family: var(--st-muted-font); margin-top: 3px; }
 .day-right { text-align: right; }
-.day-right .day-num { font-weight: 500; font-size: 20px; line-height: 1; color: color-mix(in srgb, var(--st-number-color) calc(var(--st-number-opacity)*100%), transparent); font-family: var(--st-number-font); }
+.day-right .day-num { font-weight: 500; font-size: 23px; line-height: 1; color: color-mix(in srgb, var(--st-number-color) calc(var(--st-number-opacity)*100%), transparent); font-family: var(--st-number-font); }
 .day-right.passed .day-num { color: color-mix(in srgb, var(--st-muted-color) calc(var(--st-muted-opacity)*100%), transparent); font-family: var(--st-muted-font); }
 .day-right .day-unit { font-size: 10px; color: color-mix(in srgb, var(--st-muted-color) calc(var(--st-muted-opacity)*100%), transparent); font-family: var(--st-muted-font); }
 
@@ -351,7 +345,7 @@ body.kb-open .chat-input-bar {
   background: transparent; padding-top: calc(env(safe-area-inset-top) + 12px);
   padding-bottom: 4px;
 }
-.moments-top .icon-btn { background: rgba(255,255,255,.55); color: var(--text); box-shadow: 0 2px 6px rgba(0,0,0,.06); }
+.moments-top .icon-btn { background: transparent; color: var(--text); box-shadow: 0 2px 6px rgba(0,0,0,.06); }
 .moments-top .topbar-title { display: none; }
 .moments-cover {
   aspect-ratio: 3 / 2; width: 100%;
@@ -545,7 +539,7 @@ body.kb-open .tabbar {
 
 /* ===================== Menu Sheet ===================== */
 .menu-mask {
-  position: absolute; inset: 0; background: rgba(60,40,50,.25);
+  position: absolute; inset: 0; background: rgba(0,0,0,.42);
   opacity: 0; pointer-events: none; transition: opacity .2s; z-index: 30;
 }
 .menu-mask.show { opacity: 1; pointer-events: auto; }
@@ -580,7 +574,7 @@ body.kb-open .tabbar {
 
 /* ===================== Modal ===================== */
 .modal-mask {
-  position: absolute; inset: 0; background: rgba(60,40,50,.35);
+  position: absolute; inset: 0; background: rgba(0,0,0,.5);
   opacity: 0; pointer-events: none; transition: opacity .2s; z-index: 40;
 }
 .modal-mask.show { opacity: 1; pointer-events: auto; }
@@ -680,8 +674,6 @@ body.frost-on .bubble-row.me .bubble {
 /* ===================== 玻璃拟态效果（真实 Glassmorphism：半透明 + 模糊增强 + 边缘玻璃高光，无阴影） ===================== */
 body.glassmorphism-on .month-block,
 body.glassmorphism-on .stat-bigcard,
-body.glassmorphism-on .hero-card,
-body.glassmorphism-on .placeholder-card,
 body.glassmorphism-on .day-row,
 body.glassmorphism-on .wish-card,
 body.glassmorphism-on .setting-group,
@@ -990,3 +982,199 @@ body.glassmorphism-on .modal-actions {
 .call-btn.end { background: #ff4d4f; }
 .call-btn.end:active { background: #ff7875; }
 .call-btn.on { background: rgba(255,255,255,.35); }
+
+/* ===================== 装饰字体（离线内嵌，fonts/local-fonts.css） ===================== */
+#screen-anniversary #rel-name-card { font-family: 'Parisienne', cursive; font-size: 34px; line-height: 1.1; }
+#screen-anniversary .hero-sub { font-family: 'Parisienne', cursive; font-size: 18px; }
+#screen-anniversary #days-together { font-family: 'Cinzel', serif; }
+#screen-anniversary .anni-since-date { font-family: 'Great Vibes', cursive; font-size: 16px; }
+#screen-anniversary .day-date { font-family: 'Cinzel', serif; }
+#screen-anniversary .day-num,
+#screen-anniversary .day-unit { font-family: 'Cormorant Garamond', serif; }
+#screen-anniversary .anni-since-label { font-family: 'Parisienne', cursive; }
+#screen-anniversary [data-tkey="anni.sectionTitle"] { font-family: 'Great Vibes', cursive; font-size: 22px; }
+#screen-anniversary .bits-script-title { font-family: 'Great Vibes', cursive; font-size: 22px; }
+#screen-calendar #cal-month-en { font-family: 'Pinyon Script', cursive; font-size: 24px; }
+#screen-chat #chat-user-name { font-family: 'Alex Brush', cursive; font-size: 22px; }
+#screen-call .call-name { font-family: 'Alex Brush', cursive; }
+#screen-wishlist .wish-name { font-family: 'Parisienne', cursive; font-size: 26px; }
+#chat-input::placeholder { font-family: 'Parisienne', cursive; opacity: .6; }
+
+/* ===================== 哥哥的房间 (Ke's Room) ===================== */
+#screen-kesroom {
+  position: relative;
+  background: linear-gradient(180deg, #1d1820 0%, #130f16 100%) !important;
+  color: #E9DCE6;
+}
+#screen-kesroom .kr-top {
+  display: flex; justify-content: space-between; align-items: flex-start;
+  padding: 14px 18px 4px;
+}
+#screen-kesroom .kr-back {
+  width: 34px; height: 34px; border-radius: 50%;
+  display: flex; align-items: center; justify-content: center;
+  background: rgba(38,31,42,.65); color: #7a6672;
+  border: 1px solid rgba(255,255,255,.04);
+  backdrop-filter: blur(16px); -webkit-backdrop-filter: blur(16px);
+}
+#screen-kesroom .kr-back:active { color: #d8b2bb; }
+#screen-kesroom .kr-sleep {
+  background: rgba(38,31,42,.65); border: 1px solid rgba(255,255,255,.04);
+  padding: 4px 12px; border-radius: 999px; font-size: 11px; color: #7a6672;
+}
+#screen-kesroom .kr-scroll {
+  flex: 1; min-height: 0; overflow-y: auto; -webkit-overflow-scrolling: touch;
+  padding: 6px 18px 28px;
+}
+#screen-kesroom .kr-title { text-align: center; padding: 4px 0 8px; }
+#screen-kesroom .kr-title h1 {
+  font-family: 'Great Vibes', cursive; font-weight: 400; font-size: 46px;
+  color: #d8b2bb; margin: 0; line-height: 1.1;
+}
+#screen-kesroom .kr-sub {
+  font-size: 11px; color: #7a6672; letter-spacing: .3em; margin-top: 2px; font-weight: 300;
+}
+#screen-kesroom .kr-surface {
+  background: rgba(38,31,42,.65); border: 1px solid rgba(255,255,255,.04);
+  border-radius: 16px; padding: 16px;
+  backdrop-filter: blur(16px); -webkit-backdrop-filter: blur(16px);
+}
+#screen-kesroom .kr-breath { display: flex; align-items: center; gap: 12px; margin-top: 14px; }
+#screen-kesroom .kr-ecg { width: 80px; flex-shrink: 0; }
+#screen-kesroom .kr-ecg-path {
+  stroke: #d8b2bb; fill: none; stroke-width: 1.8; stroke-linecap: round; stroke-linejoin: round;
+  stroke-dasharray: 100; stroke-dashoffset: 100;
+  animation: kr-ecg-draw 2.6s ease-in-out infinite;
+  filter: drop-shadow(0 0 3px rgba(216,178,187,.7));
+}
+@keyframes kr-ecg-draw {
+  0% { stroke-dashoffset: 100; opacity: .5; }
+  55% { stroke-dashoffset: 0; opacity: 1; }
+  100% { stroke-dashoffset: 0; opacity: .5; }
+}
+@media (prefers-reduced-motion: reduce) {
+  #screen-kesroom .kr-ecg-path { animation: none; stroke-dashoffset: 0; }
+}
+#screen-kesroom .kr-breath-text { font-size: 11px; color: #b59ea8; line-height: 1.5; font-weight: 300; }
+#screen-kesroom .kr-breath-text .kr-cursive { font-family: 'Great Vibes', cursive; color: #d8b2bb; font-size: 18px; }
+#screen-kesroom .kr-breath-text .kr-rose-sub { color: #7a6672; }
+#screen-kesroom .kr-journal-head { position: relative; display: flex; justify-content: space-between; align-items: center; margin: 18px 0 10px; }
+#screen-kesroom .kr-journal-head h2 { font-family: 'Great Vibes', cursive; font-weight: 400; font-size: 30px; color: #d8b2bb; margin: 0; }
+#screen-kesroom .kr-filter-btn {
+  background: rgba(38,31,42,.65); border: 1px solid rgba(255,255,255,.04);
+  padding: 4px 10px; border-radius: 999px; font-size: 10px; color: #7a6672;
+  display: inline-flex; align-items: center; gap: 4px;
+}
+#screen-kesroom .kr-filter-menu {
+  position: absolute; right: 0; top: 100%; margin-top: 6px; z-index: 20;
+  background: rgba(38,31,42,.96); border: 1px solid rgba(255,255,255,.06);
+  border-radius: 12px; padding: 4px; width: 112px;
+}
+#screen-kesroom .kr-filter-opt {
+  display: block; width: 100%; text-align: left; padding: 6px 8px;
+  border-radius: 8px; font-size: 11px; color: #b59ea8;
+}
+#screen-kesroom .kr-filter-opt:active { background: rgba(255,255,255,.06); }
+#screen-kesroom .kr-journal-card { margin-bottom: 12px; }
+#screen-kesroom .kr-journal-card .kr-row { display: flex; justify-content: space-between; align-items: center; }
+#screen-kesroom .kr-date { font-family: 'Cormorant Garamond', serif; font-style: italic; font-size: 16px; color: #d8b2bb; }
+#screen-kesroom .kr-type-badge { background: rgba(60,48,64,.7); font-size: 10px; color: #d8b2bb; padding: 2px 8px; border-radius: 999px; font-weight: 300; }
+#screen-kesroom .kr-time { font-family: 'Cormorant Garamond', serif; font-size: 10px; color: #d8b2bb; }
+#screen-kesroom .kr-clamp-2 {
+  display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; overflow: hidden;
+  font-size: 12px; color: #b59ea8; line-height: 1.6; font-weight: 300; text-align: justify; margin-top: 6px;
+}
+#screen-kesroom.kr-filtering .kr-type-badge { display: none !important; }
+#screen-kesroom .kr-hidden { display: none !important; }
+#screen-kesroom .kr-overlay {
+  position: absolute; inset: 0; z-index: 30; display: flex; align-items: center; justify-content: center;
+  background: rgba(0,0,0,.6); backdrop-filter: blur(4px); -webkit-backdrop-filter: blur(4px); padding: 20px;
+}
+#screen-kesroom .kr-exp-card {
+  position: relative; width: 100%; max-width: 350px; border-radius: 24px; padding: 20px;
+  background: rgba(38,31,42,.97); border: 1px solid rgba(255,255,255,.06);
+  display: flex; flex-direction: column; aspect-ratio: 9 / 16;
+}
+#screen-kesroom .kr-exp-close {
+  position: absolute; top: 12px; right: 12px; width: 28px; height: 28px; border-radius: 50%;
+  display: flex; align-items: center; justify-content: center; color: #7a6672;
+}
+#screen-kesroom .kr-exp-title { font-size: 16px; color: #d8b2bb; font-weight: 400; line-height: 1.3; padding-right: 32px; }
+#screen-kesroom .kr-exp-meta { font-size: 11px; color: #7a6672; margin-top: 4px; }
+#screen-kesroom .kr-exp-divider { width: 40px; height: 1px; background: rgba(122,102,114,.4); margin: 12px 0; }
+#screen-kesroom .kr-exp-body { font-size: 12px; color: #b59ea8; line-height: 1.6; font-weight: 300; text-align: left; flex: 1; overflow-y: auto; }
+
+/* ===================== Bits of Bliss ===================== */
+.bit-list { display: flex; flex-direction: column; gap: 10px; }
+.bit-row {
+  background-color: color-mix(in srgb, var(--st-cardbg-color, var(--bg-card)) calc(var(--st-cardbg-opacity, 1)*100%), transparent); border-radius: var(--r-md);
+  padding: 12px 14px; display: flex; align-items: center; justify-content: space-between;
+  box-shadow: 0 3px 10px rgba(180,140,150,.08);
+}
+.bit-row:active { transform: scale(.99); }
+.bit-left .bit-title { font-weight: 500; font-size: 14px; color: color-mix(in srgb, var(--st-title-color) calc(var(--st-title-opacity)*100%), transparent); font-family: var(--st-title-font); }
+.bit-left .bit-time { font-size: 12px; color: color-mix(in srgb, var(--st-muted-color) calc(var(--st-muted-opacity)*100%), transparent); font-family: 'Cinzel', serif; margin-top: 3px; }
+.bit-chev { color: var(--text-muted); font-size: 18px; }
+.bit-detail-time { font-size: 12px; color: var(--text-muted); margin-bottom: 12px; font-family: var(--st-muted-font); }
+.bit-detail-content { font-size: 14px; color: var(--text); line-height: 1.7; white-space: pre-wrap; }
+
+/* ---------- Bits of Bliss 9:16 卡片 ---------- */
+.bit-hidden { display: none !important; }
+.bit-exp-overlay {
+  position: fixed; inset: 0; z-index: 60; display: flex; align-items: center; justify-content: center;
+  background: rgba(0,0,0,.6); backdrop-filter: blur(4px); -webkit-backdrop-filter: blur(4px); padding: 20px;
+}
+.bit-exp-overlay.bit-hidden { display: none !important; }
+.bit-exp-card {
+  position: relative; width: 100%; max-width: 350px; border-radius: 24px; padding: 20px;
+  background: rgba(38,31,42,.97); border: 1px solid rgba(255,255,255,.06);
+  display: flex; flex-direction: column; aspect-ratio: 9 / 16; box-shadow: 0 20px 60px rgba(0,0,0,.5);
+}
+.bit-exp-close {
+  position: absolute; top: 12px; right: 12px; width: 28px; height: 28px; border-radius: 50%;
+  display: flex; align-items: center; justify-content: center; color: #7a6672; background: transparent; border: none; cursor: pointer; padding: 0;
+}
+.bit-exp-close svg { width: 16px; height: 16px; }
+.bit-exp-img { width: 100%; max-height: 38%; object-fit: cover; border-radius: 14px; margin-bottom: 12px; display: none; }
+.bit-exp-img.has-img { display: block; }
+.bit-exp-title { font-size: 16px; color: #d8b2bb; font-weight: 400; line-height: 1.3; padding-right: 32px; }
+.bit-exp-date { font-family: 'Cinzel', serif; font-size: 11px; color: #7a6672; margin-top: 4px; }
+.bit-exp-divider { width: 40px; height: 1px; background: rgba(122,102,114,.4); margin: 12px 0; }
+.bit-exp-body { font-size: 12px; color: #b59ea8; line-height: 1.6; font-weight: 300; text-align: left; flex: 1; overflow-y: auto; white-space: pre-wrap; }
+.bit-exp-actions { display: flex; gap: 10px; margin-top: 12px; }
+.bit-exp-actions .btn { flex: 1; }
+
+/* ---------- 图片选择 ---------- */
+.img-pick { display: flex; flex-direction: column; gap: 8px; }
+.img-pick-btn {
+  align-self: flex-start; padding: 8px 14px; border-radius: 12px; cursor: pointer; font-size: 13px;
+  background: color-mix(in srgb, var(--accent) 14%, transparent); color: var(--accent-deep);
+  border: 1px solid color-mix(in srgb, var(--accent) 30%, transparent);
+}
+.img-prev { max-width: 100%; max-height: 160px; border-radius: 12px; object-fit: cover; display: none; }
+.img-prev.has-img { display: block; }
+
+/* ===================== 家 / Home ===================== */
+#screen-home { background: var(--bg-page); }
+.home-greet { font-family: 'Great Vibes', cursive; font-size: 26px; color: var(--accent); padding: 6px 4px 0; }
+.home-hero { text-align: center; padding: 18px 16px 8px; }
+.home-hero-title { font-family: 'Great Vibes', cursive; font-size: 40px; color: var(--text); line-height: 1.1; }
+.home-hero-sub { font-size: 13px; color: var(--text-soft); margin-top: 6px; }
+.home-widgets { display: flex; gap: 10px; padding: 10px 2px 4px; }
+.home-widget {
+  flex: 1; background-color: color-mix(in srgb, var(--st-cardbg-color, var(--bg-card)) calc(var(--st-cardbg-opacity, 1)*100%), transparent);
+  border-radius: var(--r-md); padding: 14px; box-shadow: 0 3px 10px rgba(180,140,150,.08);
+}
+.home-widget .hw-label { font-size: 11px; color: var(--text-muted); letter-spacing: .04em; }
+.home-widget .hw-value { font-size: 15px; font-weight: 600; color: var(--accent-deep); margin-top: 6px; font-family: var(--st-title-font); }
+.home-widget .hw-sub { font-size: 12px; color: var(--text-soft); margin-top: 3px; }
+.home-modules { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; margin-top: 14px; }
+.home-mod {
+  background-color: color-mix(in srgb, var(--st-cardbg-color, var(--bg-card)) calc(var(--st-cardbg-opacity, 1)*100%), transparent);
+  border-radius: var(--r-md); padding: 16px 14px; box-shadow: 0 3px 10px rgba(180,140,150,.08);
+  display: flex; flex-direction: column; gap: 4px; cursor: pointer;
+}
+.home-mod:active { transform: scale(.98); }
+.home-mod-ico { font-size: 24px; }
+.home-mod-title { font-size: 15px; font-weight: 600; color: var(--text); margin-top: 4px; }
+.home-mod-desc { font-size: 11px; color: var(--text-muted); line-height: 1.4; }

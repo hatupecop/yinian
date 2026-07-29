@@ -68,6 +68,7 @@ const DEFAULT_DATA = {
     { role: 'ai', text: '嗨，我在呢。有什么想和我说的吗？', time: Date.now() - 60000 }
   ],
   deletedIds: [],
+  bitsOfBliss: [],
   works: []
 };
 function defaultWorks() {
@@ -106,6 +107,7 @@ if (data.settings.aiCover === undefined) data.settings.aiCover = '';
 if (data.settings.aiSign === undefined) data.settings.aiSign = '';
 if (data.settings.aiRegion === undefined) data.settings.aiRegion = '';
 if (!data.settings.periodDays) data.settings.periodDays = [];
+if (!data.bitsOfBliss) data.bitsOfBliss = [];
 if (!data.settings.style) data.settings.style = {
   title: { color: '', opacity: 1, font: 'default' },
   body: { color: '', opacity: 1, font: 'default' },
@@ -497,6 +499,7 @@ function switchTab(target) {
   if (target === 'moments') renderMoments();
   if (target === 'chat') renderChat();
   if (target === 'wishlist') renderWishlist();
+  if (target === 'home') renderHome();
   closeMenu();
 }
 function openMenu() { $('#menu-mask').classList.add('show'); $('#menu-sheet').classList.add('show'); }
@@ -527,7 +530,8 @@ function renderAnniversary() {
   const start = parseDot(s.startDate);
   const days = daysBetween(start, new Date());
   $('#days-together').textContent = Math.max(0, days);
-  if (s.myAvatar) $('#avatar-me').style.backgroundImage = 'url(' + s.myAvatar + ')';
+  const meAva = $('#avatar-me'); if (s.myAvatar && meAva) meAva.style.backgroundImage = 'url(' + s.myAvatar + ')';
+  const aiAva = $('#avatar-ai'); if (s.aiAvatar && aiAva) aiAva.style.backgroundImage = 'url(' + s.aiAvatar + ')';
   if (s.aiAvatar) $('#avatar-ai').style.backgroundImage = 'url(' + s.aiAvatar + ')';
 
   const list = $('#important-list');
@@ -554,6 +558,7 @@ function renderAnniversary() {
   $all('.day-row', list).forEach(row => {
     row.addEventListener('click', () => editDay(row.dataset.day));
   });
+  renderBits();
 }
 function esc(s) { return String(s).replace(/[&<>"]/g, c => ({ '&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;' }[c])); }
 function hexToRgb(hex) {
@@ -658,6 +663,174 @@ function addDay() {
     save(); renderAnniversary(); closeModal(); toast('已添加');
     addPending({ type: 'anniversary', id: nd.id, text: nd.title });
   });
+}
+
+/* ===================== Bits of Bliss ===================== */
+function fmtTime(t) {
+  if (!t) return '';
+  const d = new Date(t), p = n => ('' + n).padStart(2, '0');
+  return d.getFullYear() + '.' + p(d.getMonth() + 1) + '.' + p(d.getDate()) + ' ' + p(d.getHours()) + ':' + p(d.getMinutes());
+}
+function fmtDateOnly(t) {
+  if (!t) return '';
+  const d = new Date(t), p = n => ('' + n).padStart(2, '0');
+  return d.getFullYear() + '.' + p(d.getMonth() + 1) + '.' + p(d.getDate());
+}
+function pickImageToDataURL(file, cb) {
+  const reader = new FileReader();
+  reader.onload = () => {
+    const img = new Image();
+    img.onload = () => {
+      const max = 1024;
+      let w = img.width, h = img.height;
+      if (w > max || h > max) { const r = Math.min(max / w, max / h); w = Math.round(w * r); h = Math.round(h * r); }
+      const canvas = document.createElement('canvas');
+      canvas.width = w; canvas.height = h;
+      canvas.getContext('2d').drawImage(img, 0, 0, w, h);
+      try { cb(canvas.toDataURL('image/jpeg', 0.82)); } catch (e) { cb(reader.result); }
+    };
+    img.onerror = () => cb(reader.result);
+    img.src = reader.result;
+  };
+  reader.readAsDataURL(file);
+}
+function wireImgPick(inputSel, btnSel, prevSel) {
+  const input = $(inputSel), btn = $(btnSel), prev = $(prevSel);
+  if (btn) btn.addEventListener('click', () => input && input.click());
+  if (input) input.addEventListener('change', () => {
+    const f = input.files && input.files[0];
+    if (!f) return;
+    pickImageToDataURL(f, d => { prev.src = d; prev.dataset.b64 = d; prev.classList.add('has-img'); });
+  });
+}
+function renderBits() {
+  const list = $('#bit-list');
+  if (!list) return;
+  const sorted = (data.bitsOfBliss || []).slice().sort((a, b) => (b.time || 0) - (a.time || 0));
+  list.innerHTML = sorted.map(b => `
+    <div class="bit-row" data-bit="${b.id}">
+      <div class="bit-left">
+        <div class="bit-title">${esc(b.title)}</div>
+        <div class="bit-time">${fmtDateOnly(b.time)}</div>
+      </div>
+      <div class="bit-chev">›</div>
+    </div>`).join('');
+  $all('.bit-row', list).forEach(row => row.addEventListener('click', () => openBit(row.dataset.bit)));
+}
+let openBitId = null, bitCardWired = false;
+function ensureBitCardWired() {
+  if (bitCardWired) return; bitCardWired = true;
+  const ov = $('#bitCardOverlay');
+  const close = () => ov.classList.add('bit-hidden');
+  $('#bitExpClose').addEventListener('click', close);
+  ov.addEventListener('click', e => { if (e.target === ov) close(); });
+  $('#bitExpEdit').addEventListener('click', () => { const id = openBitId; close(); if (id) editBit(id); });
+  $('#bitExpDel').addEventListener('click', () => {
+    const id = openBitId;
+    if (!id) return;
+    data.bitsOfBliss = (data.bitsOfBliss || []).filter(x => x.id !== id);
+    save(); renderBits(); close(); toast('已删除');
+  });
+}
+function openBit(id) {
+  const b = (data.bitsOfBliss || []).find(x => x.id === id);
+  if (!b) return addBit();
+  ensureBitCardWired();
+  openBitId = id;
+  $('#bitExpTitle').textContent = b.title;
+  $('#bitExpDate').textContent = fmtTime(b.time);
+  $('#bitExpBody').textContent = b.content || '（没有具体内容）';
+  const img = $('#bitExpImg');
+  if (b.img) { img.src = b.img; img.classList.add('has-img'); } else { img.removeAttribute('src'); img.classList.remove('has-img'); }
+  $('#bitCardOverlay').classList.remove('bit-hidden');
+}
+function editBit(id) {
+  const b = (data.bitsOfBliss || []).find(x => x.id === id);
+  if (!b) return addBit();
+  openModal(`
+    <h3>编辑幸福瞬间</h3>
+    <div class="field"><label>标题</label><input id="b-title" value="${esc(b.title)}" /></div>
+    <div class="field"><label>内容</label><textarea id="b-content">${esc(b.content || '')}</textarea></div>
+    <div class="field"><label>图片（可选）</label>
+      <div class="img-pick">
+        <input type="file" id="b-img" accept="image/*" hidden />
+        <button type="button" class="img-pick-btn" id="b-img-btn">从相册添加图片</button>
+        <img id="b-img-prev" class="img-prev" alt="" />
+      </div>
+    </div>
+    <div class="modal-actions">
+      <button class="btn btn-ghost" id="b-cancel">取消</button>
+      <button class="btn btn-primary" id="b-save">保存</button>
+    </div>`);
+  const prev = $('#b-img-prev');
+  if (b.img) { prev.src = b.img; prev.dataset.b64 = b.img; prev.classList.add('has-img'); }
+  wireImgPick('#b-img', '#b-img-btn', '#b-img-prev');
+  $('#b-cancel').addEventListener('click', closeModal);
+  $('#b-save').addEventListener('click', () => {
+    b.title = $('#b-title').value.trim() || '未命名';
+    b.content = $('#b-content').value.trim();
+    b.img = $('#b-img-prev').dataset.b64 || '';
+    if (!b.time) b.time = Date.now();
+    save(); renderBits(); closeModal(); toast('已保存');
+  });
+}
+function addBit() {
+  openModal(`
+    <h3>记录幸福瞬间</h3>
+    <div class="field"><label>标题</label><input id="b-title" placeholder="例如：今晚的晚霞" /></div>
+    <div class="field"><label>内容</label><textarea id="b-content" placeholder="写下来这一刻……"></textarea></div>
+    <div class="field"><label>图片（可选）</label>
+      <div class="img-pick">
+        <input type="file" id="b-img" accept="image/*" hidden />
+        <button type="button" class="img-pick-btn" id="b-img-btn">从相册添加图片</button>
+        <img id="b-img-prev" class="img-prev" alt="" />
+      </div>
+    </div>
+    <div class="modal-actions">
+      <button class="btn btn-ghost" id="b-cancel">取消</button>
+      <button class="btn btn-primary" id="b-save">保存</button>
+    </div>`);
+  wireImgPick('#b-img', '#b-img-btn', '#b-img-prev');
+  $('#b-cancel').addEventListener('click', closeModal);
+  $('#b-save').addEventListener('click', () => {
+    const title = $('#b-title').value.trim() || '未命名';
+    const content = $('#b-content').value.trim();
+    const img = $('#b-img-prev').dataset.b64 || '';
+    data.bitsOfBliss = data.bitsOfBliss || [];
+    data.bitsOfBliss.unshift({ id: uid(), title, content, time: Date.now(), img });
+    save(); renderBits(); closeModal(); toast('已记录');
+  });
+}
+
+/* ===================== 家 / Home ===================== */
+function renderHome() {
+  const s = data.settings;
+  const greet = $('#home-greet'); if (greet) greet.textContent = 'Hi ' + (s.myName || 'Claire') + ' 💕';
+  const start = parseDot(s.startDate);
+  const days = Math.max(0, daysBetween(start, new Date()));
+  const sub = $('#home-hero-sub'); if (sub) sub.textContent = '在一起的第 ' + days + ' 天 · 今天也想和你虚度时光';
+  const nxt = $('#hw-next-val'), nxts = $('#hw-next-sub');
+  if (nxt && nxts) {
+    const upcoming = data.importantDays.filter(d => daysBetween(new Date(), parseDot(d.date)) > 0).sort((a, b) => parseDot(a.date) - parseDot(b.date))[0];
+    if (upcoming) { nxt.textContent = upcoming.title; nxts.textContent = '还有 ' + daysBetween(new Date(), parseDot(upcoming.date)) + ' 天'; }
+    else { nxt.textContent = '暂无'; nxts.textContent = '去添加一个吧'; }
+  }
+  const bv = $('#hw-bliss-val'), bs = $('#hw-bliss-sub');
+  if (bv && bs) {
+    const bits = (data.bitsOfBliss || []).slice().sort((a, b) => (b.time || 0) - (a.time || 0));
+    if (bits[0]) { bv.textContent = bits[0].title; bs.textContent = fmtDateOnly(bits[0].time); }
+    else { bv.textContent = '还没有'; bs.textContent = '点 + 记录第一个'; }
+  }
+}
+function openHomeMod(mod) {
+  const names = { diary: '交换日记', us: '记录我和他', bliss: '幸福瞬间', memo: '备忘' };
+  const desc = { diary: '你和 TA 共写的私密手账，TA 也会基于你们的聊天留下一段反思。', us: '关于你们的小档案：怎么认识、昵称、喜好、几个 Q&A。', bliss: '珍藏每一个小确幸，像一本只属于两个人的宝盒。', memo: '随手记下要记得的事，轻量清单。' };
+  openModal(`
+    <h3>${names[mod] || '模块'}（预览）</h3>
+    <p style="color:var(--text-muted);font-size:14px;line-height:1.7;margin:0 0 8px">${desc[mod] || ''}</p>
+    <p style="color:var(--text-muted);font-size:13px;line-height:1.6">这是「家」的预览原型。确认家的形态后，这个入口会接上真实内容。</p>
+    <div class="modal-actions"><button class="btn btn-primary" id="hm-ok">知道了</button></div>`);
+  const ok = $('#hm-ok'); if (ok) ok.addEventListener('click', closeModal);
 }
 
 /* ===================== Calendar / Timeline ===================== */
@@ -1877,6 +2050,7 @@ function renderActive() {
   else if (id === 'screen-moments') renderMoments();
   else if (id === 'screen-mymoments') renderMyMoments();
   else if (id === 'screen-wishlist') renderWishlist();
+  else if (id === 'screen-home') renderHome();
   applyText();
   applyElStyle();
   applyFonts();
@@ -2932,6 +3106,8 @@ document.addEventListener('click', e => {
   if (!a) { closeMomentMenus(); return; }
   const act = a.dataset.action;
   if (act === 'add-day') addDay();
+  else if (act === 'add-bit') addBit();
+  else if (act === 'home-mod') openHomeMod(a.dataset.mod);
   else if (act === 'cal-prev') { currentCalendarMonth.setMonth(currentCalendarMonth.getMonth() - 1); renderCalendar(); }
   else if (act === 'cal-next') { currentCalendarMonth.setMonth(currentCalendarMonth.getMonth() + 1); renderCalendar(); }
   else if (act === 'add-moment') addMoment();
@@ -3039,6 +3215,7 @@ $('#chat-input') && $('#chat-input').addEventListener('keydown', e => { if (e.ke
 function renderAll() {
   applyTheme();
   renderAnniversary();
+  renderHome();
   renderMoments();
   renderWishlist();
   applyLang();
