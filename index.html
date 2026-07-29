@@ -6,7 +6,7 @@
 <meta name="theme-color" content="#FBF1EC" />
 <title>小窝</title>
 <link rel="manifest" href="manifest.json" />
-<link rel="stylesheet" href="styles.css?v=20260728b" />
+<link rel="stylesheet" href="styles.css?v=20260728c" />
 <link rel="stylesheet" href="fonts/local-fonts.css" />
 </head>
 <body>
@@ -40,22 +40,6 @@
       <div id="bit-list" class="bit-list"></div>
     </div>
 
-    <div id="bitCardOverlay" class="bit-hidden bit-exp-overlay">
-      <div id="bitExpCard" class="bit-exp-card">
-        <button id="bitExpClose" class="bit-exp-close" aria-label="关闭">
-          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M6 18L18 6M6 6l12 12"/></svg>
-        </button>
-        <img id="bitExpImg" class="bit-exp-img" alt="" />
-        <h2 id="bitExpTitle" class="bit-exp-title"></h2>
-        <p id="bitExpDate" class="bit-exp-date"></p>
-        <div class="bit-exp-divider"></div>
-        <p id="bitExpBody" class="bit-exp-body"></p>
-        <div class="bit-exp-actions">
-          <button class="btn btn-ghost" id="bitExpEdit">编辑</button>
-          <button class="btn btn-danger" id="bitExpDel">删除</button>
-        </div>
-      </div>
-    </div>
   </section>
 
   <!-- ============ Calendar / Timeline ============ -->
@@ -523,6 +507,22 @@
   </section>
 
   <!-- ============ Menu Sheet ============ -->
+    <div id="bitCardOverlay" class="bit-hidden bit-exp-overlay">
+      <div id="bitExpCard" class="bit-exp-card">
+        <button id="bitExpClose" class="bit-exp-close" aria-label="关闭">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M6 18L18 6M6 6l12 12"/></svg>
+        </button>
+        <img id="bitExpImg" class="bit-exp-img" alt="" />
+        <h2 id="bitExpTitle" class="bit-exp-title"></h2>
+        <p id="bitExpDate" class="bit-exp-date"></p>
+        <div class="bit-exp-divider"></div>
+        <p id="bitExpBody" class="bit-exp-body"></p>
+        <div class="bit-exp-actions">
+          <button class="btn btn-ghost" id="bitExpEdit">编辑</button>
+          <button class="btn btn-danger" id="bitExpDel">删除</button>
+        </div>
+      </div>
+    </div>
   <div class="menu-mask" id="menu-mask"></div>
   <div class="menu-sheet" id="menu-sheet">
     <div class="menu-head">
