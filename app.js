@@ -30,6 +30,10 @@ const DEFAULT_DATA = {
     },
     glass: { on: false, blur: 14, opacity: 65 },
     glassmorphism: { on: false, highlight: 70 },
+    gmShadow: false,
+    bubbleSameAsTheme: true,
+    bgFrost: false,
+    bgFrostBlur: 18,
     aiFrost: false,
     aiGlass: false,
     apiMode: 'backend', backendUrl: 'https://vlrqxguctptinozjuyds.supabase.co/functions/v1/chat', deepseekKey: '', chatModel: 'deepseek-v4-flash',
@@ -42,6 +46,7 @@ const DEFAULT_DATA = {
     { id: 'd2', title: 'His Birthday', date: '2026.09.12', pinned: false, content: '' },
     { id: 'd3', title: 'Trip to Kyoto', date: '2026.03.20', pinned: false, content: '' }
   ],
+  bitsOfBliss: [],
   timeline: {
     '2026-07': [
       { id: 't1', day: 3, type: 'intimate', note: '' },
@@ -68,7 +73,6 @@ const DEFAULT_DATA = {
     { role: 'ai', text: '嗨，我在呢。有什么想和我说的吗？', time: Date.now() - 60000 }
   ],
   deletedIds: [],
-  bitsOfBliss: [],
   works: []
 };
 function defaultWorks() {
@@ -119,6 +123,10 @@ if (!data.settings.style) data.settings.style = {
 };
 if (!data.settings.glass) data.settings.glass = { on: false, blur: 14, opacity: 65 };
 if (!data.settings.glassmorphism) data.settings.glassmorphism = { on: false, highlight: 70 };
+if (data.settings.gmShadow === undefined) data.settings.gmShadow = false;
+if (data.settings.bubbleSameAsTheme === undefined) data.settings.bubbleSameAsTheme = true;
+if (data.settings.bgFrost === undefined) data.settings.bgFrost = false;
+if (data.settings.bgFrostBlur == null) data.settings.bgFrostBlur = 18;
 if (data.settings.topFadeA === undefined) {
   // 兼容旧版单值 topFade：作为“透明度”，高度用默认 20%
   data.settings.topFadeA = (data.settings.topFade !== undefined ? data.settings.topFade : 0);
@@ -411,6 +419,22 @@ const THEMES = {
       '--text': '#3E4A65', '--text-muted': '#8FA0B8', '--text-soft': '#7A8BA8', '--border': '#D8E3F5',
       '--dot-intimate': '#E07A8A', '--dot-period': '#F0A8C4', '--dot-anniversary': '#F4C542', '--dot-todo': '#7AA9E8'
     }
+  },
+  dream: {
+    name: '梦境',
+    vars: {
+      '--bg-page': '#17121c',
+      '--bg-card': 'rgba(33,26,40,0.72)',
+      '--bg-soft': 'rgba(48,38,56,0.6)',
+      '--bg-chip': 'rgba(54,43,63,0.7)',
+      '--accent': '#E8A6C0',
+      '--accent-deep': '#C77D9E',
+      '--text': '#E9DCE6',
+      '--text-muted': '#A890A0',
+      '--text-soft': '#BFA9B6',
+      '--border': 'rgba(255,255,255,0.08)',
+      '--dot-intimate': '#E8899B', '--dot-period': '#E8A6C0', '--dot-anniversary': '#E8C45A', '--dot-todo': '#8FB0E8'
+    }
   }
 };
 const MONTH_EN = ['January','February','March','April','May','June','July','August','September','October','November','December'];
@@ -524,15 +548,14 @@ $('#modal-mask').addEventListener('click', closeModal);
 /* ===================== Anniversary ===================== */
 function renderAnniversary() {
   const s = data.settings;
-  $('#rel-name-top').textContent = s.relName;
+  const relTop = $('#rel-name-top'); if (relTop) relTop.textContent = s.relName;
   $('#rel-name-card').textContent = s.relName;
-  $('#since-text').textContent = 'since ' + s.startDate;
+  $('#since-text').innerHTML = '<span class="anni-since-label">since</span> <span class="anni-since-date">' + s.startDate + '</span>';
   const start = parseDot(s.startDate);
   const days = daysBetween(start, new Date());
   $('#days-together').textContent = Math.max(0, days);
   const meAva = $('#avatar-me'); if (s.myAvatar && meAva) meAva.style.backgroundImage = 'url(' + s.myAvatar + ')';
   const aiAva = $('#avatar-ai'); if (s.aiAvatar && aiAva) aiAva.style.backgroundImage = 'url(' + s.aiAvatar + ')';
-  if (s.aiAvatar) $('#avatar-ai').style.backgroundImage = 'url(' + s.aiAvatar + ')';
 
   const list = $('#important-list');
   const sorted = data.importantDays.slice().sort((a, b) => (b.pinned - a.pinned) || (parseDot(a.date) - parseDot(b.date)));
@@ -841,8 +864,8 @@ function renderCalendar() {
   const key = monthKey(currentCalendarMonth);
   const [y, m] = key.split('-').map(Number);
 
-  $('#cal-month-en').textContent = monthLabel(key);
-  $('#cal-year').textContent = String(y);
+  $('#cal-month-en').textContent = y + '·' + String(m).padStart(2, '0');
+  const cy = $('#cal-year'); if (cy) { cy.textContent = ''; cy.style.display = 'none'; }
 
   const first = new Date(y, m - 1, 1);
   const daysInMonth = new Date(y, m, 0).getDate();
@@ -1506,6 +1529,9 @@ function openPersonalize() {
       <div class="range-row"><input id="pe-op" type="range" min="0" max="100" value="100" /><span id="pe-op-v">100%</span></div>
     </div>
     <div class="field switch-row"><span>去除白底（白底素材自动抠图）</span><div class="switch" id="pe-white"></div></div>
+    <div class="field switch-row"><span>背景磨砂（只磨砂此背景图，不动卡片气泡）</span><div class="switch" id="pe-bg-frost"></div></div>
+    <div class="field"><label>磨砂浓度（${data.settings.bgFrostBlur != null ? data.settings.bgFrostBlur : 18}px 模糊）</label>
+      <div class="range-row"><input type="range" min="0" max="40" id="pe-bg-frost-blur" value="${data.settings.bgFrostBlur != null ? data.settings.bgFrostBlur : 18}" /><span id="pe-bg-frost-blur-v">${data.settings.bgFrostBlur != null ? data.settings.bgFrostBlur : 18}px</span></div></div>
     <div class="modal-actions"><button class="btn btn-ghost" id="pe-cancel">取消</button><button class="btn btn-primary" id="pe-save">保存</button></div>
   `);
   let bgTmp = null;
@@ -1523,6 +1549,8 @@ function openPersonalize() {
     $('#pe-op').value = op; $('#pe-op-v').textContent = op + '%';
   }
   pageSel.addEventListener('change', fill); fill();
+  const pebf = $('#pe-bg-frost'); if (pebf) { pebf.classList.toggle('on', !!data.settings.bgFrost); pebf.addEventListener('click', () => pebf.classList.toggle('on')); }
+  const pebfb = $('#pe-bg-frost-blur'); if (pebfb) { pebfb.addEventListener('input', () => { const v = $('#pe-bg-frost-blur-v'); if (v) v.textContent = pebfb.value + 'px'; }); }
   $all('.theme-card').forEach(card => {
     card.addEventListener('click', () => {
       themeTmp = card.dataset.theme;
@@ -1551,6 +1579,8 @@ function openPersonalize() {
       s.pageOpacity[p] = op;
     }
     s.theme = themeTmp;
+    data.settings.bgFrost = $('#pe-bg-frost') ? $('#pe-bg-frost').classList.contains('on') : false;
+    data.settings.bgFrostBlur = $('#pe-bg-frost-blur') ? Number($('#pe-bg-frost-blur').value) : 18;
     save(); closeModal(); applyTheme(); toast('已保存');
   });
 }
@@ -1576,10 +1606,12 @@ function applyTheme() {
       if (chatBg) {
         if (bg) {
           const scrim = Math.min(ta, 0.45);
-          chatBg.style.backgroundImage = scrim > 0
+          const img = scrim > 0
             ? `linear-gradient(to bottom, rgba(0,0,0,${scrim}) 0%, rgba(0,0,0,${scrim}) ${th * 0.5}%, rgba(0,0,0,0) ${th}%, rgba(0,0,0,0) 100%), url(${bg})`
             : `url(${bg})`;
-        } else { chatBg.style.backgroundImage = ''; }
+          if (data.settings.bgFrost) { chatBg.style.backgroundImage = 'none'; chatBg.style.setProperty('--bg-img', img); chatBg.classList.add('bg-frost'); }
+          else { chatBg.style.backgroundImage = img; chatBg.style.removeProperty('--bg-img'); chatBg.classList.remove('bg-frost'); }
+        } else { chatBg.style.backgroundImage = ''; chatBg.style.removeProperty('--bg-img'); chatBg.classList.remove('bg-frost'); }
       }
       s.style.backgroundImage = '';
       return;
@@ -1587,12 +1619,14 @@ function applyTheme() {
     if (bg) {
       // 顶部渐隐改为中性深色蒙版，不再用主题色，避免粉白/蓝白底色糊在背景图上；topFadeA=0 时干净显示图片
       const scrim = Math.min(ta, 0.45);
-      s.style.backgroundImage = scrim > 0
+      const img = scrim > 0
         ? `linear-gradient(to bottom, rgba(0,0,0,${scrim}) 0%, rgba(0,0,0,${scrim}) ${th * 0.5}%, rgba(0,0,0,0) ${th}%, rgba(0,0,0,0) 100%), url(${bg})`
         : `url(${bg})`;
+      if (data.settings.bgFrost) { s.style.backgroundImage = 'none'; s.style.setProperty('--bg-img', img); s.classList.add('bg-frost'); }
+      else { s.style.backgroundImage = img; s.style.removeProperty('--bg-img'); s.classList.remove('bg-frost'); }
       s.style.backgroundSize = 'cover'; s.style.backgroundPosition = 'center';
       s.style.backgroundColor = 'transparent';
-    } else { s.style.backgroundImage = ''; s.style.backgroundColor = ''; }
+    } else { s.style.backgroundImage = ''; s.style.backgroundColor = ''; s.style.removeProperty('--bg-img'); s.classList.remove('bg-frost'); }
   });
   // 朋友圈页：若设了页面背景且无个人封面，封面区也显示该背景（否则被默认渐变盖住看不到）
   const mbg = hasGlobal ? data.settings.pageBg.global : data.settings.pageBg.moments;
@@ -1603,10 +1637,12 @@ function applyTheme() {
     const el = $('#' + id); if (!el) return;
     const hasProfile = (id === 'moments-cover' && data.settings.cover) || (id === 'mymoments-cover' && data.settings.aiCover);
     if (mbg && !hasProfile) {
-      el.style.backgroundImage = `linear-gradient(rgba(0,0,0,${1 - mop / 100}), rgba(0,0,0,${1 - mop / 100})), url(${mbg})`;
+      const img = `linear-gradient(rgba(0,0,0,${1 - mop / 100}), rgba(0,0,0,${1 - mop / 100})), url(${mbg})`;
+      if (data.settings.bgFrost) { el.style.backgroundImage = 'none'; el.style.setProperty('--bg-img', img); el.classList.add('bg-frost'); }
+      else { el.style.backgroundImage = img; el.style.removeProperty('--bg-img'); el.classList.remove('bg-frost'); }
       el.style.backgroundSize = 'cover'; el.style.backgroundPosition = 'center';
     } else if (!hasProfile) {
-      el.style.backgroundImage = '';
+      el.style.backgroundImage = ''; el.style.removeProperty('--bg-img'); el.classList.remove('bg-frost');
     }
   });
   // 侧边栏背景
@@ -1614,9 +1650,11 @@ function applyTheme() {
   const menuOp = (data.settings.pageOpacity.menu != null ? data.settings.pageOpacity.menu : 100) / 100;
   const ms = $('#menu-sheet');
   if (menuBg) {
-    ms.style.backgroundImage = `linear-gradient(rgba(0,0,0,${1 - menuOp}), rgba(0,0,0,${1 - menuOp})), url(${menuBg})`;
+    const img = `linear-gradient(rgba(0,0,0,${1 - menuOp}), rgba(0,0,0,${1 - menuOp})), url(${menuBg})`;
+    if (data.settings.bgFrost) { ms.style.backgroundImage = 'none'; ms.style.setProperty('--bg-img', img); ms.classList.add('bg-frost'); }
+    else { ms.style.backgroundImage = img; ms.style.removeProperty('--bg-img'); ms.classList.remove('bg-frost'); }
     ms.style.backgroundSize = 'cover'; ms.style.backgroundPosition = 'center';
-  } else { ms.style.backgroundImage = ''; }
+  } else { ms.style.backgroundImage = ''; ms.style.removeProperty('--bg-img'); ms.classList.remove('bg-frost'); }
   applyNav();
   applyMoments();
   applyCalendar();
@@ -1884,7 +1922,7 @@ const EL_CFG = {
   // 聊天
   'chat.userName': { group: '聊天', label: '顶部名字', selector: '#chat-user-name', dynamic: true },
   'chat.online': { group: '聊天', label: '在线状态', selector: '[data-tkey="chat.online"]', default: '在线' },
-  'chat.placeholder': { group: '聊天', label: '输入框占位', selector: '#chat-input', prop: 'placeholder', default: '和 AI 说点什么…' },
+  'chat.placeholder': { group: '聊天', label: '输入框占位', selector: '#chat-input', prop: 'placeholder', default: 'Type a message...' },
   // 心愿单
   'wishlist.title': { group: '心愿单', label: '顶部标题', selector: '#screen-wishlist .topbar-title', default: 'wishlist' },
   'wishlist.name': { group: '心愿单', label: '资料卡名字', selector: '#wish-profile .wish-name', dynamic: true },
@@ -2123,12 +2161,19 @@ function applyStyle() {
   const g = data.settings.glass || {};
   r.setProperty('--frost-blur', (g.blur || 14) + 'px');
   r.setProperty('--frost-opacity', ((g.opacity != null ? g.opacity : 65)) / 100);
-  document.body.classList.toggle('frost-on', !!g.on);
+  // 主题同款气泡：开=气泡跟随主题（强制关闭磨砂/玻璃拟态）；关=使用用户 glass/glassmorphism 设置
+  const sameTheme = data.settings.bubbleSameAsTheme !== false;
+  document.body.classList.toggle('frost-on', !sameTheme && !!g.on);
+  const gmOn = !sameTheme && !!(data.settings.glassmorphism && data.settings.glassmorphism.on);
+  const aiGmOn = !sameTheme && !!(data.settings.aiGlass);
+  document.body.classList.toggle('glassmorphism-on', gmOn);
+  document.body.classList.toggle('ai-frost-on', !sameTheme && !!(data.settings.aiFrost));
+  document.body.classList.toggle('ai-glass-on', aiGmOn);
+  document.body.classList.toggle('gm-shadow-on', !!(data.settings.gmShadow) && (gmOn || aiGmOn));
+  document.body.classList.toggle('bg-frost-on', !!(data.settings.bgFrost));
+  r.setProperty('--bg-frost-blur', ((data.settings.bgFrostBlur != null ? data.settings.bgFrostBlur : 18)) + 'px');
   const gm = data.settings.glassmorphism || {};
   r.setProperty('--gm-highlight', ((gm.highlight != null ? gm.highlight : 70)) / 100);
-  document.body.classList.toggle('glassmorphism-on', !!gm.on);
-  document.body.classList.toggle('ai-frost-on', !!(data.settings.aiFrost));
-  document.body.classList.toggle('ai-glass-on', !!(data.settings.aiGlass));
   applyThink();
   applyAiBubble();
 }
@@ -2189,18 +2234,25 @@ function openStyle() {
     <h3>外观自定义</h3>
     <p style="font-size:12px;color:var(--text-muted);line-height:1.6;margin:-6px 0 12px;">按分组设置颜色 / 透明度 / 字体 / 背景，留空即跟随主题。保存后立即全站生效并保留。</p>
     <div class="style-group" style="border-top:1px solid var(--border);padding-top:12px;margin-top:14px;">
-      <div style="font-size:14px;font-weight:500;color:var(--text);margin-bottom:8px;">磨砂效果</div>
-      <div class="field switch-row"><span>开启磨砂效果（气泡卡半透明磨砂，无边框无阴影）</span><div class="switch ${data.settings.glass && data.settings.glass.on ? 'on' : ''}" id="st-glass-on"></div></div>
-      <div class="field"><label>模糊强度（${data.settings.glass ? data.settings.glass.blur : 14}px）</label>
-        <div class="range-row"><input type="range" min="0" max="40" id="st-glass-blur" value="${data.settings.glass ? data.settings.glass.blur : 14}"/><span id="st-glass-blurv">${data.settings.glass ? data.settings.glass.blur : 14}px</span></div></div>
-      <div class="field"><label>磨砂浓度（透明度 ${data.settings.glass ? data.settings.glass.opacity : 65}%）</label>
-        <div class="range-row"><input type="range" min="0" max="100" id="st-glass-opacity" value="${data.settings.glass ? data.settings.glass.opacity : 65}"/><span id="st-glass-opacityv">${data.settings.glass ? data.settings.glass.opacity : 65}%</span></div></div>
+      <div style="font-size:14px;font-weight:500;color:var(--text);margin-bottom:8px;">气泡外观</div>
+      <div class="field switch-row"><span>主题同款气泡（关闭后可自定义磨砂 / 拟态玻璃）</span><div class="switch ${data.settings.bubbleSameAsTheme !== false ? 'on' : ''}" id="st-bubble-theme"></div></div>
+      <div id="bubble-custom" style="${data.settings.bubbleSameAsTheme !== false ? 'display:none;' : ''}">
+        <div style="font-size:13px;font-weight:500;color:var(--text-soft);margin:6px 0 4px;">磨砂效果</div>
+        <div class="field switch-row"><span>开启磨砂效果（气泡卡半透明磨砂，无边框无阴影）</span><div class="switch ${data.settings.glass && data.settings.glass.on ? 'on' : ''}" id="st-glass-on"></div></div>
+        <div class="field"><label>模糊强度（${data.settings.glass ? data.settings.glass.blur : 14}px）</label>
+          <div class="range-row"><input type="range" min="0" max="40" id="st-glass-blur" value="${data.settings.glass ? data.settings.glass.blur : 14}"/><span id="st-glass-blurv">${data.settings.glass ? data.settings.glass.blur : 14}px</span></div></div>
+        <div class="field"><label>磨砂浓度（透明度 ${data.settings.glass ? data.settings.glass.opacity : 65}%）</label>
+          <div class="range-row"><input type="range" min="0" max="100" id="st-glass-opacity" value="${data.settings.glass ? data.settings.glass.opacity : 65}"/><span id="st-glass-opacityv">${data.settings.glass ? data.settings.glass.opacity : 65}%</span></div></div>
+      </div>
     </div>
     <div class="style-group" style="border-top:1px solid var(--border);padding-top:12px;margin-top:14px;">
-      <div style="font-size:14px;font-weight:500;color:var(--text);margin-bottom:8px;">玻璃拟态效果</div>
-      <div class="field switch-row"><span>开启玻璃拟态（中间完全透明 + 边缘玻璃高光，无模糊无阴影）</span><div class="switch ${data.settings.glassmorphism && data.settings.glassmorphism.on ? 'on' : ''}" id="st-gm-on"></div></div>
-      <div class="field"><label>高光强度（边缘玻璃光泽 ${data.settings.glassmorphism ? data.settings.glassmorphism.highlight : 70}%）</label>
-        <div class="range-row"><input type="range" min="0" max="100" id="st-gm-highlight" value="${data.settings.glassmorphism ? data.settings.glassmorphism.highlight : 70}"/><span id="st-gm-highlightv">${data.settings.glassmorphism ? data.settings.glassmorphism.highlight : 70}%</span></div></div>
+      <div id="bubble-custom-gm" style="${data.settings.bubbleSameAsTheme !== false ? 'display:none;' : ''}">
+        <div style="font-size:13px;font-weight:500;color:var(--text-soft);margin-bottom:6px;">玻璃拟态效果</div>
+        <div class="field switch-row"><span>开启玻璃拟态（中间完全透明 + 边缘玻璃高光，无模糊无阴影）</span><div class="switch ${data.settings.glassmorphism && data.settings.glassmorphism.on ? 'on' : ''}" id="st-gm-on"></div></div>
+        <div class="field"><label>高光强度（边缘玻璃光泽 ${data.settings.glassmorphism ? data.settings.glassmorphism.highlight : 70}%）</label>
+          <div class="range-row"><input type="range" min="0" max="100" id="st-gm-highlight" value="${data.settings.glassmorphism ? data.settings.glassmorphism.highlight : 70}"/><span id="st-gm-highlightv">${data.settings.glassmorphism ? data.settings.glassmorphism.highlight : 70}%</span></div></div>
+        <div class="field switch-row"><span>玻璃拟态阴影（气泡/卡片底部黑色投影，默认关）</span><div class="switch ${data.settings.gmShadow ? 'on' : ''}" id="st-gm-shadow"></div></div>
+      </div>
     </div>
     <div class="style-group" style="border-top:1px solid var(--border);padding-top:12px;margin-top:14px;">
       <div style="font-size:14px;font-weight:500;color:var(--text);margin-bottom:8px;">顶部背景渐隐</div>
@@ -2286,10 +2338,23 @@ function openStyle() {
   if (gmo) gmo.addEventListener('click', () => { data.settings.glassmorphism.on = gmo.classList.toggle('on'); applyStyle(); });
   const gmh = $('#st-gm-highlight');
   if (gmh) gmh.addEventListener('input', () => { const v = $('#st-gm-highlightv'); if (v) v.textContent = gmh.value + '%'; data.settings.glassmorphism.highlight = Number(gmh.value); applyStyle(); });
+  const gms = $('#st-gm-shadow');
+  if (gms) gms.addEventListener('click', () => { data.settings.gmShadow = gms.classList.toggle('on'); applyStyle(); });
   const aifo = $('#st-aifrost-on');
   if (aifo) aifo.addEventListener('click', () => { data.settings.aiFrost = aifo.classList.toggle('on'); applyStyle(); });
   const aigo = $('#st-aiglass-on');
   if (aigo) aigo.addEventListener('click', () => { data.settings.aiGlass = aigo.classList.toggle('on'); applyStyle(); });
+  // 主题同款气泡：开=隐藏自定义选项；关=显示
+  const bth = $('#st-bubble-theme');
+  if (bth) bth.addEventListener('click', () => {
+    const on = bth.classList.toggle('on');
+    data.settings.bubbleSameAsTheme = on;
+    const show = !on;
+    const bc = $('#bubble-custom'); if (bc) bc.style.display = show ? '' : 'none';
+    const bcg = $('#bubble-custom-gm'); if (bcg) bcg.style.display = show ? '' : 'none';
+    if (on) { data.settings.glass.on = false; data.settings.glassmorphism.on = false; data.settings.aiFrost = false; data.settings.aiGlass = false; }
+    applyStyle();
+  });
   const tfh = $('#st-topfade-h');
   if (tfh) tfh.addEventListener('input', () => { const v = $('#st-topfade-h-v'); if (v) v.textContent = tfh.value + '%'; data.settings.topFadeH = Number(tfh.value); applyTheme(); });
   const tfa = $('#st-topfade-a');
@@ -2335,6 +2400,10 @@ function openStyle() {
     };
     data.settings.glass = { on: false, blur: 14, opacity: 65 };
     data.settings.glassmorphism = { on: false, highlight: 70 };
+    data.settings.gmShadow = false;
+    data.settings.bubbleSameAsTheme = true;
+    data.settings.bgFrost = false;
+    data.settings.bgFrostBlur = 18;
     data.settings.topFadeA = 0; data.settings.topFadeH = 20;
     data.settings.topBtnColor = ''; data.settings.chatPanelBg = '#ffffff'; data.settings.chatPanelAlpha = 90;
     data.settings.think = { follow: true, bgColor: '#FCE4EC', bgOpacity: 0.5, textColor: '#9b8e88', lineColor: '#F48FB1' };
@@ -2353,8 +2422,11 @@ function openStyle() {
     data.settings.style = out;
     data.settings.glass = { on: $('#st-glass-on').classList.contains('on'), blur: Number($('#st-glass-blur').value), opacity: Number($('#st-glass-opacity').value) };
     data.settings.glassmorphism = { on: $('#st-gm-on').classList.contains('on'), highlight: Number($('#st-gm-highlight').value) };
+    data.settings.gmShadow = $('#st-gm-shadow').classList.contains('on');
     data.settings.aiFrost = $('#st-aifrost-on').classList.contains('on');
     data.settings.aiGlass = $('#st-aiglass-on').classList.contains('on');
+    data.settings.bubbleSameAsTheme = $('#st-bubble-theme').classList.contains('on');
+    if (data.settings.bubbleSameAsTheme) { data.settings.glass.on = false; data.settings.glassmorphism.on = false; data.settings.aiFrost = false; data.settings.aiGlass = false; }
     data.settings.topFadeH = Number($('#st-topfade-h').value);
     data.settings.topFadeA = Number($('#st-topfade-a').value);
     data.settings.topBtnColor = $('#st-topbtn').value;
@@ -3279,6 +3351,20 @@ function initPullToRefresh(scrollSel, ptrSel, renderFn) {
   initPullToRefresh('#screen-moments .moments-scroll', '#moments-ptr', renderMoments);
   initPullToRefresh('#screen-mymoments .moments-scroll', '#mymoments-ptr', renderMyMoments);
   startAutoSync();
+  // 带返回图标的页面（心愿单 / 设置 / 我的朋友圈 / TA 主页 / 通话）隐藏底部导航栏
+  (function setupTabbarHiding() {
+    const hideScreens = ['screen-wishlist', 'screen-setting', 'screen-mymoments', 'screen-aiprofile', 'screen-call'];
+    const tabbar = document.getElementById('tabbar');
+    function syncTabbar() {
+      const active = document.querySelector('.screen.active');
+      const hide = !!(active && hideScreens.includes(active.id));
+      if (tabbar) tabbar.style.display = hide ? 'none' : '';
+      document.body.classList.toggle('no-tabbar', hide);
+    }
+    const obs = new MutationObserver(syncTabbar);
+    document.querySelectorAll('.screen').forEach(s => obs.observe(s, { attributes: true, attributeFilter: ['class'] }));
+    syncTabbar();
+  })();
   // 图片查看层：点任意处关闭
   const lb = document.getElementById('img-lightbox');
   if (lb) lb.addEventListener('click', () => lb.classList.remove('show'));

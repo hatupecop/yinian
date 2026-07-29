@@ -1,0 +1,1018 @@
+<!DOCTYPE html>
+<html lang="zh-CN" data-theme="light">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>心潮 · 动态心智系统</title>
+<link rel="preconnect" href="https://fonts.googleapis.com" />
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+<link href="https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,400;9..144,500;9..144,600&family=Plus+Jakarta+Sans:wght@400;500;600;700&display=swap" rel="stylesheet" />
+<style>
+  :root {
+    --font-display: "Fraunces", Georgia, "Times New Roman", serif;
+    --font-body: "Plus Jakarta Sans", -apple-system, BlinkMacSystemFont, "Segoe UI", system-ui, sans-serif;
+    --sp-1: 4px;  --sp-2: 8px;  --sp-3: 12px; --sp-4: 16px;
+    --sp-5: 24px; --sp-6: 32px; --sp-7: 48px; --sp-8: 64px;
+    --t-xs: .75rem; --t-sm: .8125rem; --t-base: 1rem;
+    --t-lg: 1.25rem; --t-xl: 1.75rem; --t-2xl: 2.75rem;
+    --ease-out-expo: cubic-bezier(0.16, 1, 0.3, 1);
+    --ease-out-quart: cubic-bezier(0.25, 1, 0.5, 1);
+    --dur-fast: 140ms; --dur-mid: 280ms; --dur-slow: 600ms;
+    --radius: 14px; --radius-sm: 10px;
+  }
+  :root[data-theme="light"] {
+    --paper: oklch(96% 0.012 80);
+    --surface-1: oklch(99% 0.008 80);
+    --surface-2: oklch(93% 0.014 80);
+    --ink: oklch(24% 0.02 60);
+    --ink-soft: oklch(46% 0.02 60);
+    --ink-faint: oklch(62% 0.018 70);
+    --line: oklch(87% 0.015 75);
+    --line-strong: oklch(80% 0.018 72);
+    --accent: oklch(52% 0.10 230);
+    --accent-strong: oklch(44% 0.12 230);
+    --heart: oklch(56% 0.12 18);
+    --warn: oklch(64% 0.12 72);
+    --shadow: 0 1px 2px oklch(24% 0.02 60 / 0.05), 0 8px 24px oklch(24% 0.02 60 / 0.06);
+  }
+  :root[data-theme="dark"] {
+    --paper: oklch(17% 0.012 70);
+    --surface-1: oklch(21% 0.012 70);
+    --surface-2: oklch(26% 0.012 70);
+    --ink: oklch(92% 0.01 80);
+    --ink-soft: oklch(70% 0.015 75);
+    --ink-faint: oklch(55% 0.014 72);
+    --line: oklch(33% 0.014 70);
+    --line-strong: oklch(40% 0.016 72);
+    --accent: oklch(70% 0.10 230);
+    --accent-strong: oklch(76% 0.11 230);
+    --heart: oklch(72% 0.11 18);
+    --warn: oklch(76% 0.11 72);
+    --shadow: 0 1px 2px oklch(0% 0 0 / 0.3), 0 10px 30px oklch(0% 0 0 / 0.35);
+  }
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  html { -webkit-text-size-adjust: 100%; }
+  body {
+    font-family: var(--font-body); background: var(--paper); color: var(--ink);
+    font-size: var(--t-base); line-height: 1.55; font-weight: 400;
+    -webkit-font-smoothing: antialiased; text-rendering: optimizeLegibility;
+    min-height: 100vh;
+    transition: background var(--dur-mid) var(--ease-out-expo), color var(--dur-mid) var(--ease-out-expo);
+  }
+  .wrap { max-width: 1180px; margin: 0 auto; padding: var(--sp-5) var(--sp-5) var(--sp-8); }
+  .topbar { display: flex; align-items: center; justify-content: space-between; gap: var(--sp-4); padding-bottom: var(--sp-5); border-bottom: 1px solid var(--line); margin-bottom: var(--sp-7); }
+  .brand { display: flex; align-items: baseline; gap: var(--sp-3); }
+  .brand h1 { font-family: var(--font-display); font-weight: 500; font-size: 1.9rem; letter-spacing: -0.01em; line-height: 1; }
+  .brand .sub { font-size: var(--t-xs); color: var(--ink-faint); text-transform: uppercase; letter-spacing: 0.18em; }
+  .top-actions { display: flex; align-items: center; gap: var(--sp-3); }
+  .pill { display: inline-flex; align-items: center; gap: var(--sp-2); font-size: var(--t-sm); font-weight: 500; color: var(--ink-soft); padding: var(--sp-2) var(--sp-3); border-radius: 999px; border: 1px solid var(--line); background: var(--surface-1); }
+  .pill .dot { width: 7px; height: 7px; border-radius: 50%; background: var(--ink-faint); }
+  .pill.live .dot { background: var(--accent); box-shadow: 0 0 0 3px oklch(52% 0.10 230 / 0.18); }
+  .pill.live { color: var(--accent-strong); border-color: oklch(52% 0.10 230 / 0.4); }
+  .icon-btn { width: 38px; height: 38px; display: grid; place-items: center; border: 1px solid var(--line); border-radius: var(--radius-sm); background: var(--surface-1); color: var(--ink-soft); cursor: pointer; transition: background var(--dur-fast), color var(--dur-fast), border-color var(--dur-fast); }
+  .icon-btn:hover { color: var(--ink); border-color: var(--line-strong); background: var(--surface-2); }
+  .icon-btn svg { width: 18px; height: 18px; }
+  .section { margin-bottom: var(--sp-8); }
+  .section-head { display: flex; align-items: baseline; justify-content: space-between; gap: var(--sp-4); margin-bottom: var(--sp-4); flex-wrap: wrap; }
+  .section-head h2 { font-family: var(--font-display); font-weight: 500; font-size: var(--t-xl); letter-spacing: -0.01em; }
+  .section-head .hint { font-size: var(--t-sm); color: var(--ink-faint); }
+  .hero { display: grid; grid-template-columns: 1.1fr 1fr; gap: var(--sp-6); align-items: stretch; }
+  @media (max-width: 760px) { .hero { grid-template-columns: 1fr; } }
+  .hero-main { background: var(--surface-1); border: 1px solid var(--line); border-radius: var(--radius); padding: var(--sp-6); display: flex; flex-direction: column; justify-content: space-between; box-shadow: var(--shadow); }
+  .hero-label { font-size: var(--t-xs); text-transform: uppercase; letter-spacing: 0.2em; color: var(--ink-faint); }
+  .hero-drive { font-family: var(--font-display); font-weight: 500; font-size: clamp(2.6rem, 7vw, 4rem); line-height: 1; margin-top: var(--sp-3); letter-spacing: -0.02em; }
+  .hero-drive .val { font-size: 0.42em; color: var(--accent-strong); font-variant-numeric: tabular-nums; margin-left: var(--sp-3); vertical-align: 0.18em; }
+  .hero-meta { margin-top: var(--sp-5); display: flex; gap: var(--sp-5); flex-wrap: wrap; font-size: var(--t-sm); color: var(--ink-soft); }
+  .hero-meta b { color: var(--ink); font-weight: 600; font-variant-numeric: tabular-nums; }
+  .hero-meta .tag { display: inline-flex; align-items: center; gap: 6px; padding: 2px 10px; border-radius: 999px; border: 1px solid var(--line); background: var(--surface-2); }
+  .tag.sleep { color: var(--accent-strong); border-color: oklch(52% 0.10 230 / 0.35); }
+  .hero-side { background: var(--surface-1); border: 1px solid var(--line); border-radius: var(--radius); padding: var(--sp-6); box-shadow: var(--shadow); display: flex; flex-direction: column; gap: var(--sp-5); }
+  .spark-block .spark-label { display: flex; justify-content: space-between; align-items: baseline; font-size: var(--t-sm); color: var(--ink-soft); margin-bottom: var(--sp-2); }
+  .spark-block .spark-label b { color: var(--ink); font-variant-numeric: tabular-nums; }
+  .spark { width: 100%; height: 54px; display: block; }
+  .drives { display: grid; gap: var(--sp-3) var(--sp-5); grid-template-columns: repeat(auto-fit, minmax(240px, 1fr)); }
+  .drive { display: grid; grid-template-columns: 1fr auto; align-items: center; gap: 6px var(--sp-3); padding: var(--sp-3) 0; border-bottom: 1px solid var(--line); }
+  .drive .name { font-size: var(--t-sm); font-weight: 500; color: var(--ink); }
+  .drive .num { font-size: var(--t-sm); color: var(--ink-soft); font-variant-numeric: tabular-nums; text-align: right; min-width: 42px; }
+  .track { grid-column: 1 / -1; position: relative; height: 8px; border-radius: 999px; background: var(--surface-2); cursor: pointer; overflow: hidden; border: 1px solid var(--line); }
+  .track:focus-visible { outline: 2px solid var(--accent); outline-offset: 3px; }
+  .fill { position: absolute; inset: 0 auto 0 0; border-radius: 999px; background: linear-gradient(90deg, var(--accent-strong), var(--accent)); transition: width var(--dur-slow) var(--ease-out-expo); }
+  .track::after { content: ""; position: absolute; top: 0; bottom: 0; width: 2px; background: var(--ink); opacity: 0.25; left: var(--pos, 50%); transition: left var(--dur-slow) var(--ease-out-expo); }
+  .empty { color: var(--ink-faint); font-size: var(--t-sm); padding: var(--sp-3) 0; font-style: italic; }
+  .thoughts { display: flex; flex-direction: column; gap: var(--sp-3); }
+  .thought { display: grid; grid-template-columns: 1fr auto; gap: 4px var(--sp-3); align-items: center; padding: var(--sp-3) var(--sp-4); background: var(--surface-1); border: 1px solid var(--line); border-radius: var(--radius-sm); }
+  .thought .txt { font-size: var(--t-base); color: var(--ink); }
+  .thought .meta { font-size: var(--t-xs); color: var(--ink-faint); font-variant-numeric: tabular-nums; }
+  .thought .bar { grid-column: 1 / -1; height: 4px; border-radius: 999px; background: var(--surface-2); overflow: hidden; }
+  .thought .bar > i { display: block; height: 100%; background: var(--heart); border-radius: 999px; transition: width var(--dur-slow) var(--ease-out-expo); }
+  .badge-fix { font-size: var(--t-xs); color: var(--heart); border: 1px solid oklch(56% 0.12 18 / 0.4); padding: 1px 8px; border-radius: 999px; font-weight: 600; }
+  .inject { display: flex; gap: var(--sp-2); margin-top: var(--sp-4); }
+  .inject select { flex: 0 0 140px; font-family: var(--font-body); font-size: var(--t-xs); padding: var(--sp-3) var(--sp-2); border-radius: var(--radius-sm); border: 1px solid var(--line); background: var(--surface-1); color: var(--ink); }
+  .sub { font-size: var(--t-xs); color: var(--ink-faint); font-weight: 600; margin: var(--sp-2) 0 2px; letter-spacing: .04em; }
+  .inject-log-wrap { margin-top: var(--sp-3); padding: var(--sp-3); background: var(--surface-1); border-radius: var(--radius-sm); border: 1px dashed var(--line); }
+  .inject-log-head { display: flex; justify-content: space-between; align-items: center; margin-bottom: var(--sp-2); }
+  .inject-log-head .label { font-size: var(--t-sm); font-weight: 600; color: var(--ink); }
+  .inject-log-head .hint { font-size: var(--t-xs); color: var(--ink-faint); margin-left: var(--sp-1); font-weight: 400; }
+  .inject-log { display: flex; flex-direction: column; gap: var(--sp-1); max-height: 160px; overflow-y: auto; }
+  .inject-log .item { display: flex; gap: var(--sp-2); font-size: var(--t-xs); padding: 4px 8px; border-radius: 4px; background: rgba(255,255,255,.04); align-items: center; }
+  .inject-log .item .ts { color: var(--ink-faint); font-variant-numeric: tabular-nums; min-width: 70px; }
+  .inject-log .item .tx { flex: 1; color: var(--ink); word-break: break-all; }
+  .inject-log .empty { font-size: var(--t-xs); color: var(--ink-faint); padding: 8px 0; text-align: center; }
+  .btn.tiny { padding: 2px 8px; font-size: var(--t-xs); border-radius: 4px; }
+  .env-status { font-size: var(--t-xs); color: var(--ink-faint); align-self: center; margin-right: var(--sp-2); transition: color .3s; }
+  .env-status.saved { color: var(--accent); }
+  .inject input { flex: 1; font-family: var(--font-body); font-size: var(--t-base); padding: var(--sp-3) var(--sp-4); border-radius: var(--radius-sm); border: 1px solid var(--line); background: var(--surface-1); color: var(--ink); transition: border-color var(--dur-fast); }
+  .inject input:focus { outline: none; border-color: var(--accent); }
+  .btn { font-family: var(--font-body); font-size: var(--t-sm); font-weight: 600; padding: var(--sp-3) var(--sp-5); border-radius: var(--radius-sm); border: 1px solid var(--line); background: var(--surface-1); color: var(--ink); cursor: pointer; transition: background var(--dur-fast), border-color var(--dur-fast), transform var(--dur-fast); }
+  .btn:hover { border-color: var(--line-strong); background: var(--surface-2); }
+  .btn:active { transform: translateY(1px); }
+  .btn.primary { background: var(--accent); border-color: var(--accent); color: oklch(99% 0 0); }
+  .btn.primary:hover { background: var(--accent-strong); border-color: var(--accent-strong); }
+  .btn.ghost { background: transparent; }
+  .btn:disabled { opacity: 0.5; cursor: not-allowed; }
+  .row2 { display: grid; grid-template-columns: 1fr 1fr; gap: var(--sp-6); }
+  @media (max-width: 820px) { .row2 { grid-template-columns: 1fr; } }
+  .panel { background: var(--surface-1); border: 1px solid var(--line); border-radius: var(--radius); padding: var(--sp-6); box-shadow: var(--shadow); }
+  .panel h3 { font-family: var(--font-display); font-weight: 500; font-size: var(--t-lg); margin-bottom: var(--sp-4); }
+  .gauge-wrap { display: flex; align-items: center; gap: var(--sp-5); }
+  .gauge { width: 116px; height: 116px; flex: none; }
+  .gauge .track-c { fill: none; stroke: var(--surface-2); stroke-width: 9; }
+  .gauge .fill-c { fill: none; stroke: var(--warn); stroke-width: 9; stroke-linecap: round; transition: stroke-dashoffset var(--dur-slow) var(--ease-out-expo); }
+  .gauge .g-num { font-family: var(--font-display); font-size: 1.5rem; fill: var(--ink); font-variant-numeric: tabular-nums; }
+  .gauge .g-cap { font-size: 9px; fill: var(--ink-faint); letter-spacing: 0.15em; }
+  .gauge-info { font-size: var(--t-sm); color: var(--ink-soft); }
+  .gauge-info .state { font-family: var(--font-display); font-size: 1.4rem; color: var(--ink); display: block; margin-bottom: 4px; }
+  .field-text { font-family: var(--font-display); font-size: 1.15rem; line-height: 1.5; color: var(--ink); min-height: 3.2em; padding: var(--sp-3) 0; }
+  .field-text.placeholder { color: var(--ink-faint); font-style: italic; }
+  .count { font-size: var(--t-xs); color: var(--ink-faint); font-variant-numeric: tabular-nums; text-align: right; }
+  .ctrl-list { display: flex; flex-direction: column; gap: var(--sp-2); }
+  .ctrl { display: flex; align-items: center; justify-content: space-between; gap: var(--sp-4); padding: var(--sp-3) 0; border-bottom: 1px solid var(--line); }
+  .ctrl:last-child { border-bottom: none; }
+  .ctrl .label { font-size: var(--t-base); color: var(--ink); }
+  .ctrl .desc { font-size: var(--t-xs); color: var(--ink-faint); margin-top: 2px; }
+  .switch { position: relative; width: 46px; height: 26px; flex: none; }
+  .switch input { position: absolute; opacity: 0; width: 100%; height: 100%; margin: 0; cursor: pointer; }
+  .switch .slot { position: absolute; inset: 0; border-radius: 999px; background: var(--surface-2); border: 1px solid var(--line-strong); transition: background var(--dur-fast) var(--ease-out-expo), border-color var(--dur-fast); }
+  .switch .knob { position: absolute; top: 3px; left: 3px; width: 18px; height: 18px; border-radius: 50%; background: var(--ink-soft); transition: transform var(--dur-fast) var(--ease-out-expo), background var(--dur-fast); }
+  .switch input:checked ~ .slot { background: var(--accent); border-color: var(--accent); }
+  .switch input:checked ~ .knob { transform: translateX(20px); background: oklch(99% 0 0); }
+  .switch input:focus-visible ~ .slot { outline: 2px solid var(--accent); outline-offset: 2px; }
+  .conn-box { display: flex; gap: var(--sp-2); margin-top: var(--sp-4); flex-wrap: wrap; }
+  .conn-box input { flex: 1; min-width: 160px; font-family: var(--font-body); font-size: var(--t-sm); padding: var(--sp-3) var(--sp-4); border-radius: var(--radius-sm); border: 1px solid var(--line); background: var(--surface-1); color: var(--ink); }
+  .conn-box input:focus { outline: none; border-color: var(--accent); }
+  .foot { margin-top: var(--sp-7); padding-top: var(--sp-5); border-top: 1px solid var(--line); font-size: var(--t-xs); color: var(--ink-faint); line-height: 1.7; }
+  .foot code { font-family: ui-monospace, "SF Mono", Menlo, monospace; color: var(--ink-soft); background: var(--surface-2); padding: 1px 5px; border-radius: 4px; }
+  .params { display: flex; flex-direction: column; }
+  .param-sec { margin-bottom: var(--sp-5); }
+  .param-sec > .sec-title { font-family: var(--font-display); font-size: var(--t-base); font-weight: 500; color: var(--ink); padding: var(--sp-3) 0 var(--sp-2); border-bottom: 1px solid var(--line-strong); margin-bottom: var(--sp-2); }
+  .param-sec > .sec-note { font-size: var(--t-xs); color: var(--ink-faint); margin-bottom: var(--sp-2); }
+  .param { display: flex; align-items: center; justify-content: space-between; gap: var(--sp-4); padding: var(--sp-3) 0; border-bottom: 1px solid var(--line); }
+  .param:last-child { border-bottom: none; }
+  .param.col { flex-direction: column; align-items: stretch; gap: var(--sp-2); }
+  .param .pl { display: flex; flex-direction: column; }
+  .param .pl .label { font-size: var(--t-base); color: var(--ink); }
+  .param .pl .desc { font-size: var(--t-xs); color: var(--ink-faint); margin-top: 2px; }
+  .param .pl .k { font-family: ui-monospace, "SF Mono", Menlo, monospace; font-size: var(--t-xs); color: var(--accent-strong); margin-top: 1px; }
+  .param .tin { font-family: var(--font-body); font-size: var(--t-sm); color: var(--ink); padding: var(--sp-2) var(--sp-3); border-radius: var(--radius-sm); border: 1px solid var(--line); background: var(--surface-1); min-width: 0; }
+  .param .tin:focus { outline: none; border-color: var(--accent); }
+  .param .tin.full { width: 100%; }
+  .param .tin.num { width: 84px; text-align: center; }
+  .prompt-card { border: 1px solid var(--line); border-radius: var(--radius-sm); padding: var(--sp-4); margin-bottom: var(--sp-4); }
+  .prompt-card .pc-head { display: flex; align-items: baseline; justify-content: space-between; gap: var(--sp-3); margin-bottom: var(--sp-2); }
+  .prompt-card .pc-title { font-family: var(--font-display); font-size: var(--t-base); font-weight: 500; color: var(--ink); }
+  .prompt-card .pc-tag { font-size: var(--t-xs); color: var(--ink-faint); }
+  .prompt-card textarea { width: 100%; min-height: 120px; resize: vertical; font-family: var(--font-body); font-size: var(--t-sm); line-height: 1.6; color: var(--ink); padding: var(--sp-3); border-radius: var(--radius-sm); border: 1px solid var(--line); background: var(--surface-2); }
+  .prompt-card textarea:focus { outline: none; border-color: var(--accent); }
+  .prompt-card .pc-actions { display: flex; gap: var(--sp-2); margin-top: var(--sp-3); flex-wrap: wrap; }
+  .reveal { opacity: 0; transform: translateY(10px); animation: rise var(--dur-slow) var(--ease-out-expo) forwards; animation-delay: calc(var(--i, 0) * 55ms); }
+  @keyframes rise { to { opacity: 1; transform: none; } }
+  @media (prefers-reduced-motion: reduce) {
+    *, *::before, *::after { animation-duration: 0.01ms !important; transition-duration: 0.01ms !important; }
+    .reveal { opacity: 1; transform: none; }
+  }
+
+  /* Dream detail modal */
+  .dream-modal { position: fixed; inset: 0; z-index: 9999; }
+  .dream-modal-mask { position: absolute; inset: 0; background: rgba(20, 16, 24, 0.55); backdrop-filter: blur(6px); -webkit-backdrop-filter: blur(6px); }
+  .dream-modal-body { position: relative; max-width: 680px; margin: 5vh auto; background: #fff; border-radius: 20px; padding: 22px 24px; max-height: 88vh; display: flex; flex-direction: column; box-shadow: 0 24px 60px rgba(0, 0, 0, 0.28); }
+  .dream-modal-head { display: flex; justify-content: space-between; align-items: center; gap: 12px; margin-bottom: 12px; flex-wrap: wrap; }
+  .dream-tabs { display: flex; gap: 6px; flex-wrap: wrap; }
+  .dream-tab { padding: 8px 14px; border-radius: 999px; border: 1px solid #e6e1ea; background: #faf7fb; font-size: 13px; cursor: pointer; transition: all .18s ease; color: #4a3d52; }
+  .dream-tab:hover:not(.disabled) { border-color: #b99fc9; }
+  .dream-tab.active { background: #2a1f33; color: #fff; border-color: #2a1f33; }
+  .dream-tab.disabled { opacity: 0.32; cursor: not-allowed; }
+  .dream-modal-close { width: 34px; height: 34px; border-radius: 50%; border: none; background: #f2eef5; font-size: 20px; line-height: 1; cursor: pointer; color: #4a3d52; transition: background .18s; }
+  .dream-modal-close:hover { background: #e6ddef; }
+  .dream-modal-date { font-size: 12px; color: #8a7a95; margin-bottom: 12px; letter-spacing: 0.4px; }
+  .dream-modal-content { flex: 1; overflow-y: auto; font-size: 15px; line-height: 1.85; white-space: pre-wrap; word-break: break-word; color: #2c2233; padding-right: 6px; }
+  @media (max-width: 640px) {
+    .dream-modal-body { margin: 3vh 12px; padding: 18px; max-height: 92vh; }
+    .dream-tab { padding: 7px 11px; font-size: 12px; }
+  }
+</style>
+</head>
+<body>
+<div class="wrap">
+
+  <header class="topbar">
+    <div class="brand">
+      <h1>心潮</h1>
+      <span class="sub">动态心智系统 · 控制台</span>
+    </div>
+    <div class="top-actions">
+      <span class="pill" id="connPill"><span class="dot"></span><span id="connText">未连接</span></span>
+      <button class="icon-btn" id="themeBtn" aria-label="切换主题" title="切换明暗">
+        <svg id="iconMoon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><path d="M21 12.8A9 9 0 1 1 11.2 3 7 7 0 0 0 21 12.8z"/></svg>
+        <svg id="iconSun" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" style="display:none"><circle cx="12" cy="12" r="4"/><path d="M12 2v2M12 20v2M4.9 4.9l1.4 1.4M17.7 17.7l1.4 1.4M2 12h2M20 12h2M4.9 19.1l1.4-1.4M17.7 6.3l1.4-1.4"/></svg>
+      </button>
+    </div>
+  </header>
+
+  <!-- Connection -->
+  <section class="section reveal" style="--i:0">
+    <div class="panel">
+      <div class="section-head" style="margin-bottom:var(--sp-3)">
+        <h3 style="margin:0">连接心潮</h3>
+        <span class="hint">所有 <code>/v1/*</code> 接口需带 <code>Authorization: Bearer &lt;SERVICE_TOKEN&gt;</code>；<code>/health</code> 无需鉴权</span>
+      </div>
+      <div class="conn-box">
+        <input id="baseUrl" type="text" value="http://124.220.58.160:18110" spellcheck="false" placeholder="心潮地址，如 http://1.2.3.4:18110" />
+        <input id="token" type="password" value="" placeholder="SERVICE_TOKEN" spellcheck="false" />
+        <button class="btn primary" id="connectBtn">连接</button>
+      </div>
+      <div class="custom-note" style="margin-top:var(--sp-3);font-size:var(--t-xs);color:var(--ink-faint);line-height:1.6">
+        本控制台为纯真实模式：未连接时不显示任何数据，连接后每 3 秒轮询一次真实状态。填入云上地址与 <code>SERVICE_TOKEN</code> 并点「连接」即可。
+      </div>
+    </div>
+  </section>
+
+  <!-- Overview -->
+  <section class="section reveal" style="--i:1">
+    <div class="hero">
+      <div class="hero-main">
+        <div>
+          <div class="hero-label">此刻主导</div>
+          <div class="hero-drive"><span id="heroDrive">—</span><span class="val" id="heroVal">—</span></div>
+        </div>
+        <div class="hero-meta">
+          <span class="tag" id="sleepTag">节律 · 未连接</span>
+          <span>疲惫 <b id="heroFatigue">—</b></span>
+          <span>念头 <b id="heroThoughts">—</b></span>
+          <span>梦境 <b id="heroDream">—</b></span>
+        </div>
+      </div>
+      <div class="hero-side">
+        <div class="spark-block">
+          <div class="spark-label"><span>心智均值 · 近期</span><b id="avgNow">—</b></div>
+          <svg class="spark" id="sparkAvg" viewBox="0 0 300 54" preserveAspectRatio="none"></svg>
+        </div>
+        <div class="spark-block">
+          <div class="spark-label"><span>疲惫曲线 · 近期</span><b id="fatNow">—</b></div>
+          <svg class="spark" id="sparkFat" viewBox="0 0 300 54" preserveAspectRatio="none"></svg>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- Drives -->
+  <section class="section reveal" style="--i:2">
+    <div class="section-head">
+      <h2>十二驱动力</h2>
+      <span class="hint">拖动即时生效 · 连接后发送 POST /v1/drive-feedback 增量</span>
+    </div>
+    <div class="drives" id="drives"></div>
+    <div class="custom-note" style="margin-top:var(--sp-3);font-size:var(--t-xs);color:var(--ink-faint);line-height:1.6">
+      真实的 12 个驱动力写死在 <code>src/dimensions.js</code>（Object.freeze），API 不接收未知 key。连接前为只读预览，连接后可拖动微调（每次仅对差值生效）。
+    </div>
+  </section>
+
+  <!-- Thoughts -->
+  <section class="section reveal" style="--i:3">
+    <div class="section-head">
+      <h2>念头池</h2>
+      <span class="hint">闪念会衰减 · 反复出现凝结为执念</span>
+    </div>
+    <div class="thoughts" id="thoughts"></div>
+    <div class="inject">
+      <select id="thoughtKey" class="tin" title="念头必须挂在一个驱动力上，心潮才接收"></select>
+      <input id="thoughtInput" type="text" placeholder="注入念头（先选左侧驱动力）" maxlength="40" />
+      <button class="btn primary" id="injectBtn">注入</button>
+    </div>
+    <div class="inject-log-wrap">
+      <div class="inject-log-head">
+        <span class="label">我刚注入的<span class="hint">· 本机缓存 50 条（独立于心潮显示）</span></span>
+        <button class="btn tiny" id="clearInjectLog">清空</button>
+      </div>
+      <div class="inject-log" id="injectLog"></div>
+    </div>
+    <div class="custom-note" style="margin-top:var(--sp-3);font-size:var(--t-xs);color:var(--ink-faint);line-height:1.6">
+      念头来自真实心潮的状态（<code>thoughtPool</code> 的 flash 与 obsessions）。注入时<b>必须先在左侧下拉选一个驱动力</b>——心潮只接收 <code>{key, text}</code> 格式的念头（key 为 12 项驱动力之一），不选或填纯文本会被<b>静默丢弃</b>，池子永远空。「我刚注入的」只是本机缓存，仅供你确认发送动作；真正是否进池，看上方「念头池」。
+    </div>
+  </section>
+
+  <!-- Fatigue / Intent / Dream -->
+  <section class="section reveal" style="--i:4">
+    <div class="row2">
+      <div class="panel">
+        <h3>疲惫与睡眠</h3>
+        <div class="gauge-wrap">
+          <svg class="gauge" viewBox="0 0 120 120">
+            <circle class="track-c" cx="60" cy="60" r="50"></circle>
+            <circle class="fill-c" id="gaugeFill" cx="60" cy="60" r="50" transform="rotate(-90 60 60)" stroke-dasharray="314.16" stroke-dashoffset="314.16"></circle>
+            <text class="g-num" id="gaugeNum" x="60" y="58" text-anchor="middle" dominant-baseline="middle">—</text>
+            <text class="g-cap" x="60" y="78" text-anchor="middle">疲惫</text>
+          </svg>
+          <div class="gauge-info">
+            <span class="state" id="sleepState">未连接</span>
+            长时间静默后心潮会自然入眠，入眠后疲惫缓慢回落。睡眠节律由心潮自身状态（<code>consciousness</code>）决定。
+          </div>
+        </div>
+      </div>
+      <div style="display:flex;flex-direction:column;gap:var(--sp-6)">
+        <div class="panel">
+          <div class="section-head" style="margin-bottom:var(--sp-2)">
+            <h3 style="margin:0">意图</h3>
+          </div>
+          <div class="field-text placeholder" id="intentText">未连接</div>
+          <div class="custom-note" style="margin-top:var(--sp-2);font-size:var(--t-xs);color:var(--ink-faint);line-height:1.6">来自 <code>GET /v1/intent</code>，由当前主导驱动力 + 念头池共同决定。</div>
+        </div>
+        <div class="panel" id="dreamCard" style="cursor:pointer" title="点开看完整梦境">
+          <div class="section-head" style="margin-bottom:var(--sp-2)">
+            <h3 style="margin:0">梦境</h3>
+            <span class="hint" style="font-size:var(--t-xs)">点开看详情 →</span>
+          </div>
+          <div class="field-text placeholder" id="dreamDate">未连接</div>
+          <div class="count" id="dreamCount">—</div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- Run controls -->
+  <section class="section reveal" style="--i:5">
+    <div class="panel">
+      <h3>运行控制</h3>
+      <div class="ctrl-list">
+        <div class="ctrl">
+          <div><div class="label">触发结算</div><div class="desc">按真实流逝时间结算一轮（POST /v1/settle）</div></div>
+          <button class="btn" id="settleBtn">结算</button>
+        </div>
+        <div class="ctrl">
+          <div><div class="label">触发对话事件 / 心跳</div><div class="desc">POST /v1/conversation-event（/v1/heartbeat 为别名）</div></div>
+          <button class="btn" id="hbBtn">发送</button>
+        </div>
+      </div>
+      <div class="inject" style="margin-top:var(--sp-4)">
+        <input id="eventInput" type="text" placeholder="对话事件文本，发送即写入真实心潮" maxlength="200" />
+      </div>
+    </div>
+  </section>
+
+  <!-- Prompts -->
+  <section class="section reveal" style="--i:6">
+    <div class="section-head">
+      <h2>提示词</h2>
+      <span class="hint">三段系统提示词内嵌 model-client.js · 改源码 + 重建生效 · 此处仅查看/复制</span>
+    </div>
+    <div class="panel">
+      <div class="prompt-card">
+        <div class="pc-head">
+          <span class="pc-title">梦境结算系统提示词（generateDream）</span>
+          <span class="pc-tag">内嵌于 model-client.js · 改源码生效</span>
+        </div>
+        <textarea id="pDream" readonly></textarea>
+        <div class="pc-actions"><button class="btn" data-copy="pDream">复制</button></div>
+      </div>
+      <div class="prompt-card">
+        <div class="pc-head">
+          <span class="pc-title">白天浮现系统提示词（generateDaytimeEmergence）</span>
+          <span class="pc-tag">内嵌于 model-client.js · 改源码生效</span>
+        </div>
+        <textarea id="pDay" readonly></textarea>
+        <div class="pc-actions"><button class="btn" data-copy="pDay">复制</button></div>
+      </div>
+      <div class="prompt-card">
+        <div class="pc-head">
+          <span class="pc-title">自主念头系统提示词（generateThought）</span>
+          <span class="pc-tag">内嵌于 model-client.js · 改源码生效</span>
+        </div>
+        <textarea id="pThought" readonly></textarea>
+        <div class="pc-actions"><button class="btn" data-copy="pThought">复制</button></div>
+      </div>
+      <div class="pc-actions"><button class="btn primary" id="exportAllPrompts">导出全部提示词（.md）</button></div>
+    </div>
+  </section>
+
+  <!-- Engine config (.env) -->
+  <section class="section reveal" style="--i:7">
+    <div class="section-head">
+      <h2>引擎配置（全部 .env）</h2>
+      <span class="hint">v2.0.0 全量 · 改 .env 后重启心潮生效</span>
+    </div>
+    <div class="panel">
+      <div class="custom-note" style="margin-bottom:var(--sp-3)">以下为心潮 <code>.env.example</code> 的全部配置项。界面内为可编辑草稿；点「导出 .env」把内容复制到你的部署文件，改完重启生效。运行时无法热改配置（无对应 API）。</div>
+      <div class="params" id="configForm"></div>
+      <div class="pc-actions" style="margin-top:var(--sp-4)">
+        <span id="envStatus" class="env-status">草稿将自动保存于本机浏览器</span>
+        <button class="btn primary" id="exportEnv">导出 .env</button>
+        <button class="btn" id="copyEnv">复制全部</button>
+      </div>
+    </div>
+  </section>
+
+  <footer class="foot">
+    心潮动态心智系统 v2.0.0 · 前端控制台（自包含单文件，纯真实模式）。仓库：<code>github.com/tianyupaipai-cmd/xinchao-dynamic-mind</code>。<br />
+    填入地址 + <code>SERVICE_TOKEN</code> 并点「连接」即切换实时模式，每 3 秒轮询 <code>/v1/state</code> 与 <code>/v1/intent</code>。<br />
+    真实接口（来自 <code>src/server.js</code>）：<code>GET /health</code>（无需鉴权）· <code>GET /v1/state</code> · <code>GET /v1/intent</code> · <code>GET /v1/breath-context</code> · <code>POST /v1/settle</code> · <code>POST /v1/conversation-event</code>（<code>/v1/heartbeat</code> 别名）· <code>POST /v1/drive-feedback</code>。除 /health 外均带 <code>Bearer</code> 令牌。<br />
+    可热改：12 驱动力（drive-feedback 增量）、念头（conversation-event）、触发结算/心跳。其余（影子模式、Bark、模型、时区、黎明、梦境限频、记忆 MCP、伴侣名等）皆为 <code>.env</code> 配置，必须重启生效。
+  </footer>
+
+</div>
+
+<!-- Dream detail modal -->
+<div id="dreamModal" class="dream-modal" style="display:none">
+  <div class="dream-modal-mask" id="dreamModalMask"></div>
+  <div class="dream-modal-body">
+    <div class="dream-modal-head">
+      <div class="dream-tabs">
+        <button class="dream-tab" data-seg="dream">🌙 梦境正文</button>
+        <button class="dream-tab" data-seg="residue">💭 醒后余韵</button>
+        <button class="dream-tab" data-seg="awareness">✨ 当下意识</button>
+      </div>
+      <button class="dream-modal-close" id="dreamModalClose" aria-label="关闭">×</button>
+    </div>
+    <div class="dream-modal-date" id="dreamModalDate">—</div>
+    <div class="dream-modal-content" id="dreamModalContent">—</div>
+  </div>
+</div>
+
+<script>
+"use strict";
+/* ============ Real data (from src/dimensions.js, src/config.js, .env.example) ============ */
+const REAL_DRIVES = [
+  { key: "possess",    label: "亲密、占有与靠近" },
+  { key: "monitor",    label: "牵挂、想知道对方近况" },
+  { key: "crave",      label: "依恋与身体接近" },
+  { key: "share",      label: "想分享自己的发现和感受" },
+  { key: "libido",     label: "身体欲望" },
+  { key: "curiosity",  label: "好奇、想探索新东西" },
+  { key: "boredom",    label: "无聊、想找点事情做" },
+  { key: "social",     label: "想聊天、想接触热闹" },
+  { key: "duty",       label: "责任感、想把未完成的事推进" },
+  { key: "reflection", label: "想沉淀、整理和理解自己" },
+  { key: "grieve",     label: "难过与失落" },
+  { key: "anger",      label: "生气与不满" },
+];
+
+const INLINE_PROMPTS = {
+  pDream:   "你是${AGENT_NAME}的动态心智梦境结算器。简洁、具体、忠于当前状态。",
+  pDay:     "你是${AGENT_NAME}白天持续运行的后台心智，只把真正自然浮现的具体念头写成通知。",
+  pThought: "你是${AGENT_NAME}持续运行的后台心智。只写一条适合手机通知的自主念头。",
+};
+
+const CONFIG_SECTIONS = [
+  { title: "身份", note: "仅用于模型提示词与通知称呼", fields: [
+    { k: "AGENT_NAME", label: "伴侣名", t: "text", v: "心潮" },
+    { k: "NOTIFICATION_RECIPIENT", label: "通知接收人", t: "text", v: "用户" },
+  ]},
+  { title: "服务", note: "", fields: [
+    { k: "PORT", label: "端口", t: "number", v: "18110" },
+    { k: "SERVICE_TOKEN", label: "服务令牌（必填）", t: "text", v: "replace-with-a-random-secret" },
+    { k: "STATE_PATH", label: "状态文件路径", t: "text", v: "/app/state/state.json" },
+  ]},
+  { title: "节律与睡眠", note: "", fields: [
+    { k: "SETTLE_INTERVAL_MINUTES", label: "结算间隔（分，1–1440）", t: "number", v: "15" },
+    { k: "SLEEP_AFTER_MINUTES", label: "静置多久入眠（分，5–10080）", t: "number", v: "90" },
+    { k: "SETTLE_TIME_ZONE", label: "结算时区", t: "text", v: "Asia/Shanghai" },
+    { k: "DAWN_FREEZE_START", label: "黎明冻结起（时，0–12）", t: "number", v: "1" },
+    { k: "DAWN_FREEZE_END", label: "黎明冻结止（时，1–12）", t: "number", v: "8" },
+  ]},
+  { title: "梦境", note: "", fields: [
+    { k: "DREAM_MIN_INTERVAL_HOURS", label: "两次梦最小间隔（时，1–168）", t: "number", v: "6" },
+    { k: "DREAM_MAX_PER_DAY", label: "每日梦境上限（1–12）", t: "number", v: "4" },
+  ]},
+  { title: "模型（OpenAI 兼容）", note: "MODEL_ENABLED=false 时全部不生效", fields: [
+    { k: "MODEL_ENABLED", label: "开启模型", t: "bool", v: false },
+    { k: "MODEL_BASE_URL", label: "API Base", t: "text", v: "http://127.0.0.1:11434/v1" },
+    { k: "MODEL_API_KEY", label: "API Key", t: "text", v: "" },
+    { k: "MODEL_NAME", label: "模型名", t: "text", v: "local-model" },
+    { k: "MODEL_TIMEOUT_MS", label: "超时（ms，1000–120000）", t: "number", v: "30000" },
+    { k: "MODEL_MAX_INPUT_CHARS", label: "最大输入字符（1000–50000）", t: "number", v: "10000" },
+    { k: "MODEL_MAX_OUTPUT_TOKENS", label: "最大输出 token（100–4000）", t: "number", v: "650" },
+  ]},
+  { title: "外部记忆 MCP", note: "MEMORY_READ/WRITE_ENABLED 控制是否读写", fields: [
+    { k: "MEMORY_MCP_URL", label: "MCP 地址", t: "text", v: "" },
+    { k: "MEMORY_MCP_TOKEN", label: "MCP Token", t: "text", v: "" },
+    { k: "MEMORY_READ_ENABLED", label: "读记忆", t: "bool", v: false },
+    { k: "MEMORY_WRITE_ENABLED", label: "写记忆", t: "bool", v: false },
+    { k: "MEMORY_READ_TOOL", label: "读工具名", t: "text", v: "breath" },
+    { k: "MEMORY_WRITE_TOOL", label: "写工具名", t: "text", v: "hold" },
+    { k: "MEMORY_BREATH_MAX_RESULTS", label: "呼吸最大结果数（1–10）", t: "number", v: "3" },
+    { k: "MEMORY_BREATH_MAX_TOKENS", label: "呼吸最大 token（200–3000）", t: "number", v: "800" },
+    { k: "MEMORY_HEARTBEAT_FILE", label: "心跳文件路径", t: "text", v: "/memory-data/heartbeat.json" },
+  ]},
+  { title: "Bark 通知", note: "BARK_ENABLED=false 时全部不生效", fields: [
+    { k: "BARK_ENABLED", label: "开启 Bark", t: "bool", v: false },
+    { k: "BARK_KEY", label: "Bark Key", t: "text", v: "" },
+    { k: "BARK_SERVER", label: "Bark 服务器", t: "text", v: "https://api.day.app" },
+    { k: "BARK_TITLE", label: "通知标题", t: "text", v: "心潮" },
+    { k: "BARK_GROUP", label: "通知分组", t: "text", v: "xinchao" },
+    { k: "BARK_SOUND", label: "提示音", t: "text", v: "silence" },
+    { k: "BARK_LEVEL", label: "优先级", t: "text", v: "timeSensitive" },
+    { k: "BARK_MIN_INTERVAL_HOURS", label: "最小间隔（时，1–168）", t: "number", v: "3" },
+    { k: "BARK_AUTONOMOUS_MIN_INTERVAL_HOURS", label: "自主联系最小间隔（时，1–720）", t: "number", v: "12" },
+    { k: "BARK_MAX_PER_DAY", label: "每日上限（1–24）", t: "number", v: "6" },
+    { k: "BARK_MIN_DRIVE", label: "触发最低驱动值（0.05–1）", t: "number", v: "0.42" },
+    { k: "BARK_DREAM_MIN_CONTACT_IDLE_HOURS", label: "梦境推送静默（时，1–24）", t: "number", v: "3" },
+    { k: "BARK_MIN_CONTACT_IDLE_HOURS", label: "主动联系静默（时，1–720）", t: "number", v: "12" },
+  ]},
+  { title: "实时闪念推送", note: "伴侣AI上报闪念时立即推手机（不经节流/节奏）", fields: [
+    { k: "FLASH_REALTIME_PUSH", label: "开启实时推送", t: "bool", v: false },
+  ]},
+  { title: "白天浮现", note: "DAYTIME_EMERGENCE_ENABLED=false 时关闭", fields: [
+    { k: "DAYTIME_EMERGENCE_ENABLED", label: "开启白天浮现", t: "bool", v: false },
+    { k: "DAYTIME_TIME_ZONE", label: "时区", t: "text", v: "Asia/Shanghai" },
+    { k: "DAYTIME_START_HOUR", label: "起始（时，0–23）", t: "number", v: "8" },
+    { k: "DAYTIME_END_HOUR", label: "结束（时，1–24）", t: "number", v: "23" },
+    { k: "DAYTIME_MIN_INTERVAL_HOURS", label: "最小间隔（时，0.25–24）", t: "number", v: "2" },
+    { k: "DAYTIME_MAX_INTERVAL_HOURS", label: "最大间隔（时，0.25–24）", t: "number", v: "3" },
+    { k: "DAYTIME_MAX_PER_DAY", label: "每日上限（1–24）", t: "number", v: "7" },
+  ]},
+  { title: "影子模式", note: "true = 只动脑不出手", fields: [
+    { k: "SHADOW_MODE", label: "影子模式", t: "bool", v: true },
+  ]},
+];
+
+/* ============ State (real-mode only) ============ */
+const state = {
+  drives: {},
+  thoughts: [],
+  fatigue: 0,
+  sleep: "awake",
+  intent: "——",
+  dream: "",
+  live: false,
+  baseUrl: "http://124.220.58.160:18110",
+};
+REAL_DRIVES.forEach((d) => { state.drives[d.key] = 0; });
+
+const history = { avg: [], fat: [] };
+
+const $ = (id) => document.getElementById(id);
+const clamp = (v, a, b) => Math.min(b, Math.max(a, v));
+const fmt = (v) => v.toFixed(2);
+const pct = (v) => Math.round(v * 100) + "%";
+const SLEEP_LABEL = { awake: "清醒", asleep: "沉睡", light: "浅眠", deep: "深睡" };
+const sleepLabel = (v) => SLEEP_LABEL[v] || (v || "清醒");
+
+function escapeHtml(s) {
+  return String(s).replace(/[&<>"']/g, (c) => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;" }[c]));
+}
+
+/* ============ Render: drives ============ */
+function buildDriveRow(d) {
+  const el = document.createElement("div");
+  el.className = "drive";
+  el.innerHTML =
+    '<span class="name">' + escapeHtml(d.label) + '</span>' +
+    '<span class="num" id="num-' + d.key + '">—</span>' +
+    '<div class="track" id="track-' + d.key + '" role="slider" tabindex="0" ' +
+    'aria-label="' + escapeHtml(d.label) + '" aria-valuemin="0" aria-valuemax="100" aria-valuenow="0">' +
+    '<div class="fill" id="fill-' + d.key + '"></div></div>';
+  const track = el.querySelector(".track");
+  const setFromX = (clientX) => {
+    const r = track.getBoundingClientRect();
+    const v = clamp((clientX - r.left) / r.width, 0, 1);
+    dragDrive(d.key, v);
+  };
+  let dragging = false;
+  track.addEventListener("pointerdown", (e) => { dragging = true; track.setPointerCapture(e.pointerId); setFromX(e.clientX); });
+  track.addEventListener("pointermove", (e) => { if (dragging) setFromX(e.clientX); });
+  track.addEventListener("pointerup", () => { dragging = false; });
+  track.addEventListener("keydown", (e) => {
+    const step = e.shiftKey ? 0.1 : 0.02;
+    if (e.key === "ArrowRight" || e.key === "ArrowUp") { dragDrive(d.key, clamp(currentVal(d.key) + step, 0, 1)); e.preventDefault(); }
+    if (e.key === "ArrowLeft" || e.key === "ArrowDown") { dragDrive(d.key, clamp(currentVal(d.key) - step, 0, 1)); e.preventDefault(); }
+  });
+  return el;
+}
+
+function currentVal(key) { return state.drives[key] ?? 0; }
+
+function dragDrive(key, v) {
+  if (!state.live) return; // 只读预览，未连接不允许改
+  const old = currentVal(key);
+  if (Math.abs(v - old) < 0.001) return;
+  state.drives[key] = v;
+  sendDriveDelta(key, +(v - old).toFixed(3));
+  renderDrives();
+}
+
+function sendDriveDelta(key, delta) {
+  if (!delta) return;
+  api("/v1/drive-feedback", { method: "POST", body: { driveDeltas: { [key]: delta } } }).catch(() => {});
+}
+
+function renderDrives() {
+  REAL_DRIVES.forEach((d) => {
+    const v = state.drives[d.key] ?? 0;
+    const w = state.live ? (v * 100) : 0;
+    const fill = $("fill-" + d.key); if (fill) fill.style.width = w + "%";
+    const num = $("num-" + d.key); if (num) num.textContent = state.live ? fmt(v) : "—";
+    const track = $("track-" + d.key); if (track) { track.setAttribute("aria-valuenow", state.live ? Math.round(v * 100) : 0); track.style.setProperty("--pos", w + "%"); }
+  });
+}
+
+/* ============ Render: thoughts ============ */
+function thoughtEl(t, fixed) {
+  const el = document.createElement("div");
+  el.className = "thought";
+  el.innerHTML =
+    '<span class="txt">' + escapeHtml(t.text) + (fixed ? ' <span class="badge-fix">执念</span>' : '') + '</span>' +
+    '<span class="meta">强度 ' + (t.intensity ?? 0).toFixed(2) + '</span>' +
+    '<span class="bar"><i style="width:' + ((t.intensity ?? 0) * 100) + '%"></i></span>';
+  return el;
+}
+
+function renderThoughts() {
+  const root = $("thoughts");
+  if (!state.live) { root.innerHTML = '<div class="empty">未连接，连接后显示真实念头池。</div>'; return; }
+  const flash = state.thoughts.filter((t) => !t.fixed);
+  const obs = state.thoughts.filter((t) => t.fixed);
+  if (flash.length === 0 && obs.length === 0) { root.innerHTML = '<div class="empty">念头池空空如也。注入时记得选驱动力，否则心潮不接收。</div>'; return; }
+  root.innerHTML = "";
+  if (obs.length) {
+    const h = document.createElement("div"); h.className = "sub"; h.textContent = "执念（长期盘踞，会反馈驱动力）"; root.appendChild(h);
+    obs.forEach((t) => root.appendChild(thoughtEl(t, true)));
+  }
+  if (flash.length) {
+    const h = document.createElement("div"); h.className = "sub"; h.textContent = "闪念（每轮衰减，约 45 分钟后可能凝结为执念）"; root.appendChild(h);
+    flash.forEach((t) => root.appendChild(thoughtEl(t, false)));
+  }
+}
+
+function populateThoughtKey() {
+  const sel = $("thoughtKey");
+  if (!sel) return;
+  sel.innerHTML = '<option value="">选驱动力…</option>';
+  REAL_DRIVES.forEach((d) => {
+    const o = document.createElement("option");
+    o.value = d.key; o.textContent = d.key + " · " + d.label;
+    sel.appendChild(o);
+  });
+}
+
+function injectThought(text) {
+  text = text.trim(); if (!text) return;
+  if (!state.live) { alert("未连接，无法注入真实念头。请先连接心潮。"); return; }
+  const key = $("thoughtKey").value;
+  if (!key) { alert("请先在左侧下拉里选一个「驱动力」——心潮只接收挂在某驱动力下的念头（key 必须是 12 项之一），不选就不会写入。"); $("thoughtKey").focus(); return; }
+  api("/v1/conversation-event", { method: "POST", body: { type: "user_flash_thought", summary: text.slice(0, 80), flashThoughts: [{ key, text }] } }).catch(() => {});
+  const now = new Date();
+  const ts = String(now.getHours()).padStart(2,'0') + ':' + String(now.getMinutes()).padStart(2,'0') + ':' + String(now.getSeconds()).padStart(2,'0');
+  injectLog.unshift({ ts, text: "[" + key + "] " + text, at: now.getTime() });
+  if (injectLog.length > INJECT_LOG_MAX) injectLog = injectLog.slice(0, INJECT_LOG_MAX);
+  try { localStorage.setItem(INJECT_LOG_KEY, JSON.stringify(injectLog)); } catch (e) {}
+  renderInjectLog();
+  $("thoughtInput").value = "";
+}
+
+function renderInjectLog() {
+  const root = $("injectLog");
+  if (!root) return;
+  if (!injectLog.length) { root.innerHTML = '<div class="empty">还没有注入记录</div>'; return; }
+  root.innerHTML = "";
+  injectLog.forEach((row) => {
+    const el = document.createElement("div");
+    el.className = "item";
+    el.innerHTML = '<span class="ts">' + row.ts + '</span><span class="tx">' + escapeHtml(row.text) + '</span>';
+    root.appendChild(el);
+  });
+}
+
+/* ============ Render: overview / panels ============ */
+function dominantDrive() {
+  let best = REAL_DRIVES[0], bv = -1;
+  REAL_DRIVES.forEach((d) => { if ((state.drives[d.key] ?? 0) > bv) { bv = state.drives[d.key] ?? 0; best = d; } });
+  return { name: best.label, val: bv };
+}
+function renderOverview() {
+  if (!state.live) {
+    $("heroDrive").textContent = "—"; $("heroVal").textContent = "—";
+    $("heroFatigue").textContent = "—"; $("heroThoughts").textContent = "—"; $("heroDream").textContent = "—";
+    $("sleepTag").textContent = "节律 · 未连接";
+    $("avgNow").textContent = "—"; $("fatNow").textContent = "—";
+    return;
+  }
+  const dom = dominantDrive();
+  $("heroDrive").textContent = dom.name;
+  $("heroVal").textContent = fmt(dom.val);
+  $("heroFatigue").textContent = pct(state.fatigue);
+  $("heroThoughts").textContent = state.thoughts.length;
+  $("heroDream").textContent = state.dream ? "有梦" : "未生成";
+  const tag = $("sleepTag");
+  tag.textContent = "节律 · " + sleepLabel(state.sleep);
+  tag.classList.toggle("sleep", state.sleep !== "awake");
+  const avg = REAL_DRIVES.reduce((s, d) => s + (state.drives[d.key] ?? 0), 0) / REAL_DRIVES.length;
+  $("avgNow").textContent = fmt(avg);
+  $("fatNow").textContent = pct(state.fatigue);
+  drawSpark("sparkAvg", history.avg, "var(--accent)");
+  drawSpark("sparkFat", history.fat, "var(--warn)");
+}
+function renderPanels() {
+  const C = 2 * Math.PI * 50;
+  $("gaugeFill").style.strokeDashoffset = C * (1 - (state.live ? state.fatigue : 0));
+  $("gaugeNum").textContent = state.live ? pct(state.fatigue) : "—";
+  $("sleepState").textContent = state.live ? sleepLabel(state.sleep) : "未连接";
+  const it = $("intentText");
+  if (state.live && state.intent && state.intent !== "——") { it.textContent = state.intent; it.classList.remove("placeholder"); }
+  else { it.textContent = state.live ? "暂无明确意图" : "未连接"; it.classList.add("placeholder"); }
+  const dd = $("dreamDate");
+  const hasDream = state.lastDream && (state.lastDream.dream || state.lastDream.residue || state.lastDream.awareness);
+  if (state.live) {
+    if (hasDream) { dd.textContent = formatDreamDate(state.lastDream.createdAt); dd.classList.remove("placeholder"); }
+    else { dd.textContent = "今夜无梦"; dd.classList.add("placeholder"); }
+  } else { dd.textContent = "未连接"; dd.classList.add("placeholder"); }
+  const segCount = hasDream ? [state.lastDream.dream, state.lastDream.residue, state.lastDream.awareness].filter(Boolean).length : 0;
+  $("dreamCount").textContent = state.live ? (segCount > 0 ? segCount + " 段可查看" : "—") : "—";
+}
+function formatDreamDate(iso) {
+  if (!iso) return "最近一次梦境";
+  try {
+    const d = new Date(iso);
+    if (isNaN(d)) return "最近一次梦境";
+    return (d.getMonth() + 1) + "月" + d.getDate() + "日 的梦境";
+  } catch { return "最近一次梦境"; }
+}
+
+/* ============ Dream detail modal ============ */
+let currentDreamSeg = "dream";
+function openDreamModal() {
+  if (!state.lastDream) { alert("还没有梦境记录。心潮睡醒一轮后会生成。"); return; }
+  const segs = ["dream", "residue", "awareness"].filter((k) => state.lastDream[k]);
+  if (!segs.length) { alert("这次梦境三段都为空。"); return; }
+  currentDreamSeg = segs[0];
+  $("dreamModalDate").textContent = formatDreamDate(state.lastDream.createdAt);
+  renderDreamTabs();
+  renderDreamContent();
+  $("dreamModal").style.display = "block";
+}
+function renderDreamTabs() {
+  document.querySelectorAll(".dream-tab").forEach((b) => {
+    const seg = b.dataset.seg;
+    const has = !!(state.lastDream && state.lastDream[seg]);
+    b.classList.toggle("active", seg === currentDreamSeg);
+    b.classList.toggle("disabled", !has);
+  });
+}
+function renderDreamContent() {
+  const text = state.lastDream?.[currentDreamSeg] || "";
+  $("dreamModalContent").textContent = text || "（此段为空）";
+}
+function closeDreamModal() { $("dreamModal").style.display = "none"; }
+function drawSpark(id, data, color) {
+  const svg = $(id);
+  if (!data.length) { svg.innerHTML = ""; return; }
+  const W = 300, H = 54, n = data.length;
+  const pts = data.map((v, i) => { const x = (i / (n - 1)) * W; const y = H - v * (H - 8) - 4; return x.toFixed(1) + "," + y.toFixed(1); });
+  const d = "M" + pts.join(" L");
+  const area = d + " L" + W + "," + H + " L0," + H + " Z";
+  const col = (getComputedStyle(document.documentElement).getPropertyValue(color.replace("var(", "").replace(")", "")) || color).trim();
+  svg.innerHTML = '<path d="' + area + '" fill="' + col + '" opacity="0.10"/>' + '<path d="' + d + '" fill="none" stroke="' + col + '" stroke-width="2" stroke-linejoin="round" stroke-linecap="round"/>';
+}
+
+/* ============ API ============ */
+async function api(path, opts = {}) {
+  const headers = { "Content-Type": "application/json" };
+  if (path !== "/health") headers["Authorization"] = "Bearer " + TOKEN;
+  const res = await fetch(state.baseUrl + path, { method: opts.method || "GET", headers, body: opts.body ? JSON.stringify(opts.body) : undefined });
+  if (!res.ok) throw new Error(path + " → " + res.status);
+  const ct = res.headers.get("content-type") || "";
+  return ct.includes("application/json") ? res.json() : await res.text();
+}
+
+async function connect() {
+  state.baseUrl = $("baseUrl").value.trim().replace(/\/$/, "");
+  TOKEN = $("token").value.trim();
+  if (!state.baseUrl || !TOKEN) { alert("请填写心潮地址与 SERVICE_TOKEN。"); return; }
+  setControlsDisabled(true);
+  $("connText").textContent = "连接中…";
+  try {
+    const h = await api("/health");
+    const st = await api("/v1/state");
+    state.live = true;
+    applyState(st);
+    await refreshIntent();
+    $("connPill").classList.add("live");
+    $("connText").textContent = "已连接 · " + (h.mode === "shadow" ? "影子模式" : "活跃") + " · v" + (h.version || "?");
+    startPolling();
+  } catch (e) {
+    state.live = false;
+    $("connPill").classList.remove("live");
+    $("connText").textContent = "未连接";
+    alert("连接失败：\n" + e.message + "\n\n确认：①地址可达（含端口）②SERVICE_TOKEN 与 .env 一致 ③浏览器允许跨域（CORS）。");
+    renderDrives(); renderThoughts(); renderOverview(); renderPanels();
+  } finally {
+    setControlsDisabled(false);
+  }
+}
+
+function applyState(st) {
+  if (st && st.drives) REAL_DRIVES.forEach((d) => { if (typeof st.drives[d.key] === "number") state.drives[d.key] = st.drives[d.key]; });
+  if (typeof st?.fatigue === "number") state.fatigue = st.fatigue;
+  if (st?.consciousness) state.sleep = st.consciousness;
+  // 梦境：保留三段完整对象（dream 正文 / residue 余韵 / awareness 当下意识）
+  if (Array.isArray(st?.recentDreams) && st.recentDreams.length) {
+    const last = st.recentDreams[st.recentDreams.length - 1];
+    state.lastDream = {
+      createdAt: last.createdAt || last.at || last.settledAt || "",
+      dream: last.dream || "",
+      residue: last.residue || "",
+      awareness: last.awareness || "",
+    };
+    state.dream = last.residue || last.awareness || ""; // 兼容旧字段
+  } else { state.lastDream = null; state.dream = ""; }
+  // 念头池：真实为 { flash:[], obsessions:[] }
+  state.thoughts = [];
+  if (st?.thoughtPool && !Array.isArray(st.thoughtPool)) {
+    const tp = st.thoughtPool;
+    (tp.flash || []).forEach((t) => state.thoughts.push({ text: t.text ?? t.key ?? "", intensity: t.intensity ?? 0.5, fixed: false }));
+    (tp.obsessions || []).forEach((t) => state.thoughts.push({ text: t.text ?? t.key ?? "", intensity: t.intensity ?? 0.5, fixed: true }));
+  }
+  // 历史曲线
+  const avg = REAL_DRIVES.reduce((s, d) => s + (state.drives[d.key] ?? 0), 0) / REAL_DRIVES.length;
+  history.avg.push(avg); history.fat.push(state.fatigue);
+  if (history.avg.length > 40) { history.avg.shift(); history.fat.shift(); }
+  renderDrives(); renderThoughts(); renderOverview(); renderPanels();
+}
+
+async function refreshIntent() {
+  try {
+    const data = await api("/v1/intent");
+    const it = data?.intent;
+    state.intent = it ? (it.label || it.key || "——") : "——";
+  } catch (e) { state.intent = "——"; }
+  renderPanels();
+}
+
+let pollTimer = null;
+function startPolling() {
+  if (pollTimer) clearInterval(pollTimer);
+  pollTimer = setInterval(() => {
+    if (!state.live) return;
+    api("/v1/state").then(applyState).catch(() => {});
+    refreshIntent();
+  }, 3000);
+}
+
+function setControlsDisabled(disabled) {
+  ["settleBtn", "hbBtn", "injectBtn", "connectBtn"].forEach((id) => { const el = $(id); if (el) el.disabled = disabled; });
+}
+
+/* ============ Build config form ============ */
+function buildConfigForm() {
+  const root = $("configForm");
+  root.innerHTML = "";
+  const saved = JSON.parse(localStorage.getItem(ENV_DRAFT_KEY) || "{}");
+  CONFIG_SECTIONS.forEach((sec) => {
+    const wrap = document.createElement("div");
+    wrap.className = "param-sec";
+    wrap.innerHTML = '<div class="sec-title">' + sec.title + '</div>' + (sec.note ? '<div class="sec-note">' + sec.note + '</div>' : '');
+    sec.fields.forEach((f) => {
+      const row = document.createElement("div");
+      row.className = "param" + (f.t === "bool" ? "" : " col");
+      if (f.t === "bool") {
+        const initial = Object.prototype.hasOwnProperty.call(saved, f.k) ? saved[f.k] === "true" : Boolean(f.v);
+        row.innerHTML = '<div class="pl"><span class="label">' + f.label + '</span><span class="k">' + f.k + '</span></div>' +
+          '<label class="switch"><input type="checkbox" id="cfg_' + f.k + '"' + (initial ? " checked" : "") + ' /><span class="slot"></span><span class="knob"></span></label>';
+      } else {
+        const initial = Object.prototype.hasOwnProperty.call(saved, f.k) ? saved[f.k] : f.v;
+        const val = f.t === "number" ? ' value="' + initial + '"' : ' value="' + escapeHtml(initial) + '"' + (f.t === "text" ? ' placeholder="' + escapeHtml(f.v) + '"' : '');
+        row.innerHTML = '<div class="pl"><span class="label">' + f.label + '</span><span class="k">' + f.k + '</span></div>' +
+          '<input class="tin full" id="cfg_' + f.k + '" type="' + (f.t === "number" ? "number" : "text") + '"' + val + ' />';
+      }
+      wrap.appendChild(row);
+    });
+    root.appendChild(wrap);
+  });
+  // 自动保存草稿（每次输入都存）
+  const saveDraft = () => {
+    const out = {};
+    CONFIG_SECTIONS.forEach((sec) => sec.fields.forEach((f) => {
+      const el = $("cfg_" + f.k);
+      if (!el) return;
+      out[f.k] = el.type === "checkbox" ? (el.checked ? "true" : "false") : el.value;
+    }));
+    try { localStorage.setItem(ENV_DRAFT_KEY, JSON.stringify(out)); } catch (e) {}
+    const status = $("envStatus");
+    if (status) {
+      status.textContent = "已自动保存 · " + new Date().toLocaleTimeString();
+      status.classList.add("saved");
+    }
+  };
+  root.addEventListener("input", saveDraft);
+  root.addEventListener("change", saveDraft);
+
+  // Realtime flash-thought push toggle: persist to server via /v1/toggle/realtime-push
+  const rtToggle = $("cfg_FLASH_REALTIME_PUSH");
+  if (rtToggle) {
+    if (state.live && TOKEN) {
+      api("/v1/toggle/realtime-push").then((d) => { rtToggle.checked = !!d.enabled; }).catch(() => {});
+    }
+    rtToggle.addEventListener("change", async () => {
+      const enabled = rtToggle.checked;
+      try {
+        await api("/v1/toggle/realtime-push", { method: "POST", body: { enabled } });
+      } catch (e) {
+        alert("实时推送开关保存失败：" + e.message);
+        rtToggle.checked = !enabled;
+      }
+    });
+  }
+}
+
+function collectEnv() {
+  const lines = [];
+  CONFIG_SECTIONS.forEach((sec) => {
+    lines.push("# " + sec.title);
+    sec.fields.forEach((f) => {
+      const el = $("cfg_" + f.k);
+      let v = el.type === "checkbox" ? (el.checked ? "true" : "false") : el.value;
+      lines.push(f.k + "=" + v);
+    });
+    lines.push("");
+  });
+  return lines.join("\n");
+}
+
+/* ============ Wire ============ */
+function wire() {
+  $("themeBtn").addEventListener("click", () => {
+    const cur = document.documentElement.getAttribute("data-theme");
+    const next = cur === "light" ? "dark" : "light";
+    document.documentElement.setAttribute("data-theme", next);
+    $("iconMoon").style.display = next === "light" ? "block" : "none";
+    $("iconSun").style.display = next === "dark" ? "block" : "none";
+  });
+
+  $("injectBtn").addEventListener("click", () => { injectThought($("thoughtInput").value); });
+  $("thoughtInput").addEventListener("keydown", (e) => { if (e.key === "Enter") injectThought($("thoughtInput").value); });
+  $("clearInjectLog").addEventListener("click", () => { injectLog = []; try { localStorage.setItem(INJECT_LOG_KEY, "[]"); } catch (e) {} renderInjectLog(); });
+
+  $("settleBtn").addEventListener("click", () => { api("/v1/settle", { method: "POST", body: {} }).catch(() => {}); });
+  $("hbBtn").addEventListener("click", () => {
+    const t = $("eventInput").value.trim(); if (!t) return;
+    api("/v1/conversation-event", { method: "POST", body: { type: "user_message", text: t } }).catch(() => {});
+    $("eventInput").value = "";
+  });
+  $("connectBtn").addEventListener("click", connect);
+
+  // prompts（三段系统提示词只读查看/复制，真正生效以 model-client.js 为准）
+  $("pDream").value = INLINE_PROMPTS.pDream;
+  $("pDay").value = INLINE_PROMPTS.pDay;
+  $("pThought").value = INLINE_PROMPTS.pThought;
+  $("exportAllPrompts").addEventListener("click", () => {
+    const md = "# 心潮提示词导出\n\n## generateDream（系统提示词，内嵌 model-client.js）\n" + INLINE_PROMPTS.pDream + "\n\n## generateDaytimeEmergence\n" + INLINE_PROMPTS.pDay + "\n\n## generateThought\n" + INLINE_PROMPTS.pThought + "\n";
+    download("xinchao_prompts.md", md);
+  });
+
+  // dream detail modal
+  $("dreamCard").addEventListener("click", openDreamModal);
+  $("dreamModalClose").addEventListener("click", closeDreamModal);
+  $("dreamModalMask").addEventListener("click", closeDreamModal);
+  document.querySelectorAll(".dream-tab").forEach((b) => b.addEventListener("click", () => {
+    const seg = b.dataset.seg;
+    if (!state.lastDream?.[seg]) return;
+    currentDreamSeg = seg;
+    renderDreamTabs(); renderDreamContent();
+  }));
+  document.addEventListener("keydown", (e) => { if (e.key === "Escape") closeDreamModal(); });
+  document.querySelectorAll("[data-copy]").forEach((b) => b.addEventListener("click", () => { navigator.clipboard.writeText($(b.dataset.copy).value).then(() => { b.textContent = "已复制"; setTimeout(() => b.textContent = "复制", 1200); }); }));
+
+  // config export
+  $("exportEnv").addEventListener("click", () => download(".env", collectEnv()));
+  $("copyEnv").addEventListener("click", () => { navigator.clipboard.writeText(collectEnv()).then(() => alert("已复制到剪贴板")); });
+}
+
+function download(name, text) {
+  const blob = new Blob([text], { type: "text/plain;charset=utf-8" });
+  const a = document.createElement("a");
+  a.href = URL.createObjectURL(blob); a.download = name; a.click();
+  setTimeout(() => URL.revokeObjectURL(a.href), 2000);
+}
+
+/* ============ Boot ============ */
+const ENV_DRAFT_KEY = "xinchao_env";
+const INJECT_LOG_KEY = "xinchao_inject_log";
+const INJECT_LOG_MAX = 50;
+let injectLog = JSON.parse(localStorage.getItem(INJECT_LOG_KEY) || "[]");
+let TOKEN = "";
+buildConfigForm();
+REAL_DRIVES.forEach((d) => { const el = buildDriveRow(d); $("drives").appendChild(el); });
+populateThoughtKey();
+renderDrives(); renderThoughts(); renderOverview(); renderPanels();
+renderInjectLog();
+wire();
+</script>
+</body>
+</html>

@@ -33,7 +33,7 @@
   --s-5: 20px;
   --s-6: 24px;
 
-  --shadow-card: 0 5px 16px rgba(180,140,150,.12);
+  --shadow-card: 0 5px 16px rgba(180,140,150,.08);
   --font: -apple-system, BlinkMacSystemFont, "PingFang SC", "Microsoft YaHei", "Segoe UI", system-ui, sans-serif;
 
   /* 外观自定义分组变量（默认跟随主题；为空时回退主题，见 app.js applyStyle） */
@@ -71,7 +71,7 @@ body {
   min-height: 100dvh;
   font-family: var(--font);
   color: var(--text);
-  background: var(--bg-page, #EDE3DD);
+  background: linear-gradient(160deg, #ece6ec 0%, #dcd4dc 100%);
   display: flex;
   justify-content: center;
   align-items: stretch;
@@ -108,6 +108,9 @@ button { font-family: inherit; cursor: pointer; border: none; background: none; 
   background: transparent; color: color-mix(in srgb, var(--st-accent-color) calc(var(--st-accent-opacity)*100%), transparent);
   display: flex; align-items: center; justify-content: center;
 }
+/* 日历翻月箭头：去掉圆形底，只保留箭头符号 */
+#screen-calendar .icon-btn[data-action="cal-prev"],
+#screen-calendar .icon-btn[data-action="cal-next"] { background: transparent; }
 .icon-btn svg { width: 18px; height: 18px; }
 .avatar-mini { width: 28px; height: 28px; border-radius: 50%; background: var(--bg-soft); border: 1px solid var(--border); }
 
@@ -121,9 +124,9 @@ button { font-family: inherit; cursor: pointer; border: none; background: none; 
   text-align: center; margin-top: 14px; padding: 8px 0;
 }
 .hero-name { font-size: 16px; color: var(--text); letter-spacing: .4px; }
-.hero-number { font-size: 60px; font-weight: 500; color: var(--accent); line-height: 1.05; margin: 6px 0 2px; }
+.hero-number { font-size: 60px; font-weight: 500; color: var(--accent); line-height: 1.05; margin: 2px 0 2px; }
 .hero-sub { font-size: 13px; color: color-mix(in srgb, var(--st-muted-color) calc(var(--st-muted-opacity)*100%), transparent); font-family: var(--st-muted-font); margin-bottom: 20px; }
-.hero-avatars { display: flex; align-items: center; justify-content: center; gap: 10px; }
+.hero-avatars { display: flex; align-items: center; justify-content: center; gap: 10px; margin-top: -3px; }
 .avatar-lg, .avatar-xl, .avatar-mini {
   background-size: cover; background-position: center; background-color: var(--bg-soft);
 }
@@ -133,7 +136,9 @@ button { font-family: inherit; cursor: pointer; border: none; background: none; 
 }
 .hero-heart { width: 20px; height: 20px; color: var(--accent); }
 .hero-line { width: 22px; height: 1.5px; background: var(--text-muted); border-radius: 1px; }
-.hero-since { font-size: 13px; color: var(--text-soft); margin-top: 16px; }
+.hero-since { font-size: 16px; color: var(--text-soft); margin-top: 16px; }
+.anni-since-label { font-size: 20px; }
+.anni-since-date { font-size: 13px; color: var(--text-soft); }
 
 /* 占位卡已移除：功能迁移到 Bits of Bliss 板块 */
 
@@ -227,8 +232,8 @@ button { font-family: inherit; cursor: pointer; border: none; background: none; 
 }
 .chat-topbar { justify-content: space-between; position: relative; z-index: 1; }
 .chat-user { display: flex; align-items: center; gap: 10px; }
-.chat-ava { width: 38px; height: 38px; border-radius: 50%; background: var(--bg-soft); background-size: cover; border: 1px solid var(--border); }
-.chat-user-info { display: flex; flex-direction: column; gap: 3px; }
+.chat-ava { width: 46px; height: 46px; border-radius: 50%; background: var(--bg-soft); background-size: cover; border: 1px solid var(--border); }
+.chat-user-info { display: flex; flex-direction: column; gap: 1px; }
 .chat-user-name { font-size: 15px; font-weight: 500; color: color-mix(in srgb, var(--st-title-color) calc(var(--st-title-opacity)*100%), transparent); font-family: var(--st-title-font); }
 .chat-user-status { font-size: 12px; color: color-mix(in srgb, var(--st-muted-color) calc(var(--st-muted-opacity)*100%), transparent); font-family: var(--st-muted-font); display: flex; align-items: center; gap: 4px; }
 .chat-online-dot { width: 7px; height: 7px; border-radius: 50%; background: #7FD36A; }
@@ -262,7 +267,7 @@ body.kb-open .chat-body { padding-bottom: 66px; }
 }
 .think-toggle .chev { width: 14px; height: 14px; flex: 0 0 auto; transition: transform .2s ease; transform: rotate(90deg); }
 .bubble-wrap.think-collapsed .think-toggle .chev { transform: rotate(0); }
-.think-label { font-size: 12px; font-weight: 600; letter-spacing: .3px; color: var(--think-line, var(--accent)); }
+.think-label { font-family: 'Parisienne', cursive; font-size: 15px; font-weight: 400; letter-spacing: .3px; color: var(--think-line, var(--accent)); }
 /* 思考内容 + 回复：合成一张连着的卡（无间隙、外圆角相连），思考在上、回复在下，中间一条细分隔线 */
 .ai-msg-card { border-radius: 18px; box-shadow: var(--shadow-card); overflow: hidden; }
 .bubble-row.ai .ai-msg-card .bubble { border-radius: 0 0 18px 18px; box-shadow: none; margin: 0; }
@@ -275,7 +280,11 @@ body.kb-open .chat-body { padding-bottom: 66px; }
   border-bottom: 1px solid rgba(0,0,0,0.06);
 }
 .bubble-wrap.think-collapsed .think-content { max-height: 0; opacity: 0; padding-top: 0; padding-bottom: 0; border-bottom: none; }
-.think-text { font-size: 13px; line-height: 1.55; color: var(--think-text, var(--text-muted)); white-space: pre-wrap; word-break: break-word; border-left: 1px solid var(--think-line, var(--accent)); margin-left: 6px; padding-left: 10px; }
+.think-text { position: relative; font-size: 13px; line-height: 1.55; color: var(--think-text, var(--text-muted)); white-space: pre-wrap; word-break: break-word; margin-left: 6px; padding-left: 10px; }
+.think-text::before {
+  content: ""; position: absolute; left: 0; top: 0; bottom: 0; width: 0.5px; border-radius: 0.5px;
+  background: linear-gradient(to bottom, transparent 0%, var(--think-line, var(--accent)) 16%, var(--think-line, var(--accent)) 84%, transparent 100%);
+}
 .chat-input-bar {
   position: fixed; left: 50%; transform: translateX(-50%);
   width: calc(100% - 28px); max-width: 412px;
@@ -300,7 +309,11 @@ body.kb-open .chat-input-bar {
   flex: 1; min-width: 0; border: none; background: transparent;
   padding: 9px 4px; font-size: 15px; color: var(--text); outline: none;
 }
-.chat-input-bar input::placeholder { color: var(--text-muted); }
+.chat-input-bar input::placeholder {
+  font-family: 'Parisienne', cursive;
+  font-size: 16px;
+  color: color-mix(in srgb, var(--text-muted) 60%, transparent);
+}
 .chat-actions {
   display: flex; align-items: center; gap: 4px;
   flex-shrink: 0;
@@ -345,7 +358,7 @@ body.kb-open .chat-input-bar {
   background: transparent; padding-top: calc(env(safe-area-inset-top) + 12px);
   padding-bottom: 4px;
 }
-.moments-top .icon-btn { background: transparent; color: var(--text); box-shadow: 0 2px 6px rgba(0,0,0,.06); }
+.moments-top .icon-btn { background: transparent; color: color-mix(in srgb, var(--st-accent-color) calc(var(--st-accent-opacity)*100%), transparent); box-shadow: none; }
 .moments-top .topbar-title { display: none; }
 .moments-cover {
   aspect-ratio: 3 / 2; width: 100%;
@@ -488,7 +501,7 @@ body.kb-open .chat-input-bar {
 .wish-like {
   position: absolute; right: 8px; top: 8px;
   width: 24px; height: 24px; border-radius: 50%;
-  background: rgba(255,255,255,.85); color: var(--accent-deep);
+  background: var(--bg-soft); color: var(--accent-deep);
   display: flex; align-items: center; justify-content: center;
 }
 .wish-like svg { width: 13px; height: 13px; }
@@ -497,7 +510,8 @@ body.kb-open .chat-input-bar {
 .wish-info .wi-price { font-size: 12px; color: var(--text-muted); margin-top: 3px; }
 
 /* ===================== Setting ===================== */
-.setting-group { background-color: color-mix(in srgb, var(--st-cardbg-color, var(--bg-card)) calc(var(--st-cardbg-opacity, 1)*100%), transparent); border-radius: var(--r-lg); overflow: hidden; box-shadow: var(--shadow-card); margin-top: 6px; }
+#screen-setting .scroll { padding-top: 6px; }
+.setting-group { background-color: color-mix(in srgb, var(--st-cardbg-color, var(--bg-card)) calc(var(--st-cardbg-opacity, 1)*100%), transparent); border-radius: var(--r-lg); overflow: hidden; box-shadow: var(--shadow-card); margin-top: 0; }
 .setting-row {
   display: flex; align-items: center; justify-content: space-between;
   padding: 16px 18px; font-size: 15px; color: var(--text);
@@ -510,10 +524,9 @@ body.kb-open .chat-input-bar {
 
 /* ===================== Tab Bar ===================== */
 .tabbar {
-  position: fixed; left: 50%; transform: translateX(-50%); width: calc(100% - 32px); max-width: 408px; bottom: calc(var(--nav-bottom, 10px) + env(safe-area-inset-bottom));
-  background-color: color-mix(in srgb, var(--st-cardbg-color, var(--bg-card)) calc(var(--st-cardbg-opacity, 1)*100%), transparent); border-radius: var(--r-pill);
-  box-shadow: 0 8px 22px rgba(180,140,150,.18);
-  display: flex; justify-content: space-around; padding: 2px 6px; z-index: 20;
+  position: fixed; left: 50%; transform: translateX(-50%); width: calc(100% - 24px); max-width: 408px; bottom: calc(var(--nav-bottom, 14px) + env(safe-area-inset-bottom));
+  background-color: transparent; border-radius: 0; box-shadow: none;
+  display: flex; justify-content: space-evenly; padding: 4px 4px; z-index: 20;
   transition: none;
 }
 /* 键盘弹起时把导航栏沉到键盘后面（钉在屏幕最底，不再浮到中间挡住输入框） */
@@ -524,18 +537,20 @@ body.kb-open .tabbar {
 .tab {
   display: flex; flex-direction: column; align-items: center; gap: var(--nav-gap, 1px);
   flex: 1; min-width: 0; padding: 3px 1px;
+  transition: color .2s, transform .2s, filter .2s;
   border-radius: 40px; color: var(--text-muted);
   transition: background .2s, color .2s;
 }
 .tab-ico {
-  width: var(--nav-icon-size, 48px); height: var(--nav-icon-size, 48px); border-radius: 50%;
+  width: 26px; height: 26px; border-radius: 0;
   background: transparent; color: currentColor;
   display: flex; align-items: center; justify-content: center;
   transition: color .2s;
 }
-.tab-ico svg { width: calc(var(--nav-icon-size, 48px) - 6px); height: calc(var(--nav-icon-size, 48px) - 6px); }
+.tab-ico svg { width: 22px; height: 22px; }
 .tab-label { font-size: 10px; line-height: 1; color: currentColor; transition: color .2s; white-space: nowrap; letter-spacing: -.3px; }
-.tab.active { background: var(--bg-soft); color: color-mix(in srgb, var(--st-accent-color) calc(var(--st-accent-opacity)*100%), transparent); border-radius: 50px; }
+.tab.active { color: color-mix(in srgb, var(--st-accent-color) calc(var(--st-accent-opacity)*100%), transparent); transform: scale(1.08); }
+.tabbar .tab:active { color: var(--accent); }
 
 /* ===================== Menu Sheet ===================== */
 .menu-mask {
@@ -547,12 +562,11 @@ body.kb-open .tabbar {
   position: absolute; left: 0; top: 0; bottom: 0;
   width: 72%; max-width: 300px; min-width: 230px;
   background-color: var(--bg-card); border-radius: 0 var(--r-lg) var(--r-lg) 0;
-  box-shadow: 8px 0 30px rgba(120,90,100,.18);
   padding: calc(env(safe-area-inset-top) + 14px) 16px 24px;
   display: flex; flex-direction: column;
   transform: translateX(-100%); pointer-events: none; transition: transform .25s ease; z-index: 35;
 }
-.menu-sheet.show { transform: translateX(0); pointer-events: auto; }
+.menu-sheet.show { transform: translateX(0); pointer-events: auto; box-shadow: 8px 0 30px rgba(120,90,100,.18); }
 .menu-head { display: flex; justify-content: flex-end; padding-bottom: 18px; }
 .menu-close {
   width: 34px; height: 34px; border-radius: 50%;
@@ -569,6 +583,8 @@ body.kb-open .tabbar {
 .menu-row:active { background: var(--bg-soft); }
 .menu-ico { width: 22px; height: 22px; color: var(--accent-deep); display: flex; align-items: center; justify-content: center; flex-shrink: 0; }
 .menu-ico svg { width: 18px; height: 18px; }
+.menu-row[data-action="goto"][data-target="setting"] .menu-ico { width: 17px; height: 17px; }
+.menu-row[data-action="goto"][data-target="setting"] .menu-ico svg { width: 14px; height: 14px; }
 .menu-label { flex: 1; }
 .menu-row .chev { color: var(--text-muted); font-size: 18px; }
 
@@ -643,13 +659,10 @@ body.kb-open .tabbar {
 /* ===================== 磨砂效果（还原：纯模糊半透明，无边框无阴影） ===================== */
 body.frost-on .month-block,
 body.frost-on .stat-bigcard,
-body.frost-on .hero-card,
-body.frost-on .placeholder-card,
 body.frost-on .day-row,
 body.frost-on .wish-card,
 body.frost-on .setting-group,
 body.frost-on .modal,
-body.frost-on .tabbar,
 body.frost-on #menu-sheet,
 body.frost-on .chat-input-bar,
 body.frost-on .bubble-row.ai .bubble,
@@ -678,19 +691,16 @@ body.glassmorphism-on .day-row,
 body.glassmorphism-on .wish-card,
 body.glassmorphism-on .setting-group,
 body.glassmorphism-on .modal,
-body.glassmorphism-on .tabbar,
 body.glassmorphism-on #menu-sheet,
 body.glassmorphism-on .chat-input-bar,
 body.glassmorphism-on .bubble-row.ai .bubble,
 body.glassmorphism-on .bubble-row.ai .ai-msg-card,
 body.glassmorphism-on .chat-thinking-row .bubble.thinking {
   background-color: transparent;
-  box-shadow: none;
   backdrop-filter: none;
   -webkit-backdrop-filter: none;
-  border: 1.5px solid rgba(255,255,255, calc(var(--gm-highlight) * .55));
-  border-top-color: rgba(255,255,255, calc(var(--gm-highlight) * .95));
-  border-left-color: rgba(255,255,255, calc(var(--gm-highlight) * .95));
+  border: 1px solid rgba(255,255,255, calc(var(--gm-highlight) * .22));
+  box-shadow: inset 0 1px 0 rgba(255,255,255, calc(var(--gm-highlight) * .35));
 }
 body.glassmorphism-on .bubble-row.ai .bubble {
   background-color: var(--ai-bubble-bg, transparent);
@@ -700,12 +710,10 @@ body.glassmorphism-on .chat-thinking-row .bubble.thinking {
 }
 body.glassmorphism-on .bubble-row.me .bubble {
   background-color: transparent;
-  box-shadow: none;
   backdrop-filter: none;
   -webkit-backdrop-filter: none;
-  border: 1.5px solid rgba(255,255,255, calc(var(--gm-highlight) * .55));
-  border-top-color: rgba(255,255,255, calc(var(--gm-highlight) * .95));
-  border-left-color: rgba(255,255,255, calc(var(--gm-highlight) * .95));
+  border: 1px solid rgba(255,255,255, calc(var(--gm-highlight) * .22));
+  box-shadow: inset 0 1px 0 rgba(255,255,255, calc(var(--gm-highlight) * .35));
 }
 /* AI 思考卡独立磨砂：镜像全局磨砂，仅作用于 .ai-msg-card，不受全局开关影响 */
 body.ai-frost-on .bubble-row.ai .ai-msg-card,
@@ -721,12 +729,10 @@ body.ai-frost-on .bubble-row.ai .bubble {
 body.ai-glass-on .bubble-row.ai .ai-msg-card,
 body.ai-glass-on .bubble-row.ai .bubble {
   background-color: transparent;
-  box-shadow: none;
   backdrop-filter: none;
   -webkit-backdrop-filter: none;
-  border: 1.5px solid rgba(255,255,255, calc(var(--gm-highlight) * .55));
-  border-top-color: rgba(255,255,255, calc(var(--gm-highlight) * .95));
-  border-left-color: rgba(255,255,255, calc(var(--gm-highlight) * .95));
+  border: 1px solid rgba(255,255,255, calc(var(--gm-highlight) * .22));
+  box-shadow: inset 0 1px 0 rgba(255,255,255, calc(var(--gm-highlight) * .35));
 }
 body.ai-glass-on .bubble-row.ai .bubble {
   background-color: var(--ai-bubble-bg, transparent);
@@ -734,23 +740,45 @@ body.ai-glass-on .bubble-row.ai .bubble {
 /* 玻璃拟态：按钮与悬浮操作栏也变透明 + 边缘玻璃高光（与卡片一致） */
 body.glassmorphism-on .btn {
   background: transparent;
-  box-shadow: none;
   backdrop-filter: none;
   -webkit-backdrop-filter: none;
-  border: 1.5px solid rgba(255,255,255, calc(var(--gm-highlight) * .55));
-  border-top-color: rgba(255,255,255, calc(var(--gm-highlight) * .95));
-  border-left-color: rgba(255,255,255, calc(var(--gm-highlight) * .95));
+  border: 1px solid rgba(255,255,255, calc(var(--gm-highlight) * .22));
+  box-shadow: inset 0 1px 0 rgba(255,255,255, calc(var(--gm-highlight) * .35));
   color: var(--text);
 }
 body.glassmorphism-on .btn-primary { color: var(--accent); }
 body.glassmorphism-on .btn-ghost { color: var(--accent-deep); }
 body.glassmorphism-on .btn-danger { color: #D6455E; border-color: rgba(214,69,94, calc(var(--gm-highlight) * .6)); }
+
+/* 玻璃拟态阴影开关：默认关闭（无黑色投影）；开启后才恢复气泡 / 卡片底部黑色阴影 */
+body.gm-shadow-on .day-row,
+body.gm-shadow-on .wish-card,
+body.gm-shadow-on .setting-group,
+body.gm-shadow-on .modal,
+body.gm-shadow-on #menu-sheet,
+body.gm-shadow-on .chat-input-bar,
+body.gm-shadow-on .bubble-row.ai .bubble,
+body.gm-shadow-on .bubble-row.ai .ai-msg-card,
+body.gm-shadow-on .chat-thinking-row .bubble.thinking,
+body.gm-shadow-on .bubble-row.me .bubble,
+body.gm-shadow-on .btn {
+  box-shadow: 0 8px 30px rgba(0,0,0,.4), inset 0 1px 0 rgba(255,255,255, calc(var(--gm-highlight) * .35));
+}
 body.glassmorphism-on .modal-actions {
   background: transparent;
   backdrop-filter: none; -webkit-backdrop-filter: none;
-  border-top: 1.5px solid rgba(255,255,255, calc(var(--gm-highlight) * .5));
-  box-shadow: none;
+  border-top: 1px solid rgba(255,255,255, calc(var(--gm-highlight) * .22));
+  box-shadow: inset 0 1px 0 rgba(255,255,255, calc(var(--gm-highlight) * .35));
 }
+
+/* ===================== 自定义背景磨砂（仅磨砂背景图，不动卡片气泡） ===================== */
+body.bg-frost-on .screen.bg-frost { position: relative; }
+body.bg-frost-on .bg-frost::before {
+  content: ""; position: absolute; inset: 0; z-index: 0;
+  background-image: var(--bg-img); background-size: cover; background-position: center;
+  filter: blur(var(--bg-frost-blur, 18px)) saturate(160%); pointer-events: none;
+}
+body.bg-frost-on .screen.bg-frost > * { position: relative; z-index: 1; }
 
 /* ===================== 内联选择器（替代原生弹出的 select） ===================== */
 .inline-picker { position: relative; }
@@ -822,6 +850,92 @@ body.glassmorphism-on .modal-actions {
 
 /* ===================== AI 个人主页（仿 IG/抖音主页卡） ===================== */
 .chat-user { cursor: pointer; }
+
+/* ============================================================
+   字体定制（按页面作用域的纯 CSS 规则）
+   - 用页面容器 ID 限定作用域，覆盖默认字体
+   - 动态添加的内容复用相同 class，自动继承同款字体
+   - 注意：Great Vibes / Parisienne / Playfair Display / Cinzel
+     均为拉丁字体，遇到中文会回落系统默认字体
+   ============================================================ */
+
+/* ---------- 纪念日 ---------- */
+#screen-anniversary #rel-name-card {
+  font-family: 'Parisienne', cursive;
+  font-size: 34px; line-height: 1.1;
+}
+#screen-anniversary .hero-sub {
+  font-family: 'Parisienne', cursive;
+  font-size: 18px;
+}
+#screen-anniversary #days-together {
+  font-family: 'Cinzel', serif;
+}
+#screen-anniversary .anni-since-date {
+  font-family: 'Great Vibes', cursive;
+  font-size: 16px;
+}
+#screen-anniversary .day-date {
+  font-family: 'Cinzel', serif;
+}
+#screen-anniversary .day-num,
+#screen-anniversary .day-unit {
+  font-family: 'Cormorant Garamond', serif;
+}
+#screen-anniversary .anni-since-label {
+  font-family: 'Parisienne', cursive;
+}
+#screen-anniversary [data-tkey="anni.sectionTitle"] {
+  font-family: 'Great Vibes', cursive;
+  font-size: 22px;
+}
+#screen-anniversary .bits-script-title {
+  font-family: 'Great Vibes', cursive;
+  font-size: 22px;
+}
+
+/* ---------- 日历 ---------- */
+#screen-calendar #cal-month-en {
+  font-family: 'Pinyon Script', cursive;
+  font-size: 24px;
+}
+#screen-calendar .cal-num,
+#screen-calendar .stat-count {
+  font-family: 'Cinzel', serif;
+}
+
+/* ---------- 聊天 ---------- */
+#screen-chat #chat-user-name {
+  font-family: 'Alex Brush', cursive;
+  font-size: 22px;
+}
+#screen-chat .chat-time-sep {
+  font-family: 'Cinzel', serif;
+}
+#screen-call .call-name {
+  font-family: 'Alex Brush', cursive;
+}
+#chat-input::placeholder {
+  font-family: 'Parisienne', cursive;
+  opacity: .6;
+}
+
+/* ---------- 朋友圈（含我的朋友圈） ---------- */
+#screen-moments .moment-time,
+#screen-mymoments .moment-time {
+  font-family: 'Cinzel', serif;
+}
+
+/* ---------- 心愿单 ---------- */
+#screen-wishlist .wish-name {
+  font-family: 'Parisienne', cursive;
+  font-size: 26px;
+}
+#screen-wishlist .ws-num,
+#screen-wishlist .wi-price,
+#screen-wishlist .wish-month-label {
+  font-family: 'Cinzel', serif;
+}
 .aiprofile-top { display: flex; justify-content: space-between; align-items: center; padding: 0 10px; }
 .aiprofile-top-name { display: flex; align-items: center; gap: 4px; font-size: 17px; font-weight: 700; color: var(--text); }
 .aiprofile-top-name svg { width: 16px; height: 16px; color: var(--text-muted); }
@@ -857,16 +971,16 @@ body.glassmorphism-on .modal-actions {
 .aiprofile-top-actions .icon-btn:last-child { width: 36px; height: 36px; }
 /* 聊天页内菜单面板（不弹新页） */
 .chat-more-panel { position: absolute; top: 56px; right: 12px; left: auto; width: 200px; z-index: 9;
-  background: color-mix(in srgb, var(--chat-panel-bg, #ffffff) calc((var(--chat-panel-alpha, 90)) * 1%), transparent);
+  background: color-mix(in srgb, var(--bg-card) calc((var(--chat-panel-alpha, 90)) * 1%), transparent);
   -webkit-backdrop-filter: blur(18px) saturate(160%); backdrop-filter: blur(18px) saturate(160%);
-  border: 1px solid rgba(255,255,255,.28); border-radius: 16px; box-shadow: 0 12px 34px rgba(120,80,100,.22);
+  border: 1px solid var(--border); border-radius: 16px; box-shadow: 0 12px 34px rgba(120,80,100,.22);
   padding: 8px; display: none; max-height: 70%; overflow-y: auto; }
 .chat-more-panel.show { display: block; animation: cmpIn .2s ease; }
 /* 聊天页：点 AI 名字/头像 弹出的下拉（仿右上角菜单，不弹新页） */
 .chat-user-menu { position: absolute; top: 56px; left: 12px; right: auto; width: 168px; z-index: 9;
-  background: color-mix(in srgb, var(--chat-panel-bg, #ffffff) calc((var(--chat-panel-alpha, 90)) * 1%), transparent);
+  background: color-mix(in srgb, var(--bg-card) calc((var(--chat-panel-alpha, 90)) * 1%), transparent);
   -webkit-backdrop-filter: blur(18px) saturate(160%); backdrop-filter: blur(18px) saturate(160%);
-  border: 1px solid rgba(255,255,255,.28); border-radius: 16px; box-shadow: 0 12px 34px rgba(120,80,100,.22);
+  border: 1px solid var(--border); border-radius: 16px; box-shadow: 0 12px 34px rgba(120,80,100,.22);
   padding: 8px; display: none; }
 .chat-user-menu.show { display: block; animation: cmpIn .2s ease; }
 .chat-user-menu .cu-row { display: flex; align-items: center; gap: 10px; padding: 11px 10px; border-radius: 10px; cursor: pointer; font-size: 14px; color: var(--text); }
@@ -982,23 +1096,6 @@ body.glassmorphism-on .modal-actions {
 .call-btn.end { background: #ff4d4f; }
 .call-btn.end:active { background: #ff7875; }
 .call-btn.on { background: rgba(255,255,255,.35); }
-
-/* ===================== 装饰字体（离线内嵌，fonts/local-fonts.css） ===================== */
-#screen-anniversary #rel-name-card { font-family: 'Parisienne', cursive; font-size: 34px; line-height: 1.1; }
-#screen-anniversary .hero-sub { font-family: 'Parisienne', cursive; font-size: 18px; }
-#screen-anniversary #days-together { font-family: 'Cinzel', serif; }
-#screen-anniversary .anni-since-date { font-family: 'Great Vibes', cursive; font-size: 16px; }
-#screen-anniversary .day-date { font-family: 'Cinzel', serif; }
-#screen-anniversary .day-num,
-#screen-anniversary .day-unit { font-family: 'Cormorant Garamond', serif; }
-#screen-anniversary .anni-since-label { font-family: 'Parisienne', cursive; }
-#screen-anniversary [data-tkey="anni.sectionTitle"] { font-family: 'Great Vibes', cursive; font-size: 22px; }
-#screen-anniversary .bits-script-title { font-family: 'Great Vibes', cursive; font-size: 22px; }
-#screen-calendar #cal-month-en { font-family: 'Pinyon Script', cursive; font-size: 24px; }
-#screen-chat #chat-user-name { font-family: 'Alex Brush', cursive; font-size: 22px; }
-#screen-call .call-name { font-family: 'Alex Brush', cursive; }
-#screen-wishlist .wish-name { font-family: 'Parisienne', cursive; font-size: 26px; }
-#chat-input::placeholder { font-family: 'Parisienne', cursive; opacity: .6; }
 
 /* ===================== 哥哥的房间 (Ke's Room) ===================== */
 #screen-kesroom {
