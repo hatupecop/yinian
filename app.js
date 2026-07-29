@@ -486,7 +486,7 @@ function pickVideo(cb) {
   inp.click();
 }
 /* 可复用媒体选择器：正方形多图/视频，空卡中心+，自定义来源菜单（拍照/相册/文件），每张右上×删除 */
-let _srcSheet = null, _workPicker = null;
+let _srcSheet = null, _srcCb = null, _srcAccept = null, _srcMulti = false, _workPicker = null;
 function openFilePicker(accept, capture, multi, cb) {
   const inp = document.createElement('input');
   inp.type = 'file'; inp.accept = accept; if (multi) inp.multiple = true; if (capture) inp.capture = capture;
@@ -517,6 +517,8 @@ function processMediaFiles(files, accept, cb) {
   });
 }
 function showSourceSheet(accept, multi, cb) {
+  // 每次调用都刷新当前回调/参数，避免闭包只捕获第一次的值（会导致后续加图全部路由到第一个选择器而“加不进去”）
+  _srcAccept = accept; _srcMulti = multi; _srcCb = cb;
   if (!_srcSheet) {
     const mask = document.createElement('div'); mask.className = 'src-sheet-mask';
     const sheet = document.createElement('div'); sheet.className = 'src-sheet';
@@ -528,7 +530,7 @@ function showSourceSheet(accept, multi, cb) {
       const src = e.target.dataset.src; if (!src || src === 'cancel') return hideSourceSheet();
       hideSourceSheet();
       const cap = src === 'camera' ? 'environment' : '';
-      openFilePicker(accept, cap, multi, files => cb(files));
+      openFilePicker(_srcAccept, cap, _srcMulti, files => _srcCb && _srcCb(files));
     });
   }
   _srcSheet.mask.classList.add('show'); _srcSheet.sheet.classList.add('show');
