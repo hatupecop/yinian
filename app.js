@@ -485,6 +485,83 @@ function pickVideo(cb) {
   };
   inp.click();
 }
+/* 可复用媒体选择器：正方形多图/视频，空卡中心+，自定义来源菜单（拍照/相册/文件），每张右上×删除 */
+let _srcSheet = null, _workPicker = null;
+function openFilePicker(accept, capture, multi, cb) {
+  const inp = document.createElement('input');
+  inp.type = 'file'; inp.accept = accept; if (multi) inp.multiple = true; if (capture) inp.capture = capture;
+  inp.onchange = () => { const files = Array.from(inp.files || []); if (!files.length) return; processMediaFiles(files, accept, cb); };
+  inp.click();
+}
+function processMediaFiles(files, accept, cb) {
+  const isVideo = accept.indexOf('video') >= 0;
+  const out = []; let pending = files.length;
+  const done = () => { if (--pending === 0) cb(out); };
+  files.forEach(f => {
+    const r = new FileReader();
+    r.onload = () => {
+      if (!isVideo && f.type.indexOf('image') === 0) {
+        const img = new Image();
+        img.onload = () => {
+          const scale = Math.min(1, 1024 / Math.max(img.width, img.height));
+          const w = Math.max(1, Math.round(img.width * scale)), h = Math.max(1, Math.round(img.height * scale));
+          const cv = document.createElement('canvas'); cv.width = w; cv.height = h;
+          cv.getContext('2d').drawImage(img, 0, 0, w, h);
+          out.push({ type: 'image', src: cv.toDataURL('image/jpeg', 0.82) }); done();
+        };
+        img.onerror = () => { out.push({ type: 'image', src: r.result }); done(); };
+        img.src = r.result;
+      } else { out.push({ type: isVideo ? 'video' : 'image', src: r.result }); done(); }
+    };
+    r.readAsDataURL(f);
+  });
+}
+function showSourceSheet(accept, multi, cb) {
+  if (!_srcSheet) {
+    const mask = document.createElement('div'); mask.className = 'src-sheet-mask';
+    const sheet = document.createElement('div'); sheet.className = 'src-sheet';
+    sheet.innerHTML = '<button data-src="camera">拍照</button><button data-src="album">从相册选择</button><button data-src="file">从文件选择</button><button class="src-cancel" data-src="cancel">取消</button>';
+    document.body.appendChild(mask); document.body.appendChild(sheet);
+    _srcSheet = { mask, sheet };
+    mask.addEventListener('click', hideSourceSheet);
+    sheet.addEventListener('click', e => {
+      const src = e.target.dataset.src; if (!src || src === 'cancel') return hideSourceSheet();
+      hideSourceSheet();
+      const cap = src === 'camera' ? 'environment' : '';
+      openFilePicker(accept, cap, multi, files => cb(files));
+    });
+  }
+  _srcSheet.mask.classList.add('show'); _srcSheet.sheet.classList.add('show');
+}
+function hideSourceSheet() { if (_srcSheet) { _srcSheet.mask.classList.remove('show'); _srcSheet.sheet.classList.remove('show'); } }
+function mountMediaPicker(host, opts) {
+  opts = opts || {};
+  let values = (opts.values || []).slice();
+  const accept = opts.accept || 'image';
+  const multi = !!opts.multi;
+  function render() {
+    host.innerHTML = '';
+    const grid = document.createElement('div'); grid.className = 'media-grid';
+    values.forEach((v, i) => {
+      const t = document.createElement('div'); t.className = 'media-thumb'; t.dataset.type = v.type;
+      if (v.type === 'video') { const vid = document.createElement('video'); vid.src = v.src; vid.muted = true; vid.style.cssText = 'width:100%;height:100%;object-fit:cover'; t.appendChild(vid); }
+      else t.style.backgroundImage = 'url(' + v.src + ')';
+      const del = document.createElement('button'); del.className = 'media-del'; del.type = 'button'; del.textContent = '✕';
+      del.addEventListener('click', e => { e.stopPropagation(); values.splice(i, 1); render(); opts.onChange && opts.onChange(values); });
+      t.appendChild(del); grid.appendChild(t);
+    });
+    if (multi || values.length === 0) {
+      const add = document.createElement('div'); add.className = 'media-add';
+      add.innerHTML = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 5v14M5 12h14"/></svg>';
+      add.addEventListener('click', () => showSourceSheet(accept, multi, files => { values = values.concat(files); render(); opts.onChange && opts.onChange(values); }));
+      grid.appendChild(add);
+    }
+    host.appendChild(grid);
+  }
+  render();
+  return { get: () => values, set: v => { values = (v || []).slice(); render(); } };
+}
+
 function removeWhiteBackground(dataUrl, threshold) {
   threshold = threshold || 240;
   return new Promise((resolve) => {
@@ -738,61 +815,42 @@ function renderBits() {
       </div>
       <div class="bit-chev">›</div>
     </div>`).join('');
-  $all('.bit-row', list).forEach(row => row.addEventListener('click', () => openBit(row.dataset.bit)));
+  $all('.bit-row', list).forEach(row => row.addEventListener('click', () => showBitDetail(row.dataset.bit)));
 }
-let openBitId = null, bitCardWired = false;
-function ensureBitCardWired() {
-  if (bitCardWired) return; bitCardWired = true;
-  const ov = $('#bitCardOverlay');
-  const close = () => ov.classList.add('bit-hidden');
-  $('#bitExpClose').addEventListener('click', close);
-  ov.addEventListener('click', e => { if (e.target === ov) close(); });
-  $('#bitExpEdit').addEventListener('click', () => { const id = openBitId; close(); if (id) editBit(id); });
-  $('#bitExpDel').addEventListener('click', () => {
-    const id = openBitId;
-    if (!id) return;
-    data.bitsOfBliss = (data.bitsOfBliss || []).filter(x => x.id !== id);
-    save(); renderBits(); close(); toast('已删除');
-  });
-}
-function openBit(id) {
+let currentBitId = null;
+function showBitDetail(id) {
   const b = (data.bitsOfBliss || []).find(x => x.id === id);
-  if (!b) return addBit();
-  ensureBitCardWired();
-  openBitId = id;
-  $('#bitExpTitle').textContent = b.title;
-  $('#bitExpDate').textContent = fmtTime(b.time);
-  $('#bitExpBody').textContent = b.content || '（没有具体内容）';
-  const img = $('#bitExpImg');
-  if (b.img) { img.src = b.img; img.classList.add('has-img'); } else { img.removeAttribute('src'); img.classList.remove('has-img'); }
-  $('#bitCardOverlay').classList.remove('bit-hidden');
+  if (!b) return;
+  currentBitId = id;
+  $('#bitDTitle').textContent = b.title;
+  $('#bitDDate').textContent = fmtTime(b.time);
+  $('#bitDBody').textContent = b.content || '（没有具体内容）';
+  const imgs = (b.images && b.images.length) ? b.images : (b.img ? [b.img] : []);
+  const wrap = $('#bitDImgs'); wrap.innerHTML = '';
+  wrap.classList.toggle('split', imgs.length > 1);
+  imgs.forEach(s => { const im = document.createElement('img'); im.src = s; wrap.appendChild(im); });
+  $all('.screen').forEach(s => s.classList.toggle('active', s.id === 'screen-bit'));
 }
 function editBit(id) {
   const b = (data.bitsOfBliss || []).find(x => x.id === id);
   if (!b) return addBit();
+  const initImgs = (b.images && b.images.length) ? b.images : (b.img ? [b.img] : []);
   openModal(`
     <h3>编辑幸福瞬间</h3>
     <div class="field"><label>标题</label><input id="b-title" value="${esc(b.title)}" /></div>
     <div class="field"><label>内容</label><textarea id="b-content">${esc(b.content || '')}</textarea></div>
-    <div class="field"><label>图片（可选）</label>
-      <div class="img-pick">
-        <input type="file" id="b-img" accept="image/*" hidden />
-        <button type="button" class="img-pick-btn" id="b-img-btn">从相册添加图片</button>
-        <img id="b-img-prev" class="img-prev" alt="" />
-      </div>
-    </div>
+    <div class="field"><label>图片（可选，可多选）</label><div id="b-imgs"></div></div>
     <div class="modal-actions">
       <button class="btn btn-ghost" id="b-cancel">取消</button>
       <button class="btn btn-primary" id="b-save">保存</button>
     </div>`);
-  const prev = $('#b-img-prev');
-  if (b.img) { prev.src = b.img; prev.dataset.b64 = b.img; prev.classList.add('has-img'); }
-  wireImgPick('#b-img', '#b-img-btn', '#b-img-prev');
+  const picker = mountMediaPicker($('#b-imgs'), { accept: 'image', multi: true, values: initImgs.map(s => ({ type: 'image', src: s })), onChange: v => { b.images = v.map(x => x.src); } });
   $('#b-cancel').addEventListener('click', closeModal);
   $('#b-save').addEventListener('click', () => {
     b.title = $('#b-title').value.trim() || '未命名';
     b.content = $('#b-content').value.trim();
-    b.img = $('#b-img-prev').dataset.b64 || '';
+    b.images = picker.get().map(x => x.src);
+    delete b.img;
     if (!b.time) b.time = Date.now();
     save(); renderBits(); closeModal(); toast('已保存');
   });
@@ -802,25 +860,19 @@ function addBit() {
     <h3>记录幸福瞬间</h3>
     <div class="field"><label>标题</label><input id="b-title" placeholder="例如：今晚的晚霞" /></div>
     <div class="field"><label>内容</label><textarea id="b-content" placeholder="写下来这一刻……"></textarea></div>
-    <div class="field"><label>图片（可选）</label>
-      <div class="img-pick">
-        <input type="file" id="b-img" accept="image/*" hidden />
-        <button type="button" class="img-pick-btn" id="b-img-btn">从相册添加图片</button>
-        <img id="b-img-prev" class="img-prev" alt="" />
-      </div>
-    </div>
+    <div class="field"><label>图片（可选，可多选）</label><div id="b-imgs"></div></div>
     <div class="modal-actions">
       <button class="btn btn-ghost" id="b-cancel">取消</button>
       <button class="btn btn-primary" id="b-save">保存</button>
     </div>`);
-  wireImgPick('#b-img', '#b-img-btn', '#b-img-prev');
+  const picker = mountMediaPicker($('#b-imgs'), { accept: 'image', multi: true, values: [] });
   $('#b-cancel').addEventListener('click', closeModal);
   $('#b-save').addEventListener('click', () => {
     const title = $('#b-title').value.trim() || '未命名';
     const content = $('#b-content').value.trim();
-    const img = $('#b-img-prev').dataset.b64 || '';
+    const images = picker.get().map(x => x.src);
     data.bitsOfBliss = data.bitsOfBliss || [];
-    data.bitsOfBliss.unshift({ id: uid(), title, content, time: Date.now(), img });
+    data.bitsOfBliss.unshift({ id: uid(), title, content, time: Date.now(), images });
     save(); renderBits(); closeModal(); toast('已记录');
   });
 }
@@ -1262,42 +1314,27 @@ function addMoment() {
   openModal(`
     <h3>发一条动态</h3>
     <div class="field"><label>内容</label><textarea id="mm-text" placeholder="此刻的想法…"></textarea></div>
-    <div class="field"><label>图片（可选，可多选）</label>
-      <div class="picker-row"><div class="picker-prev picker-prev-wide" id="mm-imgs-prev"></div><button class="btn btn-ghost" id="mm-imgs-btn">从相册选择</button></div>
-    </div>
-    <div class="field"><label>视频（可选，与图片二选一）</label>
-      <div class="picker-row"><div class="picker-prev picker-prev-wide" id="mm-video-prev"></div><button class="btn btn-ghost" id="mm-video-btn">从相册选择视频</button></div>
-    </div>
-    <div class="field"><label>视频封面（可选，选了视频可设）</label>
-      <div class="picker-row"><div class="picker-prev picker-prev-wide" id="mm-cover-prev"></div><button class="btn btn-ghost" id="mm-cover-btn">选择封面</button></div>
-    </div>
+    <div class="field"><label>图片（可选，可多选）</label><div id="mm-imgs"></div></div>
+    <div class="field"><label>视频（可选，与图片二选一）</label><div id="mm-video"></div></div>
+    <div class="field"><label>视频封面（可选，选了视频可设）</label><div id="mm-cover"></div></div>
     <div class="field switch-row"><span>去除白底（白底素材自动抠图）</span><div class="switch" id="mm-white"></div></div>
     <div class="modal-actions">
       <button class="btn btn-ghost" id="mm-cancel">取消</button>
       <button class="btn btn-primary" id="mm-save">发布</button>
-    </div>
-  `);
+    </div>`);
   let imgs = [], video = '', videoCover = '';
+  const imgPicker = mountMediaPicker($('#mm-imgs'), { accept: 'image', multi: true, values: [] });
+  const vidPicker = mountMediaPicker($('#mm-video'), { accept: 'video', multi: false, values: [] });
+  const coverPicker = mountMediaPicker($('#mm-cover'), { accept: 'image', multi: false, values: [] });
   const mmWhite = () => $('#mm-white') && $('#mm-white').classList.contains('on');
   $('#mm-white').addEventListener('click', () => $('#mm-white').classList.toggle('on'));
-  $('#mm-imgs-btn').addEventListener('click', () => pickImages(1024, async arr => {
-    const out = mmWhite() ? await Promise.all(arr.map(removeWhiteBackground)) : arr;
-    imgs = imgs.concat(out);
-    $('#mm-imgs-prev').style.backgroundImage = imgs.length ? 'url(' + imgs[imgs.length - 1] + ')' : '';
-  }, true));
-  $('#mm-video-btn').addEventListener('click', () => pickVideo(d => {
-    video = d;
-    $('#mm-video-prev').style.backgroundImage = videoCover ? 'url(' + videoCover + ')' : '';
-    $('#mm-video-prev').textContent = videoCover ? '' : '已选视频';
-  }));
-  $('#mm-cover-btn').addEventListener('click', () => pickImage(1024, d => {
-    videoCover = d;
-    $('#mm-cover-prev').style.backgroundImage = 'url(' + d + ')';
-    if (video) { $('#mm-video-prev').style.backgroundImage = 'url(' + d + ')'; $('#mm-video-prev').textContent = ''; }
-  }));
   $('#mm-cancel').addEventListener('click', closeModal);
-  $('#mm-save').addEventListener('click', () => {
+  $('#mm-save').addEventListener('click', async () => {
     const text = $('#mm-text').value.trim();
+    imgs = imgPicker.get().map(x => x.src);
+    video = vidPicker.get().length ? vidPicker.get()[0].src : '';
+    videoCover = coverPicker.get().length ? coverPicker.get()[0].src : '';
+    if (mmWhite() && imgs.length) imgs = await Promise.all(imgs.map(removeWhiteBackground));
     if (!text && !imgs.length && !video) return toast('写点什么、加张图或视频吧');
     const mo = { id: uid(), author: 'me', text: text || '', images: imgs, video: video || '', videoCover: videoCover || '', time: Date.now(), likes: [], comments: [] };
     data.moments.push(mo);
@@ -3068,16 +3105,17 @@ function workLikeReply(ci, ri, e) {
 }
 /* 发作品 */
 function openWorkComposer() {
-  workPicks = []; workCover = ''; renderWorkPicks(); $('#workCaption').value = '';
+  workPicks = []; workCover = ''; $('#workCaption').value = '';
   const cp = $('#workCoverPrev'); if (cp) cp.style.backgroundImage = '';
   $('#workComposer').classList.add('show');
-  if (!_workFileBound) {
-    const f = document.getElementById('workFile');
-    if (f) { f.addEventListener('change', workFileChange); _workFileBound = true; }
+  if (!_workPicker) {
+    _workPicker = mountMediaPicker($('#workPickGrid'), { accept: 'image,video', multi: true, values: [], onChange: v => { workPicks = v; } });
     const cb = document.getElementById('workCoverBtn');
     if (cb) cb.addEventListener('click', () => pickImage(1024, d => {
       workCover = d; const p = $('#workCoverPrev'); if (p) p.style.backgroundImage = 'url(' + d + ')';
     }));
+  } else {
+    _workPicker.set([]);
   }
 }
 function closeWorkComposer() { $('#workComposer').classList.remove('show'); $('#workSheet').classList.remove('show'); }
@@ -3179,6 +3217,9 @@ document.addEventListener('click', e => {
   const act = a.dataset.action;
   if (act === 'add-day') addDay();
   else if (act === 'add-bit') addBit();
+  else if (act === 'bit-back') switchTab('anniversary');
+  else if (act === 'bit-edit') { const id = currentBitId; switchTab('anniversary'); editBit(id); }
+  else if (act === 'bit-del') { const id = currentBitId; if (id) { data.bitsOfBliss = (data.bitsOfBliss || []).filter(x => x.id !== id); save(); renderBits(); } switchTab('anniversary'); toast('已删除'); }
   else if (act === 'home-mod') openHomeMod(a.dataset.mod);
   else if (act === 'cal-prev') { currentCalendarMonth.setMonth(currentCalendarMonth.getMonth() - 1); renderCalendar(); }
   else if (act === 'cal-next') { currentCalendarMonth.setMonth(currentCalendarMonth.getMonth() + 1); renderCalendar(); }

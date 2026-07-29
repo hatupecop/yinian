@@ -6,7 +6,7 @@
 <meta name="theme-color" content="#FBF1EC" />
 <title>小窝</title>
 <link rel="manifest" href="manifest.json" />
-<link rel="stylesheet" href="styles.css?v=20260730a" />
+<link rel="stylesheet" href="styles.css?v=20260730c" />
 <link rel="stylesheet" href="fonts/local-fonts.css" />
 </head>
 <body>
@@ -499,23 +499,31 @@
     </div>
   </section>
 
-  <!-- ============ Menu Sheet ============ -->
-    <div id="bitCardOverlay" class="bit-hidden bit-exp-overlay">
-      <div id="bitExpCard" class="bit-exp-card">
-        <button id="bitExpClose" class="bit-exp-close" aria-label="关闭">
-          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M6 18L18 6M6 6l12 12"/></svg>
+  <!-- ============ Bits 独立详情页 ============ -->
+  <section class="screen" id="screen-bit">
+    <header class="topbar bit-detail-top">
+      <button class="back-btn" data-action="bit-back" aria-label="返回">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M15 18l-6-6 6-6"/></svg>
+      </button>
+      <div style="margin-left:auto;display:flex;gap:6px;">
+        <button class="back-btn" data-action="bit-edit" aria-label="编辑">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 20h9M16.5 3.5a2.12 2.12 0 0 1 3 3L7 19l-4 1 1-4Z"/></svg>
         </button>
-        <h2 id="bitExpTitle" class="bit-exp-title"></h2>
-        <p id="bitExpDate" class="bit-exp-date"></p>
-        <div class="bit-exp-divider"></div>
-        <p id="bitExpBody" class="bit-exp-body"></p>
-        <img id="bitExpImg" class="bit-exp-img" alt="" />
-        <div class="bit-exp-actions">
-          <button class="btn btn-ghost" id="bitExpEdit">编辑</button>
-          <button class="btn btn-danger" id="bitExpDel">删除</button>
-        </div>
+        <button class="back-btn" data-action="bit-del" aria-label="删除">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 6h18M8 6V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2m3 0v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6"/></svg>
+        </button>
       </div>
+    </header>
+    <div class="scroll bit-detail-scroll">
+      <h2 id="bitDTitle" class="bit-detail-title"></h2>
+      <p id="bitDDate" class="bit-detail-date"></p>
+      <div class="bit-detail-divider"></div>
+      <p id="bitDBody" class="bit-detail-body"></p>
+      <div id="bitDImgs" class="bit-detail-imgs"></div>
     </div>
+  </section>
+
+  <!-- ============ Menu Sheet ============ -->
   <div class="menu-mask" id="menu-mask"></div>
   <div class="menu-sheet" id="menu-sheet">
     <div class="menu-head">
@@ -551,6 +559,6 @@
   <div class="toast" id="toast"></div>
 </div>
 
-<script src="app.js?v=20260728a"></script>
+<script src="app.js?v=20260730c"></script>
 </body>
 </html>
