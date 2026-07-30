@@ -841,13 +841,13 @@ function showBitDetail(id) {
 }
 function initBitDeck() {
   const wrap = document.getElementById('bitDImgs');
+  if (!wrap) return;
   const deck = wrap.querySelector('.bit-deck');
   if (!deck) return;
   const cards = [...deck.querySelectorAll('.bit-deck-card')];
   const dots = [...wrap.querySelectorAll('.bit-deck-dots i')];
-  let lastApplied = 0;        // 已生效的高亮卡
-  let pending = -1, pendingN = 0; // 候选连击计数
-  let ticking = false, settleT = null;
+  let lastApplied = -1;
+  let settleT = null;
   function computeBest() {
     const mid = deck.scrollLeft + deck.clientWidth / 2;
     let best = 0, bd = 1e9;
@@ -861,30 +861,22 @@ function initBitDeck() {
   function commit(best) {
     if (best === lastApplied) return;
     lastApplied = best;
-    cards.forEach((c, i) => c.classList.toggle('on', i === best));
+    cards.forEach((c, i) => {
+      c.classList.toggle('on', i === best);
+      c.classList.toggle('near', Math.abs(i - best) === 1);
+    });
     dots.forEach((d, i) => d.classList.toggle('on', i === best));
   }
-  function setCenter() {
-    const best = computeBest();
-    // 连击守卫：边界处 A/B 来回单帧抖动永远凑不够 2 帧，不提交 → 不闪；
-    // 一旦某张连续 2 帧都胜出（说明已明显偏向一侧），才切换。
-    if (best === pending) pendingN++; else { pending = best; pendingN = 1; }
-    if (pendingN >= 2) commit(pending);
-  }
+  // 只在滚动停下后判定居中卡：滚动过程中绝不切换 .on/.near，
+  // 杜绝逐帧来回跳导致的缩放/透明度闪烁（安卓 WebView 尤其明显）。
   function onScroll() {
-    if (!ticking) {
-      ticking = true;
-      requestAnimationFrame(() => { ticking = false; setCenter(); });
-    }
-    // 滚动彻底停止后再校正一次：直接定最终卡，保证落点正确且只提交一次 → 不闪
     clearTimeout(settleT);
-    settleT = setTimeout(() => commit(computeBest()), 140);
+    settleT = setTimeout(() => commit(computeBest()), 120);
   }
   deck.addEventListener('scroll', onScroll, { passive: true });
-  if ('onscrollend' in deck) deck.addEventListener('scrollend', () => commit(computeBest()));
+  if ('onscrollend' in deck) deck.addEventListener('scrollend', () => { clearTimeout(settleT); commit(computeBest()); });
   requestAnimationFrame(() => {
     deck.scrollLeft = cards[0].offsetLeft - (deck.clientWidth - cards[0].offsetWidth) / 2;
-    lastApplied = 0; pending = 0; pendingN = 2;
     commit(0);
   });
 }
