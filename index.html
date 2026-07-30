@@ -6,7 +6,7 @@
 <meta name="theme-color" content="#FBF1EC" />
 <title>小窝</title>
 <link rel="manifest" href="manifest.json" />
-<link rel="stylesheet" href="styles.css?v=20260730g" />
+<link rel="stylesheet" href="styles.css?v=20260730h" />
 <link rel="stylesheet" href="fonts/local-fonts.css" />
 </head>
 <body>
@@ -105,19 +105,19 @@
 
   <!-- ============ Moments ============ -->
   <section class="screen" id="screen-moments">
-    <div class="moments-cover" id="moments-cover">
-      <button class="icon-btn moments-fab" data-action="add-moment" aria-label="发帖">
-        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"><path d="M12 5v14M5 12h14"/></svg>
-      </button>
-      <div class="moments-profile">
-        <div class="moments-info">
-          <div class="moments-profile-name" id="moments-profile-name" data-eid="moments.profileName">: Claire</div>
-          <div class="moments-sign" id="moments-sign"></div>
-        </div>
-        <div class="avatar-xl" id="moments-avatar"></div>
-      </div>
-    </div>
     <div class="scroll moments-scroll">
+      <div class="moments-cover" id="moments-cover">
+        <button class="icon-btn moments-fab" data-action="add-moment" aria-label="发帖">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"><path d="M12 5v14M5 12h14"/></svg>
+        </button>
+        <div class="moments-profile">
+          <div class="moments-info">
+            <div class="moments-profile-name" id="moments-profile-name" data-eid="moments.profileName">: Claire</div>
+            <div class="moments-sign" id="moments-sign"></div>
+          </div>
+          <div class="avatar-xl" id="moments-avatar"></div>
+        </div>
+      </div>
       <div class="ptr-hint" id="moments-ptr" data-tkey="moments.ptr">下拉刷新</div>
       <div id="moments-feed" class="moments-feed"></div>
     </div>
@@ -125,16 +125,16 @@
 
   <!-- ============ My Moments (fullscreen) ============ -->
   <section class="screen" id="screen-mymoments">
-    <div class="moments-cover" id="mymoments-cover">
-      <button class="icon-btn moments-fab moments-fab-left" data-action="back-mymoments" aria-label="返回">
-        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M15 18l-6-6 6-6"/></svg>
-      </button>
-      <button class="icon-btn moments-fab" data-action="add-moment" aria-label="发帖">
-        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"><path d="M12 5v14M5 12h14"/></svg>
-      </button>
-      <div class="mymoments-name" id="mymoments-name"></div>
-    </div>
     <div class="scroll moments-scroll">
+      <div class="moments-cover" id="mymoments-cover">
+        <button class="icon-btn moments-fab moments-fab-left" data-action="back-mymoments" aria-label="返回">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M15 18l-6-6 6-6"/></svg>
+        </button>
+        <button class="icon-btn moments-fab" data-action="add-moment" aria-label="发帖">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"><path d="M12 5v14M5 12h14"/></svg>
+        </button>
+        <div class="mymoments-name" id="mymoments-name"></div>
+      </div>
       <div class="ptr-hint" id="mymoments-ptr" data-tkey="moments.ptr">下拉刷新</div>
       <div id="mymoments-feed" class="moments-feed"></div>
     </div>

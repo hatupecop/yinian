@@ -995,7 +995,7 @@ function renderCalendar() {
     }).join('');
     cells += `<div class="cal-cell${isToday}${isPeriod}" data-day="${day}"><span class="cal-num">${day}</span><div class="cal-marks">${marks}</div></div>`;
   }
-  const dows = ['日','一','二','三','四','五','六'].map(d => `<div class="cal-dow">${d}</div>`).join('');
+  const dows = ['SUN','MON','TUE','WED','THU','FRI','SAT'].map(d => `<div class="cal-dow">${d}</div>`).join('');
   $('#calendar-months').innerHTML = `<div class="month-block">
     <div class="cal-grid">${dows}${cells}</div>
   </div>`;
